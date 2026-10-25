@@ -2,20 +2,17 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Flame,
-  ShieldAlert,
   Radio,
-  Target,
   ChevronRight,
-  Filter,
   X,
   MapPin,
   ExternalLink,
   Copy,
   CheckCircle,
   Crosshair,
-  FileText,
   SlidersHorizontal,
-  ChevronLeft
+  ChevronLeft,
+  Sparkles
 } from 'lucide-react';
 import {
   IntelHotspot,
@@ -125,100 +122,76 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   const isConflict = selectedFeature && 'parties' in selectedFeature;
   const isStandardFeature = selectedFeature && 'layer' in selectedFeature;
 
+  const tabs: { id: 'feed' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'; label: string; count?: number }[] = [
+    { id: 'feed', label: 'Feed', count: filteredNews.length },
+    { id: 'hotspots', label: 'Hotspots', count: filteredHotspots.length },
+    { id: 'conflicts', label: 'Wars', count: filteredConflicts.length },
+    { id: 'infra', label: 'Assets', count: filteredInfra.length },
+    { id: 'dossier', label: 'Dossier' }
+  ];
+
   return (
-    <aside className="w-full sm:w-[420px] lg:w-[460px] h-full flex flex-col shrink-0 border-l border-[#38bdf8]/20 bg-[#0c1017]/95 z-20 backdrop-blur-xl shadow-2xl select-none">
-      {/* Top Header of Right Panel */}
-      <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-        <div className="flex items-center gap-2">
-          <Radio size={16} className="text-sky-400 animate-pulse" />
-          <h2 className="text-xs font-mono font-bold text-slate-100 uppercase tracking-wider">
+    <aside className="w-full sm:w-[400px] lg:w-[440px] h-full flex flex-col shrink-0 border-l border-slate-800/80 bg-[#080b12]/95 z-20 backdrop-blur-2xl shadow-2xl select-none">
+      {/* 1. Header Desk Bar */}
+      <div className="p-3.5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/40">
+        <div className="flex items-center gap-2.5">
+          <Radio size={15} className="text-sky-400" />
+          <h2 className="text-xs font-mono font-bold text-slate-100 uppercase tracking-widest">
             INTELLIGENCE DESK
           </h2>
         </div>
         <button
           onClick={onClose}
           title="Collapse Panel"
-          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+          className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="grid grid-cols-5 border-b border-slate-800 text-[11px] font-mono bg-slate-950/40">
-        <button
-          onClick={() => setActiveTab('feed')}
-          className={`py-2 px-1 text-center transition-all ${
-            activeTab === 'feed'
-              ? 'text-sky-400 border-b-2 border-sky-400 font-bold bg-slate-900/70'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Feed ({filteredNews.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('hotspots')}
-          className={`py-2 px-1 text-center transition-all ${
-            activeTab === 'hotspots'
-              ? 'text-orange-400 border-b-2 border-orange-400 font-bold bg-slate-900/70'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Hotspots ({filteredHotspots.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('conflicts')}
-          className={`py-2 px-1 text-center transition-all ${
-            activeTab === 'conflicts'
-              ? 'text-red-400 border-b-2 border-red-400 font-bold bg-slate-900/70'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Wars ({filteredConflicts.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('infra')}
-          className={`py-2 px-1 text-center transition-all ${
-            activeTab === 'infra'
-              ? 'text-cyan-400 border-b-2 border-cyan-400 font-bold bg-slate-900/70'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Assets ({filteredInfra.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('dossier')}
-          className={`py-2 px-1 text-center transition-all relative ${
-            activeTab === 'dossier'
-              ? 'text-emerald-400 border-b-2 border-emerald-400 font-bold bg-slate-900/70'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Dossier
-          {selectedFeature && (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute top-1.5 right-1.5"></span>
-          )}
-        </button>
+      {/* 2. Modern Segmented Tab Bar */}
+      <div className="p-2 border-b border-slate-800/80 bg-slate-950/40">
+        <div className="flex items-center gap-1 bg-slate-900/90 rounded-xl p-1 border border-slate-800/80 text-[11px] font-mono">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-1.5 px-1 rounded-lg text-center transition-all relative font-medium ${
+                  isActive
+                    ? 'bg-slate-800 text-sky-400 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.id === 'dossier' && selectedFeature && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute top-1.5 right-1.5" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Search and Severity Filter Bar (visible for listing tabs) */}
+      {/* 3. Sleek Search and Filter Bar */}
       {activeTab !== 'dossier' && (
-        <div className="p-2.5 border-b border-slate-800/80 flex items-center gap-2 bg-slate-900/40">
+        <div className="p-2.5 border-b border-slate-800/80 flex items-center gap-2 bg-slate-900/20">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-2.5 top-2.5 text-slate-500" />
+            <Search size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
             <input
               type="text"
-              placeholder="Filter by keywords, tags..."
+              placeholder="Search intel reports, assets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950/80 border border-slate-700/80 rounded pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono"
+              className="w-full bg-slate-950/70 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-sans"
             />
           </div>
 
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="bg-slate-950/80 border border-slate-700/80 rounded px-2 py-1.5 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-sky-500"
+            className="bg-slate-950/70 border border-slate-800 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-sky-500"
           >
             <option value="all">All Levels</option>
             <option value="critical">Critical</option>
@@ -228,13 +201,13 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         </div>
       )}
 
-      {/* Tab Panels */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      {/* 4. Tab Panels */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
         {/* 1. Feed Tab */}
         {activeTab === 'feed' && (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {filteredNews.length === 0 ? (
-              <div className="text-center py-12 text-xs text-slate-500 font-mono">
+              <div className="text-center py-16 text-xs text-slate-500 font-mono">
                 No intelligence reports match query.
               </div>
             ) : (
@@ -255,16 +228,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       });
                     }
                   }}
-                  className="p-3 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/90 hover:border-sky-500/40 transition-all cursor-pointer group"
+                  className="p-3 rounded-xl bg-slate-900/50 hover:bg-slate-900/90 border border-slate-800/80 hover:border-sky-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <span
                       className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
                         item.severity === 'critical'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          ? 'bg-red-500/15 text-red-400 border border-red-500/30'
                           : item.severity === 'high'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                       }`}
                     >
                       {item.category} • {item.severity}
@@ -283,7 +256,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-slate-500">
                     <span>SRC: {item.source}</span>
                     <span className="flex items-center gap-1 text-sky-400 group-hover:translate-x-0.5 transition-transform font-bold">
-                      Inspect & Map <ChevronRight size={10} />
+                      Inspect <ChevronRight size={11} />
                     </span>
                   </div>
                 </div>
@@ -294,12 +267,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
         {/* 2. Hotspots Tab */}
         {activeTab === 'hotspots' && (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {filteredHotspots.map((hs) => (
               <div
                 key={hs.id}
                 onClick={() => onSelectFeature(hs)}
-                className="p-3 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-orange-500/40 transition-all cursor-pointer group"
+                className="p-3 rounded-xl bg-slate-900/50 hover:bg-slate-900/90 border border-slate-800/80 hover:border-orange-500/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5">
@@ -325,8 +298,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   {hs.description}
                 </p>
 
-                <div className="bg-slate-950/60 p-2 rounded border border-slate-800/60 text-[10px] text-slate-400">
-                  <span className="text-orange-400/90 font-mono font-semibold">Strategic Impact:</span>{' '}
+                <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60 text-[10px] text-slate-400">
+                  <span className="text-orange-400 font-mono font-semibold">Strategic Impact:</span>{' '}
                   {hs.whyItMatters}
                 </div>
               </div>
@@ -336,12 +309,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
         {/* 3. Conflicts Tab */}
         {activeTab === 'conflicts' && (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {filteredConflicts.map((c) => (
               <div
                 key={c.id}
                 onClick={() => onSelectFeature(c)}
-                className="p-3 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-red-500/40 transition-all cursor-pointer group"
+                className="p-3 rounded-xl bg-slate-900/50 hover:bg-slate-900/90 border border-slate-800/80 hover:border-red-500/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-slate-100 group-hover:text-red-400 font-mono">
@@ -361,7 +334,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 </p>
 
                 {c.casualties && (
-                  <div className="text-[10px] font-mono text-amber-400 bg-amber-950/30 px-2 py-1 rounded border border-amber-500/20">
+                  <div className="text-[10px] font-mono text-amber-400 bg-amber-950/30 px-2 py-1 rounded-lg border border-amber-500/20">
                     Est. Casualties: {c.casualties}
                   </div>
                 )}
@@ -372,12 +345,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
         {/* 4. Assets Tab */}
         {activeTab === 'infra' && (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {filteredInfra.map((f) => (
               <div
                 key={f.id}
                 onClick={() => onSelectFeature(f)}
-                className="p-3 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                className="p-3 rounded-xl bg-slate-900/50 hover:bg-slate-900/90 border border-slate-800/80 hover:border-cyan-500/40 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-slate-100 group-hover:text-sky-300 font-mono">
@@ -404,28 +377,28 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         {activeTab === 'dossier' && (
           <div>
             {!selectedFeature ? (
-              <div className="text-center py-16 px-4 space-y-3">
+              <div className="text-center py-20 px-4 space-y-3">
                 <Crosshair size={32} className="mx-auto text-slate-600 animate-pulse" />
                 <h4 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-                  NO FEATURE SELECTED
+                  NO ENTITY SELECTED
                 </h4>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                  Click on any marker, military base, nuclear plant, or conflict zone on the map to review full tactical intelligence.
+                  Click any hotspot, military deployment, conflict zone, or infrastructure node on the map to inspect its full dossier.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {/* Back button */}
                 <button
                   onClick={() => setActiveTab('feed')}
                   className="flex items-center gap-1 text-[11px] font-mono text-sky-400 hover:underline mb-1"
                 >
-                  <ChevronLeft size={14} /> Back to Live Feed
+                  <ChevronLeft size={13} /> Back to Live Feed
                 </button>
 
                 {/* Title & Badges */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 mb-2">
                     {isHotspot && (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 uppercase font-bold">
                         Level {(selectedFeature as IntelHotspot).escalationScore}/5 Hotspot
@@ -433,7 +406,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     )}
                     {isConflict && (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 uppercase font-bold">
-                        Active War Frontline
+                        Frontline Conflict
                       </span>
                     )}
                     {isStandardFeature && (
@@ -442,11 +415,15 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       </span>
                     )}
                     {'severity' in selectedFeature && selectedFeature.severity && (
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
-                        selectedFeature.severity === 'critical' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                        selectedFeature.severity === 'high' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                        'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
+                          selectedFeature.severity === 'critical'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : selectedFeature.severity === 'high'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        }`}
+                      >
                         {selectedFeature.severity}
                       </span>
                     )}
@@ -457,55 +434,55 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </h1>
 
                   {'category' in selectedFeature && selectedFeature.category && (
-                    <p className="text-xs font-mono text-cyan-400/90 mt-0.5">
+                    <p className="text-xs font-mono text-sky-400/90 mt-0.5">
                       {selectedFeature.category}
                     </p>
                   )}
                 </div>
 
                 {/* Location & Coordinates Action Bar */}
-                <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs font-mono">
                   <div className="flex items-center gap-1.5 text-slate-300">
-                    <MapPin size={14} className="text-sky-400" />
+                    <MapPin size={13} className="text-sky-400" />
                     <span>
                       {featureCoords[1].toFixed(4)}°N, {featureCoords[0].toFixed(4)}°E
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={handleCopyCoords}
-                      className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
                       title="Copy Coordinates"
                     >
                       {copiedCoords ? <CheckCircle size={14} className="text-emerald-400" /> : <Copy size={14} />}
                     </button>
                     <button
                       onClick={() => onCenterMap(featureCoords)}
-                      className="px-2.5 py-1 rounded bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-[11px] transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-[11px] transition-colors"
                     >
-                      Center Map
+                      Center
                     </button>
                   </div>
                 </div>
 
                 {/* Primary Description */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
                     SITUATION BRIEFING
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/50 p-3 rounded-lg border border-slate-800/80">
+                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
                     {selectedFeature.description}
                   </p>
                 </div>
 
                 {/* Specific Details Table */}
                 {'details' in selectedFeature && selectedFeature.details && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
                       OPERATIONAL PARAMETERS
                     </h3>
-                    <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 overflow-hidden text-xs font-mono">
+                    <div className="rounded-xl bg-slate-950/50 border border-slate-800/80 overflow-hidden text-xs font-mono">
                       {Object.entries(selectedFeature.details).map(([key, val], idx) => {
                         if (typeof val === 'object') return null;
                         return (
@@ -530,11 +507,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                 {/* Why it matters / Strategic impact */}
                 {'whyItMatters' in selectedFeature && (selectedFeature as IntelHotspot).whyItMatters && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <h3 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
                       STRATEGIC SIGNIFICANCE
                     </h3>
-                    <div className="p-3 rounded-lg bg-amber-950/20 border border-amber-500/30 text-xs text-amber-200/90 leading-relaxed">
+                    <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/25 text-xs text-amber-200/90 leading-relaxed">
                       {(selectedFeature as IntelHotspot).whyItMatters}
                     </div>
                   </div>
@@ -542,30 +519,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                 {/* Conflict parties and casualties */}
                 {isConflict && (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <h3 className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider">
                       COMBAT ACTORS
                     </h3>
                     <div className="space-y-1 text-xs font-mono">
                       {(selectedFeature as ConflictZoneFeature).parties.map((party, idx) => (
-                        <div key={idx} className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-200">
+                        <div key={idx} className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-200">
                           ⚔️ {party}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recent Incidents for Hotspots */}
-                {isHotspot && (selectedFeature as IntelHotspot).recentIncidents && (
-                  <div className="space-y-1.5">
-                    <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-                      RECENT ESCALATION INCIDENTS
-                    </h3>
-                    <div className="space-y-1 text-xs">
-                      {(selectedFeature as IntelHotspot).recentIncidents?.map((inc, idx) => (
-                        <div key={idx} className="p-2 rounded bg-slate-900/60 border border-slate-800/60 text-slate-300">
-                          • {inc}
                         </div>
                       ))}
                     </div>
@@ -574,7 +535,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                 {/* Attribution / External Source */}
                 {'source' in selectedFeature && selectedFeature.source && (
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-500">
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500">
                     <span>SOURCE: {selectedFeature.source}</span>
                     {'link' in selectedFeature && selectedFeature.link && (
                       <a
