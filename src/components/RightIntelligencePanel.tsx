@@ -192,14 +192,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       {/* 3. Sleek Search and Filter Bar */}
       {activeTab !== 'dossier' && (
         <div className="p-2.5 border-b border-[var(--border-subtle)] flex items-center gap-2 bg-[var(--bg-surface)]">
-          <div className="relative flex-1">
-            <Search size={13} className="absolute left-2.5 top-2.5 text-[var(--text-muted)]" />
+          <div className="flex-1 flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] focus-within:border-sky-500 transition-colors shadow-2xs">
+            <Search size={14} className="text-[var(--text-muted)] shrink-0" />
             <input
               type="text"
               placeholder={activeTab === 'videos' ? "Search defense video dispatches..." : "Search intel reports, assets..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-sky-500 font-sans"
+              className="w-full bg-transparent text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none font-sans"
             />
           </div>
 

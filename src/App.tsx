@@ -224,7 +224,7 @@ export const App: React.FC = () => {
     return res;
   }, [liveWeather, liveEarthquakes, liveEonet]);
 
-  // Theater Views Presets
+  // Theater Views Presets (Matching Reference Menu)
   const handleSelectView = (view: TheaterView) => {
     setCurrentView(view);
     if (view === 'global') {
@@ -233,17 +233,26 @@ export const App: React.FC = () => {
     } else if (view === 'india') {
       setMapCenter([80.0, 23.5]);
       setMapZoom(4.4);
+    } else if (view === 'americas') {
+      setMapCenter([-98.0, 39.0]);
+      setMapZoom(3.6);
     } else if (view === 'middle-east') {
-      setMapCenter([48.0, 29.5]);
-      setMapZoom(4.8);
-    } else if (view === 'indo-pacific') {
-      setMapCenter([118.0, 20.0]);
-      setMapZoom(4.2);
+      setMapCenter([48.0, 28.0]);
+      setMapZoom(4.6);
     } else if (view === 'europe') {
       setMapCenter([24.0, 52.0]);
       setMapZoom(4.2);
-    } else if (view === 'americas') {
-      setMapCenter([-95.0, 38.0]);
+    } else if (view === 'indo-pacific') {
+      setMapCenter([115.0, 18.0]);
+      setMapZoom(4.0);
+    } else if (view === 'latin-america') {
+      setMapCenter([-60.0, -18.0]);
+      setMapZoom(3.5);
+    } else if (view === 'africa') {
+      setMapCenter([22.0, 4.0]);
+      setMapZoom(3.5);
+    } else if (view === 'oceania') {
+      setMapCenter([140.0, -25.0]);
       setMapZoom(3.8);
     }
   };

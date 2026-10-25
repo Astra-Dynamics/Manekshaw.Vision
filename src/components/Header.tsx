@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Radio,
   Clock,
@@ -10,10 +10,7 @@ import {
   VolumeX,
   Sun,
   Moon,
-  Search,
-  ChevronDown,
-  Layers,
-  Sparkles
+  Search
 } from 'lucide-react';
 import { TheaterView, ThemeMode } from '../types';
 
@@ -61,8 +58,20 @@ export const Header: React.FC<HeaderProps> = ({
   const [formattedTime, setFormattedTime] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
+  const [isTheaterOpen, setIsTheaterOpen] = useState<boolean>(false);
 
+  const theaterDropdownRef = useRef<HTMLDivElement>(null);
   const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (theaterDropdownRef.current && !theaterDropdownRef.current.contains(e.target as Node)) {
+        setIsTheaterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -95,15 +104,20 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const theaters: { id: TheaterView; label: string; icon: string }[] = [
-    { id: 'global', label: 'Global', icon: '🌐' },
-    { id: 'india', label: 'India', icon: '🇮🇳' },
-    { id: 'middle-east', label: 'Mid-East', icon: '⚡' },
-    { id: 'indo-pacific', label: 'Indo-Pac', icon: '🌊' },
-    { id: 'europe', label: 'Europe', icon: '🛡️' },
-    { id: 'americas', label: 'Americas', icon: '🦅' }
+  // Theaters matching the reference image dropdown exactly
+  const theaters: { id: TheaterView; label: string }[] = [
+    { id: 'global', label: 'Global' },
+    { id: 'india', label: 'India' },
+    { id: 'americas', label: 'Americas' },
+    { id: 'middle-east', label: 'Middle East and North Africa' },
+    { id: 'europe', label: 'Europe' },
+    { id: 'indo-pacific', label: 'Asia' },
+    { id: 'latin-america', label: 'Latin America' },
+    { id: 'africa', label: 'Africa' },
+    { id: 'oceania', label: 'Oceania' }
   ];
 
+  const currentTheater = theaters.find((th) => th.id === currentView) || theaters[0];
   const timeRanges = ['1h', '6h', '24h', '7d', '30d'];
 
   return (
@@ -133,27 +147,41 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. Center: Sleek Segmented Theater Switcher & Time Range */}
-      <div className="hidden md:flex items-center gap-2">
-        {/* Theater Switcher Segment */}
-        <div className="flex items-center bg-[var(--bg-surface-elevated)] rounded-xl border border-[var(--border-subtle)] p-1 gap-0.5 font-mono text-xs shadow-inner">
-          {theaters.map((th) => {
-            const isActive = currentView === th.id;
-            return (
-              <button
-                key={th.id}
-                onClick={() => onSelectView(th.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all font-medium text-[11px] lg:text-xs ${
-                  isActive
-                    ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
-                }`}
-              >
-                <span className="text-xs">{th.icon}</span>
-                <span>{th.label}</span>
-              </button>
-            );
-          })}
+      {/* 2. Center: Dropdown Selector Matching Reference Image */}
+      <div className="flex items-center gap-2.5">
+        <div ref={theaterDropdownRef} className="relative select-none">
+          <button
+            onClick={() => setIsTheaterOpen(!isTheaterOpen)}
+            className="flex items-center justify-between gap-3 px-3.5 py-1.5 min-w-[140px] sm:min-w-[180px] bg-[#000000] border-2 border-emerald-500/90 hover:border-emerald-400 font-mono text-xs text-white shadow-md transition-all focus:outline-none"
+            title="Select Operational Theater View"
+          >
+            <span className="font-bold tracking-wide truncate">{currentTheater.label}</span>
+            <span className="text-[9px] text-slate-400 font-sans ml-1">▼</span>
+          </button>
+
+          {isTheaterOpen && (
+            <div className="absolute left-0 top-full mt-0.5 w-full min-w-[230px] bg-[#000000] border-2 border-emerald-500/90 shadow-2xl z-50 py-0 font-mono text-xs overflow-hidden animate-fade-in">
+              {theaters.map((th) => {
+                const isSelected = currentView === th.id;
+                return (
+                  <div
+                    key={th.id}
+                    onClick={() => {
+                      onSelectView(th.id);
+                      setIsTheaterOpen(false);
+                    }}
+                    className={`px-3.5 py-2 cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-blue-600 text-white font-bold'
+                        : 'text-slate-200 hover:bg-slate-800'
+                    }`}
+                  >
+                    {th.label}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Time Range Filter (Compact Pill) */}

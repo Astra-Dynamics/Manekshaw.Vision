@@ -74,7 +74,16 @@ export interface IntelNewsItem {
   relatedHotspot?: string;
 }
 
-export type TheaterView = 'global' | 'india' | 'middle-east' | 'indo-pacific' | 'europe' | 'americas' | 'africa';
+export type TheaterView =
+  | 'global'
+  | 'india'
+  | 'americas'
+  | 'middle-east'
+  | 'europe'
+  | 'indo-pacific'
+  | 'latin-america'
+  | 'africa'
+  | 'oceania';
 
 export type ThemeMode = 'dark' | 'light';
 
