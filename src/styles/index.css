@@ -135,7 +135,8 @@ html, body, #root {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee-flow 60s linear infinite;
+  animation: marquee-flow 130s linear infinite;
+  will-change: transform;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
