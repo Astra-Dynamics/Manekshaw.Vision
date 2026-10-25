@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base font-extrabold tracking-wider text-slate-100 flex items-center gap-1.5 font-mono">
-                WORLD<span className="text-sky-400">MONITOR</span>
+                MANEKSHAW<span className="text-sky-400">.VISION</span>
               </h1>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-green"></span>
@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-mono tracking-tight hidden sm:block">
-              GLOBAL SITUATIONAL AWARENESS & DEFENSE INTELLIGENCE
+              SOVEREIGN SITUATIONAL AWARENESS & DEFENSE INTELLIGENCE
             </p>
           </div>
         </div>

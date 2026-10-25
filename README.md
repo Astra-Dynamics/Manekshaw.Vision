@@ -1,63 +1,68 @@
-# World Monitor — Global Situational Awareness & Intelligence Dashboard
+# Manekshaw.Vision — Sovereign Situational Awareness & Global Defense Intelligence Platform
 
-A modern, high-performance real-time global intelligence dashboard inspired by [worldmonitor.app](https://www.worldmonitor.app/) and [koala73/worldmonitor](https://github.com/koala73/worldmonitor). Built with **React 18**, **MapLibre GL**, **Tailwind CSS**, and **Vite**.
+A sovereign, high-performance real-time global intelligence and defense dashboard built with **React 18**, **MapLibre GL**, **Tailwind CSS**, and **Vite**.
 
----
-
-## 🚀 Live Local Access
-The development server is running and accessible at:
-- **Local Dashboard:** [http://localhost:3000/](http://localhost:3000/)
-- **Exact Presets URL:** [http://localhost:3000/?lat=22.4589&lon=82.7533&zoom=3.25&view=global&timeRange=7d&layers=iranAttacks,hotspots,conflicts,bases,nuclear,military,weather,canadaAlerts,outages,natural,waterways,economic,sanctions](http://localhost:3000/?lat=22.4589&lon=82.7533&zoom=3.25&view=global&timeRange=7d&layers=iranAttacks,hotspots,conflicts,bases,nuclear,military,weather,canadaAlerts,outages,natural,waterways,economic,sanctions)
+Honoring the strategic clarity and visionary leadership of Field Marshal Sam Manekshaw, **Manekshaw.Vision** delivers comprehensive real-time situational awareness across geopolitical flashpoints, military deployments, strategic chokepoints, critical infrastructure, and national security domains.
 
 ---
 
-## 🌟 Key Features & Layout Enhancements
+## 🌟 Strategic Capabilities & Features
 
-### 1. Refined Cockpit Layout
+### 1. Unified Cockpit Architecture
 - **Header Operations Bar:**
-  - Live UTC defense clock & blinking DEFCON 3 readiness indicator.
-  - Quick Theater Presets: **Global**, **Middle East**, **Indo-Pacific**, **Europe**, **Americas**.
+  - Live UTC defense clock & active DEFCON readiness indicator.
+  - Rapid Theater Switcher: **Global**, **India**, **Middle East**, **Indo-Pacific**, **Europe**, **Americas**.
   - Time Range controls (`24h`, `7d`, `30d`).
-  - Active counts summary for Hotspots, Strikes, and Conflicts.
+  - Active counters for Hotspots, Strikes, Nuclear sites, and Conflicts.
   - Sound alert toggle and Fullscreen toggle.
-- **Breaking Alert Ticker Strip:**
-  - Real-time animated news marquee displaying urgent geopolitical dispatches. Clicking any headline immediately flies the camera to the target coordinates and opens the dossier.
-- **Interactive Map Canvas (MapLibre GL):**
-  - Ultra-smooth Carto Dark Matter vector tiles.
-  - Pulsing radar rings for critical strike points and hotspots.
-  - Translucent red hazard polygon overlays for active war frontlines (Eastern Ukraine, Levant, Sudan, Myanmar, DRC).
-  - Hover tooltip cards and marker clustering.
-- **Floating Layer Dock (Bottom):**
-  - Glassmorphism bottom control bar displaying all 13 layers with toggle switches, icons, and real-time counter badges.
-  - "Enable All" and "Clear All" rapid controls.
-- **Left Intelligence Drawer:**
-  - 4 tabs: **Feed** (real-time news), **Hotspots** (escalation ratings 1-5), **Wars** (conflict zones), and **Assets** (bases, nuclear, waterways).
-  - Real-time keyword search & severity filter dropdown (`Critical`, `High`, `Medium`).
-- **Right Inspector Drawer:**
-  - Detailed technical dossier for any selected entity: Coordinates (with copy button), Situation Briefing, Operational Parameters table, Strategic Significance assessment, Combat Actors list, and external briefing links.
+- **Breaking Intelligence Marquee (Ticker):**
+  - Real-time animated news marquee displaying urgent geopolitical and military dispatches. Clicking any headline immediately tracks to target coordinates and pulls the dossier.
+- **Tactical Map (Left Side):**
+  - Ultra-smooth Carto Dark Matter vector canvas with MapLibre GL.
+  - Official Survey of India (SOI) boundaries incorporating Jammu & Kashmir, Ladakh, and Aksai Chin.
+  - Pulsing radar rings for critical strike points and escalations.
+  - Translucent tactical polygon overlays for active war frontlines.
+  - Interactive country polygons — clicking any sovereign nation opens a 4-tab Intelligence Brief.
+- **Right Intelligence Desk (Dedicated Right Side):**
+  - Tabbed intelligence workspace: **Live Feed**, **Flashpoints/Hotspots**, **Frontlines & Wars**, **Strategic Infrastructure**, and **Entity Dossier**.
+  - Instant coordinate copy, satellite target acquisition, threat assessment, and combat actor breakdown.
+- **Tactical Layer Dock (Floating Dock):**
+  - 13 togglable intelligence layers with live counters and Rapid "Enable All" / "Clear All" controls.
 
 ---
 
-## 🗺️ Supported Layers (Exact 13 Layers from URL)
+## 🗺️ 13 Integrated Intelligence Layers
 1. **Middle East Strikes (`iranAttacks`)**: Ballistic missile impact zones (Nevatim, Tel Nof, Glilot, Hodeidah, Parchin).
 2. **Intel Hotspots (`hotspots`)**: Key flashpoints (Taiwan Strait, Strait of Hormuz, Bab el-Mandeb, South China Sea, Korean DMZ, Zaporizhzhia, Suwałki Gap).
 3. **Conflict Zones (`conflicts`)**: Shaded frontline polygons with combat actor details.
-4. **Military Bases (`bases`)**: Major US/NATO, Russian, and Chinese naval, air, and submarine bases.
-5. **Nuclear Sites (`nuclear`)**: Uranium enrichment cascades (Natanz, Fordow), Dimona, Zaporizhzhia, Yongbyon.
-6. **Air & Naval Deployments (`military`)**: Carrier strike groups (USS Truman, USS Lincoln, PLAN Shandong), P-8A Poseidon, and RC-135W Rivet Joint patrol vectors.
-7. **Severe Weather (`weather`)**: Live NOAA/NWS alerts + tropical typhoons and bomb cyclones.
-8. **Canada Alerts (`canadaAlerts`)**: Emergency alerts across Alberta, BC, Saskatchewan, and Ontario.
-9. **Grid & Cable Outages (`outages`)**: Undersea fiber disruptions (Red Sea, Baltic Sea) and national electrical grid collapses.
-10. **Earthquakes & Natural Events (`natural`)**: **Live real-time feed from USGS Earthquake API (M4.5+)** + **NASA EONET** volcanic/fire hazards.
-11. **Maritime Chokepoints (`waterways`)**: Strategic transit bottlenecks (Hormuz, Malacca, Suez, Bab el-Mandeb, Panama, Bosphorus).
-12. **Financial Centers (`economic`)**: Global stock exchanges (NYSE, LSE, TSE, HKEX, NSE) and central banks.
-13. **Sanctions Regimes (`sanctions`)**: International OFAC, EU, and UN trade and financial embargo programs.
+4. **Military Bases (`bases`)**: Major US/NATO, Russian, Chinese, and Indian strategic bases.
+5. **Nuclear Sites (`nuclear`)**: Enrichment facilities, reactors, and storage complexes.
+6. **Air & Naval Deployments (`military`)**: Carrier strike groups, patrol vectors, and surveillance aircraft.
+7. **Severe Weather (`weather`)**: Live NOAA/NWS alerts, typhoons, and cyclones.
+8. **Emergency Alerts (`canadaAlerts`)**: Civil emergency and infrastructure alerts.
+9. **Grid & Cable Outages (`outages`)**: Undersea fiber disruptions and power grid anomalies.
+10. **Natural Hazards (`natural`)**: Real-time USGS Earthquakes (M4.5+) and NASA EONET volcanic/wildfire events.
+11. **Strategic Waterways (`waterways`)**: Maritime chokepoints (Malacca, Hormuz, Bab el-Mandeb, Suez, Panama, Bosphorus).
+12. **Economic Centers (`economic`)**: Key financial centers, rare earth processing hubs, and semiconductor clusters.
+13. **Sanctions Regimes (`sanctions`)**: Sanctioned jurisdictions, OFSI/OFAC monitored states, and trade embargoes.
 
 ---
 
-## 🛠️ Tech Stack
-- **React 18** + **TypeScript**
-- **MapLibre GL 5.1**
-- **Vite 6** + **Tailwind CSS 4**
-- **Lucide Icons**
-- **Public APIs**: USGS Real-Time Earthquakes, NASA EONET, NOAA/NWS Alerts
+## 🛠️ Local Development & Build
+
+```bash
+# Install dependencies
+npm install
+
+# Start local development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+---
+
+## 🚀 Deployment
+Deployed to Vercel via GitHub continuous integration:
+- Repository: [https://github.com/anantjain1109/Manekshaw.Vision](https://github.com/anantjain1109/Manekshaw.Vision)

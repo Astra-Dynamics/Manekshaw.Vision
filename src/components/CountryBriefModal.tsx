@@ -54,7 +54,7 @@ export const CountryBriefModal: React.FC<CountryBriefModalProps> = ({
 
   const handleCopy = () => {
     const text = `
-=== WORLD MONITOR COUNTRY INTELLIGENCE BRIEF: ${country.name} (${country.code}) ===
+=== MANEKSHAW.VISION COUNTRY INTELLIGENCE BRIEF: ${country.name} (${country.code}) ===
 Region: ${country.region} | Capital: ${country.capital}
 Country Instability Index (CII): ${country.ciiScore}/100 (${country.ciiRiskLevel} - ${country.ciiTrend})
 
