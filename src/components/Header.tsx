@@ -152,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div ref={theaterDropdownRef} className="relative select-none">
           <button
             onClick={() => setIsTheaterOpen(!isTheaterOpen)}
-            className="flex items-center justify-between gap-3 px-3.5 py-1.5 min-w-[140px] sm:min-w-[180px] bg-[#000000] border-2 border-emerald-500/90 hover:border-emerald-400 font-mono text-xs text-white shadow-md transition-all focus:outline-none"
+            className="flex items-center justify-between gap-3 px-3.5 py-1.5 min-w-[140px] sm:min-w-[180px] bg-[#000000] border-2 border-emerald-500/90 hover:border-emerald-400 font-mono text-xs text-white shadow-md transition-all focus:outline-none rounded-xl"
             title="Select Operational Theater View"
           >
             <span className="font-bold tracking-wide truncate">{currentTheater.label}</span>
@@ -160,7 +160,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {isTheaterOpen && (
-            <div className="absolute left-0 top-full mt-0.5 w-full min-w-[230px] bg-[#000000] border-2 border-emerald-500/90 shadow-2xl z-50 py-0 font-mono text-xs overflow-hidden animate-fade-in">
+            <div className="absolute left-0 top-full mt-1.5 w-full min-w-[230px] bg-[#000000] border-2 border-emerald-500/90 shadow-2xl z-50 p-1.5 font-mono text-xs overflow-hidden rounded-xl animate-fade-in backdrop-blur-md space-y-0.5">
               {theaters.map((th) => {
                 const isSelected = currentView === th.id;
                 return (
@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectView(th.id);
                       setIsTheaterOpen(false);
                     }}
-                    className={`px-3.5 py-2 cursor-pointer transition-colors ${
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                       isSelected
                         ? 'bg-blue-600 text-white font-bold'
                         : 'text-slate-200 hover:bg-slate-800'
