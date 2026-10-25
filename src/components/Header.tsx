@@ -147,20 +147,22 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. Center: Dropdown Selector Matching Reference Image */}
+      {/* 2. Center: Dropdown Selector Matching Theme */}
       <div className="flex items-center gap-2.5">
         <div ref={theaterDropdownRef} className="relative select-none">
           <button
             onClick={() => setIsTheaterOpen(!isTheaterOpen)}
-            className="flex items-center justify-between gap-3 px-3.5 py-1.5 min-w-[140px] sm:min-w-[180px] bg-[#000000] border-2 border-emerald-500/90 hover:border-emerald-400 font-mono text-xs text-white shadow-md transition-all focus:outline-none rounded-xl"
+            className="flex items-center justify-between gap-3.5 px-4 py-2 min-w-[150px] sm:min-w-[190px] bg-[var(--bg-surface-elevated)] border border-sky-500/40 hover:border-sky-400/80 rounded-xl font-mono text-xs text-[var(--text-primary)] shadow-sm transition-all focus:outline-none"
             title="Select Operational Theater View"
           >
-            <span className="font-bold tracking-wide truncate">{currentTheater.label}</span>
-            <span className="text-[9px] text-slate-400 font-sans ml-1">▼</span>
+            <span className="font-semibold tracking-wide truncate">{currentTheater.label}</span>
+            <span className="text-[10px] text-sky-400 transition-transform duration-200">
+              {isTheaterOpen ? '▲' : '▼'}
+            </span>
           </button>
 
           {isTheaterOpen && (
-            <div className="absolute left-0 top-full mt-1.5 w-full min-w-[230px] bg-[#000000] border-2 border-emerald-500/90 shadow-2xl z-50 p-1.5 font-mono text-xs overflow-hidden rounded-xl animate-fade-in backdrop-blur-md space-y-0.5">
+            <div className="absolute left-0 top-full mt-2 w-auto min-w-[250px] max-w-[320px] bg-[var(--bg-surface-elevated)] border border-sky-500/40 shadow-2xl z-50 p-2 font-mono text-xs rounded-xl animate-fade-in backdrop-blur-xl space-y-1">
               {theaters.map((th) => {
                 const isSelected = currentView === th.id;
                 return (
@@ -170,10 +172,10 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectView(th.id);
                       setIsTheaterOpen(false);
                     }}
-                    className={`px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                    className={`px-3.5 py-2 rounded-lg cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-blue-600 text-white font-bold'
-                        : 'text-slate-200 hover:bg-slate-800'
+                        ? 'bg-sky-600 text-white font-bold shadow-xs'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                     }`}
                   >
                     {th.label}
