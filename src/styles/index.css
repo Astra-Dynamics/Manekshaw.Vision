@@ -142,6 +142,22 @@ html, body, #root {
   animation-play-state: paused;
 }
 
+/* WorldMonitor Style Layers Scrollbar */
+.layers-scrollbar::-webkit-scrollbar {
+  width: 7px;
+}
+.layers-scrollbar::-webkit-scrollbar-track {
+  background: #090c12;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+.layers-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 2px;
+}
+.layers-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
 /* Maplibre control overrides for tactical polish */
 .maplibregl-ctrl-group {
   background: var(--bg-surface) !important;
