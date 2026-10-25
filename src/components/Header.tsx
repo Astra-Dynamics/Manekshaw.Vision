@@ -9,7 +9,8 @@ import {
   Minimize2,
   Volume2,
   VolumeX,
-  Compass
+  ChevronDown,
+  Globe2
 } from 'lucide-react';
 import { TheaterView } from '../types';
 
@@ -33,6 +34,23 @@ interface HeaderProps {
   };
 }
 
+interface CityTimeZone {
+  id: string;
+  city: string;
+  offsetLabel: string;
+  timeZone: string;
+}
+
+const STRATEGIC_CITIES: CityTimeZone[] = [
+  { id: 'delhi', city: 'Delhi', offsetLabel: 'GMT+5:30', timeZone: 'Asia/Kolkata' },
+  { id: 'gmt', city: 'UTC / GMT', offsetLabel: 'GMT+0', timeZone: 'UTC' },
+  { id: 'moscow', city: 'Moscow', offsetLabel: 'GMT+3', timeZone: 'Europe/Moscow' },
+  { id: 'beijing', city: 'Beijing', offsetLabel: 'GMT+8', timeZone: 'Asia/Shanghai' },
+  { id: 'london', city: 'London', offsetLabel: 'GMT+0', timeZone: 'Europe/London' },
+  { id: 'washington', city: 'Washington', offsetLabel: 'GMT-4', timeZone: 'America/New_York' },
+  { id: 'tokyo', city: 'Tokyo', offsetLabel: 'GMT+9', timeZone: 'Asia/Tokyo' }
+];
+
 export const Header: React.FC<HeaderProps> = ({
   currentView,
   onSelectView,
@@ -44,22 +62,33 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleLayerDock,
   counts
 }) => {
-  const [utcTime, setUtcTime] = useState<string>('');
+  const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
+  const [formattedTime, setFormattedTime] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
+
+  const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const hours = String(now.getUTCHours()).padStart(2, '0');
-      const mins = String(now.getUTCMinutes()).padStart(2, '0');
-      const secs = String(now.getUTCSeconds()).padStart(2, '0');
-      setUtcTime(`${hours}:${mins}:${secs} UTC`);
+      try {
+        const timeStr = new Intl.DateTimeFormat('en-GB', {
+          timeZone: selectedCity.timeZone,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }).format(now);
+        setFormattedTime(timeStr);
+      } catch (err) {
+        setFormattedTime(now.toTimeString().slice(0, 8));
+      }
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedCity]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -71,13 +100,13 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const theaters: { id: TheaterView; label: string }[] = [
-    { id: 'global', label: 'Global' },
-    { id: 'india', label: 'India' },
-    { id: 'middle-east', label: 'Middle East' },
-    { id: 'indo-pacific', label: 'Indo-Pacific' },
-    { id: 'europe', label: 'Europe' },
-    { id: 'americas', label: 'Americas' }
+  const theaters: { id: TheaterView; label: string; icon: string }[] = [
+    { id: 'global', label: 'Global', icon: '🌐' },
+    { id: 'india', label: 'India', icon: '🇮🇳' },
+    { id: 'middle-east', label: 'Middle East', icon: '⚡' },
+    { id: 'indo-pacific', label: 'Indo-Pacific', icon: '🌊' },
+    { id: 'europe', label: 'Europe', icon: '🛡️' },
+    { id: 'americas', label: 'Americas', icon: '🦅' }
   ];
 
   const timeRanges = ['24h', '7d', '30d'];
@@ -109,30 +138,31 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. Center: Sleek Segmented Theater Controller */}
+      {/* 2. Center: Sleek Segmented Theater Controller with 2-3px spacing */}
       <div className="flex items-center gap-2">
         {/* Theater Switcher Segment */}
-        <div className="flex items-center bg-slate-900/90 rounded-xl border border-slate-800/90 p-1 font-mono text-xs shadow-inner">
+        <div className="flex items-center bg-slate-900/90 rounded-xl border border-slate-800/90 p-1.5 gap-1 font-mono text-xs shadow-inner">
           {theaters.map((th) => {
             const isActive = currentView === th.id;
             return (
               <button
                 key={th.id}
                 onClick={() => onSelectView(th.id)}
-                className={`px-3 py-1 rounded-lg transition-all font-medium text-[11px] sm:text-xs ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all font-medium text-[11px] sm:text-xs mx-0.5 ${
                   isActive
                     ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
-                {th.label}
+                <span className="text-xs p-0.5">{th.icon}</span>
+                <span>{th.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Time Range Filter (Compact Pill) */}
-        <div className="hidden xl:flex items-center bg-slate-900/90 rounded-xl border border-slate-800/90 p-1 font-mono text-[11px]">
+        <div className="hidden xl:flex items-center bg-slate-900/90 rounded-xl border border-slate-800/90 p-1.5 gap-0.5 font-mono text-[11px]">
           <span className="px-1.5 text-slate-500">
             <Clock size={12} />
           </span>
@@ -152,12 +182,26 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 3. Right: Clock, Controls, & Intel Desk */}
+      {/* 3. Right: Multi-City Defense Clock with GMT Dropdown & Controls */}
       <div className="flex items-center gap-2.5">
-        {/* Defense UTC Clock */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/60 border border-slate-800/80 font-mono text-xs text-slate-300">
-          <Clock size={12} className="text-sky-400" />
-          <span className="font-semibold text-sky-300">{utcTime || 'CALIBRATING'}</span>
+        {/* Defense Clock with Dropdown Menu for GMT & Strategic Cities */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/80 border border-slate-800/90 font-mono text-xs text-slate-300">
+          <Clock size={13} className="text-sky-400 shrink-0" />
+          <span className="font-semibold text-sky-300 min-w-[70px] text-center">
+            {formattedTime || 'CALIBRATING'}
+          </span>
+          <div className="h-3 w-px bg-slate-700 mx-0.5" />
+          <select
+            value={selectedCityId}
+            onChange={(e) => setSelectedCityId(e.target.value)}
+            className="bg-transparent text-slate-300 hover:text-sky-300 font-mono text-[11px] font-semibold focus:outline-none cursor-pointer pr-1"
+          >
+            {STRATEGIC_CITIES.map((c) => (
+              <option key={c.id} value={c.id} className="bg-slate-950 text-slate-200">
+                {c.city} ({c.offsetLabel})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Controls Cluster */}

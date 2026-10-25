@@ -8,7 +8,7 @@ export const CONFLICT_ZONES: ConflictZoneFeature[] = [
     intensity: 'critical',
     parties: ['Armed Forces of Ukraine', 'Russian Armed Forces'],
     casualties: '600,000+ estimated total casualties',
-    description: 'Active active multi-axis high-intensity conflict along Pokrovsk, Kupiansk, Chasiv Yar, and Kurakhove sectors with heavy drone warfare, glide bombs, and mechanized assaults.',
+    description: 'Active multi-axis high-intensity conflict along Pokrovsk, Kupiansk, Chasiv Yar, and Kurakhove sectors with heavy drone warfare, glide bombs, and mechanized assaults.',
     updatedAt: 'Active Today',
     coords: [
       [36.5, 50.2],
@@ -44,6 +44,65 @@ export const CONFLICT_ZONES: ConflictZoneFeature[] = [
     ]
   },
   {
+    id: 'iran_hormuz_standoff',
+    name: 'Iran & Strait of Hormuz Confrontation',
+    center: [56.3, 26.5],
+    intensity: 'critical',
+    parties: ['Islamic Revolutionary Guard Corps Navy (IRGCN)', 'United States 5th Fleet', 'Combined Maritime Forces', 'UK Royal Navy'],
+    casualties: 'Multiple commercial vessels seized or struck; drone intercepts ongoing',
+    description: 'High-tension maritime choke point operations, asymmetric drone & missile swarms, naval mine threats, commercial tanker interdictions, and freedom of navigation patrol clashes.',
+    updatedAt: 'Escalating Alert',
+    coords: [
+      [54.5, 25.8],
+      [56.0, 25.0],
+      [57.5, 25.2],
+      [57.8, 26.4],
+      [56.8, 27.2],
+      [55.5, 27.0],
+      [54.5, 26.2],
+      [54.5, 25.8]
+    ]
+  },
+  {
+    id: 'durand_line_clashes',
+    name: 'Afghanistan-Pakistan Frontier (Durand Line)',
+    center: [70.5, 33.5],
+    intensity: 'critical',
+    parties: ['Pakistan Armed Forces', 'Afghan Taliban Border Forces', 'Tehrik-i-Taliban Pakistan (TTP)', 'BLA'],
+    casualties: 'Hundreds of casualties in cross-border artillery and air engagements',
+    description: 'Volatile frontier warfare featuring Pakistani aerial strikes inside Khost and Paktika, artillery duels, border terminal closures at Torkham and Chaman, and cross-border insurgent incursions.',
+    updatedAt: 'Active Skirmishes',
+    coords: [
+      [66.5, 31.0],
+      [69.0, 31.5],
+      [71.5, 33.0],
+      [71.8, 35.0],
+      [70.0, 35.5],
+      [68.5, 33.8],
+      [66.5, 31.0]
+    ]
+  },
+  {
+    id: 'somalia_shabaab',
+    name: 'Somalia & Horn of Africa Insurgency',
+    center: [45.3, 3.5],
+    intensity: 'high',
+    parties: ['Somali National Army (SNA)', 'ATMIS Peacekeepers', 'US AFRICOM', 'Al-Shabaab (Al-Qaeda affiliate)', 'ISIS-Somalia'],
+    casualties: 'Thousands killed annually; ongoing VBIED and asymmetric insurgent strikes',
+    description: 'Persistent asymmetric insurgency across Hirshabelle, Galmudug, and Lower Shabelle, compounded by piracy resurgence and illicit maritime arms smuggling corridors.',
+    updatedAt: 'Active Operations',
+    coords: [
+      [41.5, -0.5],
+      [45.0, 1.5],
+      [49.0, 4.0],
+      [50.5, 8.5],
+      [48.0, 10.5],
+      [44.0, 8.0],
+      [42.0, 4.0],
+      [41.5, -0.5]
+    ]
+  },
+  {
     id: 'sudan_civil_war',
     name: 'Sudan (Khartoum & Darfur)',
     center: [30.0, 14.5],
@@ -64,7 +123,7 @@ export const CONFLICT_ZONES: ConflictZoneFeature[] = [
   },
   {
     id: 'myanmar_junta_conflict',
-    name: 'Myanmar Civil War & Resistance offensives',
+    name: 'Myanmar Civil War & Resistance Offensives',
     center: [96.0, 20.0],
     intensity: 'high',
     parties: ['State Administration Council (Junta)', 'Three Brotherhood Alliance', 'PDF'],
