@@ -54,6 +54,14 @@ export const LAYER_DEFINITIONS: LayerMetadata[] = [
     color: '#dc2626',
     description: 'Active theater warfare boundary polygons, belligerents, and frontline positions.'
   },
+  {
+    id: 'fortifiedBorders',
+    label: 'Fortified Frontlines & Demarcations',
+    shortLabel: 'Fortifications',
+    icon: '🚧',
+    color: '#f59e0b',
+    description: 'High-readiness military borders, LoC/AGPL, LAC sectors, DMZ, and fortified trench networks.'
+  },
 
   // Defense & Strategic
   {
@@ -71,6 +79,22 @@ export const LAYER_DEFINITIONS: LayerMetadata[] = [
     icon: '☢️',
     color: '#eab308',
     description: 'Uranium enrichment plants, weapons-grade reactors, and storage complexes.'
+  },
+  {
+    id: 'adizZones',
+    label: 'Air Defense Identification Zones (ADIZ)',
+    shortLabel: 'ADIZ Airspace',
+    icon: '🌐',
+    color: '#38bdf8',
+    description: 'Official national sovereign and maritime air defense identification zones and intercept sectors.'
+  },
+  {
+    id: 'gpsJamming',
+    label: 'Electronic Warfare & GPS Jamming',
+    shortLabel: 'EW & Jamming',
+    icon: '📡',
+    color: '#06b6d4',
+    description: 'Active GNSS degradation, spoofing corridors, and military electronic warfare arrays.'
   },
   {
     id: 'military',
@@ -149,13 +173,13 @@ const CATEGORIES: LayerCategory[] = [
     id: 'conflict',
     title: 'Strikes & Conflicts',
     icon: '⚔️',
-    layerIds: ['iranAttacks', 'hotspots', 'conflicts']
+    layerIds: ['iranAttacks', 'hotspots', 'conflicts', 'fortifiedBorders']
   },
   {
     id: 'defense',
     title: 'Defense & Strategic',
     icon: '🛡️',
-    layerIds: ['bases', 'nuclear', 'military', 'waterways']
+    layerIds: ['bases', 'nuclear', 'adizZones', 'gpsJamming', 'military', 'waterways']
   },
   {
     id: 'infra',

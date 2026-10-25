@@ -20,7 +20,11 @@ import {
   IntelHotspot,
   ConflictZoneFeature,
   MapFeatureItem,
-  IntelNewsItem
+  IntelNewsItem,
+  StrategicFeature,
+  GpsJammingZone,
+  AdizZoneFeature,
+  FortifiedBorderFeature
 } from '../types';
 import { STRATEGIC_VIDEO_DISPATCHES, VideoNewsItem } from '../data/videoNews';
 
@@ -31,8 +35,8 @@ interface RightIntelligencePanelProps {
   conflicts: ConflictZoneFeature[];
   features: MapFeatureItem[];
   news: IntelNewsItem[];
-  selectedFeature: MapFeatureItem | IntelHotspot | ConflictZoneFeature | null;
-  onSelectFeature: (feature: MapFeatureItem | IntelHotspot | ConflictZoneFeature) => void;
+  selectedFeature: StrategicFeature | null;
+  onSelectFeature: (feature: StrategicFeature) => void;
   onCenterMap: (coords: [number, number]) => void;
 }
 
@@ -133,7 +137,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   };
 
   const isHotspot = selectedFeature && 'escalationScore' in selectedFeature;
-  const isConflict = selectedFeature && 'parties' in selectedFeature;
+  const isConflict = selectedFeature && 'parties' in selectedFeature && 'casualties' in selectedFeature;
+  const isAdiz = selectedFeature && 'authority' in selectedFeature;
+  const isGpsJamming = selectedFeature && 'attenuationPercent' in selectedFeature;
+  const isFortified = selectedFeature && 'theater' in selectedFeature && 'forces' in selectedFeature;
   const isStandardFeature = selectedFeature && 'layer' in selectedFeature;
 
   const tabs: { id: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'; label: string; count?: number }[] = [
@@ -513,6 +520,21 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         Frontline Conflict
                       </span>
                     )}
+                    {isAdiz && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 uppercase font-bold">
+                        Air Defense Zone (ADIZ)
+                      </span>
+                    )}
+                    {isGpsJamming && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 uppercase font-bold">
+                        Electronic Warfare / Jamming
+                      </span>
+                    )}
+                    {isFortified && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase font-bold">
+                        Fortified Demarcation
+                      </span>
+                    )}
                     {isStandardFeature && (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-500 border border-sky-500/30 uppercase font-bold">
                         {(selectedFeature as MapFeatureItem).layer} Layer
@@ -633,6 +655,92 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           ⚔️ {party}
                         </div>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ADIZ Details */}
+                {isAdiz && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider">
+                        COMMANDING AIR AUTHORITY
+                      </h3>
+                      <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/25 text-xs text-[var(--text-primary)] font-mono font-bold">
+                        {(selectedFeature as AdizZoneFeature).authority}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        RULES OF ENGAGEMENT & PROTOCOLS
+                      </h3>
+                      <p className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] font-sans leading-relaxed">
+                        {(selectedFeature as AdizZoneFeature).rules}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* GPS Jamming Details */}
+                {isGpsJamming && (
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-cyan-400">GNSS SIGNAL ATTENUATION</span>
+                      <span className="text-sm font-mono font-extrabold text-cyan-300">
+                        {(selectedFeature as GpsJammingZone).attenuationPercent}% LOSS
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        DETECTED EW SYSTEMS
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(selectedFeature as GpsJammingZone).systemsDetected?.map((sys: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 rounded-md text-[11px] font-mono bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+                            📡 {sys}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        AFFECTED FREQUENCIES
+                      </h3>
+                      <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)]">
+                        {(selectedFeature as GpsJammingZone).frequencies?.join(' • ')}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fortified Border Details */}
+                {isFortified && (
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-amber-500">LINE LENGTH</span>
+                      <span className="text-sm font-mono font-extrabold text-amber-400">
+                        {(selectedFeature as FortifiedBorderFeature).lengthKm} KM
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        MILITARY STATUS
+                      </h3>
+                      <p className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] font-mono font-semibold">
+                        {(selectedFeature as FortifiedBorderFeature).status}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        DEPLOYED FORCES & CORPS
+                      </h3>
+                      <div className="space-y-1 text-xs font-mono">
+                        {(selectedFeature as FortifiedBorderFeature).forces?.map((f: string, idx: number) => (
+                          <div key={idx} className="p-2 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+                            🛡️ {f}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

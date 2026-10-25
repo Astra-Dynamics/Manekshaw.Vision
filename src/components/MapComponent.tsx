@@ -7,9 +7,13 @@ import {
   MapFeatureItem,
   IntelHotspot,
   ConflictZoneFeature,
+  StrategicFeature,
   ThemeMode
 } from '../types';
 import { INDIA_OFFICIAL_BOUNDARY } from '../data/indiaOfficialBoundary';
+import { ADIZ_ZONES } from '../data/adizZones';
+import { GPS_JAMMING_ZONES } from '../data/gpsJamming';
+import { FORTIFIED_BORDERS } from '../data/fortifiedBorders';
 import { getFlagEmoji } from '../data/countryIntel';
 
 interface MapComponentProps {
@@ -20,7 +24,7 @@ interface MapComponentProps {
   conflicts: ConflictZoneFeature[];
   features: MapFeatureItem[];
   theme?: ThemeMode;
-  onSelectFeature: (feature: MapFeatureItem | IntelHotspot | ConflictZoneFeature) => void;
+  onSelectFeature: (feature: StrategicFeature) => void;
   onSelectCountry?: (country: { code: string; name: string }) => void;
   onViewChange: (center: [number, number], zoom: number) => void;
 }
@@ -356,6 +360,186 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     if (map.getLayer('conflicts-fill')) map.setLayoutProperty('conflicts-fill', 'visibility', conflictVis);
     if (map.getLayer('conflicts-outline')) map.setLayoutProperty('conflicts-outline', 'visibility', conflictVis);
 
+    // 1b. Air Defense Identification Zones (ADIZ)
+    const adizGeoJson: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: ADIZ_ZONES.map((a) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [a.coords]
+        },
+        properties: {
+          id: a.id,
+          name: a.name,
+          country: a.country,
+          authority: a.authority,
+          alertLevel: a.alertLevel,
+          rules: a.rules,
+          description: a.description,
+          color: a.color
+        }
+      }))
+    };
+
+    if (map.getSource('adiz-source')) {
+      (map.getSource('adiz-source') as maplibregl.GeoJSONSource).setData(adizGeoJson);
+    } else {
+      map.addSource('adiz-source', {
+        type: 'geojson',
+        data: adizGeoJson
+      });
+
+      map.addLayer({
+        id: 'adiz-fill',
+        type: 'fill',
+        source: 'adiz-source',
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': 0.08
+        }
+      });
+
+      map.addLayer({
+        id: 'adiz-line',
+        type: 'line',
+        source: 'adiz-source',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 2,
+          'line-dasharray': [4, 2],
+          'line-opacity': 0.85
+        }
+      });
+    }
+
+    const adizVis = activeLayers.adizZones ? 'visible' : 'none';
+    if (map.getLayer('adiz-fill')) map.setLayoutProperty('adiz-fill', 'visibility', adizVis);
+    if (map.getLayer('adiz-line')) map.setLayoutProperty('adiz-line', 'visibility', adizVis);
+
+    // 1c. Electronic Warfare & GPS Jamming Zones
+    const gpsJammingGeoJson: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: GPS_JAMMING_ZONES.map((j) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [j.coords]
+        },
+        properties: {
+          id: j.id,
+          name: j.name,
+          region: j.region,
+          intensity: j.intensity,
+          attenuationPercent: j.attenuationPercent,
+          frequencies: j.frequencies.join(', '),
+          systemsDetected: j.systemsDetected.join(', '),
+          advisory: j.advisory,
+          description: j.advisory,
+          color: j.intensity === 'critical' ? '#06b6d4' : '#0891b2'
+        }
+      }))
+    };
+
+    if (map.getSource('gps-jamming-source')) {
+      (map.getSource('gps-jamming-source') as maplibregl.GeoJSONSource).setData(gpsJammingGeoJson);
+    } else {
+      map.addSource('gps-jamming-source', {
+        type: 'geojson',
+        data: gpsJammingGeoJson
+      });
+
+      map.addLayer({
+        id: 'gps-jamming-fill',
+        type: 'fill',
+        source: 'gps-jamming-source',
+        paint: {
+          'fill-color': '#06b6d4',
+          'fill-opacity': 0.16
+        }
+      });
+
+      map.addLayer({
+        id: 'gps-jamming-outline',
+        type: 'line',
+        source: 'gps-jamming-source',
+        paint: {
+          'line-color': '#22d3ee',
+          'line-width': 2,
+          'line-dasharray': [2, 2],
+          'line-opacity': 0.95
+        }
+      });
+    }
+
+    const gpsVis = activeLayers.gpsJamming ? 'visible' : 'none';
+    if (map.getLayer('gps-jamming-fill')) map.setLayoutProperty('gps-jamming-fill', 'visibility', gpsVis);
+    if (map.getLayer('gps-jamming-outline')) map.setLayoutProperty('gps-jamming-outline', 'visibility', gpsVis);
+
+    // 1d. Fortified Frontlines & Border Demarcations
+    const fortifiedBordersGeoJson: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: FORTIFIED_BORDERS.map((b) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: b.coords
+        },
+        properties: {
+          id: b.id,
+          name: b.name,
+          theater: b.theater,
+          lengthKm: b.lengthKm,
+          status: b.status,
+          forces: b.forces.join(', '),
+          description: b.description,
+          color: b.color
+        }
+      }))
+    };
+
+    if (map.getSource('fortified-borders-source')) {
+      (map.getSource('fortified-borders-source') as maplibregl.GeoJSONSource).setData(fortifiedBordersGeoJson);
+    } else {
+      map.addSource('fortified-borders-source', {
+        type: 'geojson',
+        data: fortifiedBordersGeoJson
+      });
+
+      map.addLayer({
+        id: 'fortified-borders-glow',
+        type: 'line',
+        source: 'fortified-borders-source',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 5,
+          'line-blur': 2.5,
+          'line-opacity': 0.5
+        }
+      });
+
+      map.addLayer({
+        id: 'fortified-borders-line',
+        type: 'line',
+        source: 'fortified-borders-source',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 2.4,
+          'line-dasharray': [3, 1.5],
+          'line-opacity': 0.95
+        }
+      });
+    }
+
+    const bordersVis = activeLayers.fortifiedBorders ? 'visible' : 'none';
+    if (map.getLayer('fortified-borders-glow')) map.setLayoutProperty('fortified-borders-glow', 'visibility', bordersVis);
+    if (map.getLayer('fortified-borders-line')) map.setLayoutProperty('fortified-borders-line', 'visibility', bordersVis);
+
+    // Ensure Survey of India Sovereign Boundary stays topmost
+    if (map.getLayer('india-soi-fill')) map.moveLayer('india-soi-fill');
+    if (map.getLayer('india-soi-glow')) map.moveLayer('india-soi-glow');
+    if (map.getLayer('india-soi-line')) map.moveLayer('india-soi-line');
+
     // 2. Point Features Source (Hotspots + other 12 layers)
     const allPointFeatures: GeoJSON.Feature[] = [];
 
@@ -398,6 +582,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       else if (feat.layer === 'waterways') color = '#14b8a6';
       else if (feat.layer === 'economic') color = '#10b981';
       else if (feat.layer === 'sanctions') color = '#ec4899';
+      else if (feat.layer === 'gpsJamming') color = '#06b6d4';
 
       allPointFeatures.push({
         type: 'Feature',
@@ -549,6 +734,40 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         if (match) onSelectFeature(match);
       });
 
+      // Click on ADIZ polygons
+      map.on('click', 'adiz-fill', (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const p = e.features[0].properties;
+        const match = ADIZ_ZONES.find((a) => a.id === p.id);
+        if (match) onSelectFeature(match);
+      });
+
+      // Click on GPS Jamming polygons
+      map.on('click', 'gps-jamming-fill', (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const p = e.features[0].properties;
+        const match = GPS_JAMMING_ZONES.find((j) => j.id === p.id);
+        if (match) onSelectFeature(match);
+      });
+
+      // Click on Fortified Borders
+      map.on('click', 'fortified-borders-line', (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const p = e.features[0].properties;
+        const match = FORTIFIED_BORDERS.find((b) => b.id === p.id);
+        if (match) onSelectFeature(match);
+      });
+
+      // Pointer cursor on tactical defense layers
+      ['conflicts-fill', 'adiz-fill', 'gps-jamming-fill', 'fortified-borders-line'].forEach((layerId) => {
+        map.on('mouseenter', layerId, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = '';
+        });
+      });
+
       // Hover on Country
       map.on('mousemove', 'country-interactive', (e) => {
         // If hovering over a point marker or conflict, don't show country hover
@@ -595,8 +814,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
 
       // Click on Country (Opens World Monitor Country Intelligence Dossier)
       map.on('click', 'country-interactive', (e) => {
-        // If a point marker was clicked, ignore country click
-        const pointFeatures = map.queryRenderedFeatures(e.point, { layers: ['points-core', 'conflicts-fill'] });
+        // If a point marker, conflict, ADIZ, or defense zone was clicked, ignore country click
+        const pointFeatures = map.queryRenderedFeatures(e.point, {
+          layers: ['points-core', 'conflicts-fill', 'adiz-fill', 'gps-jamming-fill', 'fortified-borders-line']
+        });
         if (pointFeatures && pointFeatures.length > 0) return;
 
         if (!e.features || e.features.length === 0) return;

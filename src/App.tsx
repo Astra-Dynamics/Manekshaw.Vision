@@ -13,6 +13,7 @@ import {
   MapFeatureItem,
   IntelHotspot,
   ConflictZoneFeature,
+  StrategicFeature,
   IntelNewsItem,
   ThemeMode
 } from './types';
@@ -29,6 +30,9 @@ import { INFRASTRUCTURE_OUTAGES } from './data/outages';
 import { CANADA_ALERTS } from './data/canadaAlerts';
 import { IRAN_ATTACKS } from './data/iranAttacks';
 import { MILITARY_ASSETS } from './data/militaryAssets';
+import { GPS_JAMMING_POINTS, GPS_JAMMING_ZONES } from './data/gpsJamming';
+import { ADIZ_ZONES } from './data/adizZones';
+import { FORTIFIED_BORDERS } from './data/fortifiedBorders';
 
 // Real-Time Live Data Feeds
 import { fetchLiveEarthquakes } from './services/earthquakes';
@@ -49,7 +53,10 @@ const ALL_LAYER_KEYS: LayerKey[] = [
   'natural',
   'waterways',
   'economic',
-  'sanctions'
+  'sanctions',
+  'gpsJamming',
+  'adizZones',
+  'fortifiedBorders'
 ];
 
 export const App: React.FC = () => {
@@ -77,7 +84,10 @@ export const App: React.FC = () => {
       natural: true,
       waterways: true,
       economic: true,
-      sanctions: true
+      sanctions: true,
+      gpsJamming: true,
+      adizZones: true,
+      fortifiedBorders: true
     };
     if (initialLayersParam) {
       const activeList = initialLayersParam.split(',');
@@ -135,9 +145,7 @@ export const App: React.FC = () => {
   // UI Panels
   const [isRightPanelOpen, setIsRightPanelOpen] = useState<boolean>(true);
   const [isLayerDockOpen, setIsLayerDockOpen] = useState<boolean>(true);
-  const [selectedFeature, setSelectedFeature] = useState<
-    MapFeatureItem | IntelHotspot | ConflictZoneFeature | null
-  >(null);
+  const [selectedFeature, setSelectedFeature] = useState<StrategicFeature | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryIntelDetails | null>(null);
 
   // Live dynamic feeds
@@ -193,6 +201,7 @@ export const App: React.FC = () => {
       ...MILITARY_BASES,
       ...NUCLEAR_SITES,
       ...MILITARY_ASSETS,
+      ...GPS_JAMMING_POINTS,
       ...STRATEGIC_WATERWAYS,
       ...SANCTIONS_REGIMES,
       ...ECONOMIC_CENTERS,
@@ -219,7 +228,10 @@ export const App: React.FC = () => {
       natural: liveEarthquakes.length + liveEonet.length,
       waterways: STRATEGIC_WATERWAYS.length,
       economic: ECONOMIC_CENTERS.length,
-      sanctions: SANCTIONS_REGIMES.length
+      sanctions: SANCTIONS_REGIMES.length,
+      gpsJamming: GPS_JAMMING_ZONES.length + GPS_JAMMING_POINTS.length,
+      adizZones: ADIZ_ZONES.length,
+      fortifiedBorders: FORTIFIED_BORDERS.length
     };
     return res;
   }, [liveWeather, liveEarthquakes, liveEonet]);
@@ -273,7 +285,7 @@ export const App: React.FC = () => {
   }, []);
 
   const handleSelectFeature = useCallback(
-    (feature: MapFeatureItem | IntelHotspot | ConflictZoneFeature) => {
+    (feature: StrategicFeature) => {
       setSelectedFeature(feature);
 
       // Center map smoothly
@@ -282,6 +294,10 @@ export const App: React.FC = () => {
         c = feature.coordinates;
       } else if ('center' in feature && feature.center) {
         c = feature.center;
+      } else if ('coords' in feature && Array.isArray(feature.coords) && feature.coords.length > 0) {
+        // LineString or polygon fallback
+        const midIdx = Math.floor(feature.coords.length / 2);
+        c = feature.coords[midIdx];
       }
 
       if (c[0] !== 0 || c[1] !== 0) {

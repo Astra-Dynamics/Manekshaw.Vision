@@ -11,7 +11,10 @@ export type LayerKey =
   | 'natural'
   | 'waterways'
   | 'economic'
-  | 'sanctions';
+  | 'sanctions'
+  | 'gpsJamming'
+  | 'adizZones'
+  | 'fortifiedBorders';
 
 export interface LayerMetadata {
   id: LayerKey;
@@ -49,6 +52,54 @@ export interface ConflictZoneFeature {
   description: string;
   updatedAt: string;
 }
+
+export interface GpsJammingZone {
+  id: string;
+  name: string;
+  region: string;
+  center: [number, number]; // [lon, lat]
+  intensity: 'critical' | 'high' | 'medium';
+  attenuationPercent: number;
+  frequencies: string[];
+  systemsDetected: string[];
+  advisory: string;
+  description: string;
+  updatedAt: string;
+  coords: [number, number][]; // Polygon coords [lon, lat]
+}
+
+export interface AdizZoneFeature {
+  id: string;
+  name: string;
+  country: string;
+  authority: string;
+  alertLevel: 'active' | 'heightened' | 'routine';
+  center: [number, number]; // [lon, lat]
+  rules: string;
+  description: string;
+  color: string;
+  coords: [number, number][]; // Polygon coords [lon, lat]
+}
+
+export interface FortifiedBorderFeature {
+  id: string;
+  name: string;
+  theater: string;
+  lengthKm: number;
+  status: string;
+  forces: string[];
+  description: string;
+  color: string;
+  coords: [number, number][]; // LineString coords [lon, lat]
+}
+
+export type StrategicFeature =
+  | MapFeatureItem
+  | IntelHotspot
+  | ConflictZoneFeature
+  | GpsJammingZone
+  | AdizZoneFeature
+  | FortifiedBorderFeature;
 
 export interface IntelHotspot {
   id: string;
