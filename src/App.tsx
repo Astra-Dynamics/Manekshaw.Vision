@@ -5,6 +5,7 @@ import { MapComponent } from './components/MapComponent';
 import { LayerDock } from './components/LayerDock';
 import { RightIntelligencePanel } from './components/RightIntelligencePanel';
 import { CountryBriefModal } from './components/CountryBriefModal';
+import { CommandPalette } from './components/CommandPalette';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -12,7 +13,8 @@ import {
   MapFeatureItem,
   IntelHotspot,
   ConflictZoneFeature,
-  IntelNewsItem
+  IntelNewsItem,
+  ThemeMode
 } from './types';
 
 // Curated Datasets
@@ -51,16 +53,17 @@ const ALL_LAYER_KEYS: LayerKey[] = [
 ];
 
 export const App: React.FC = () => {
-  // Parse Initial URL State
-  const urlParams = new URLSearchParams(window.location.search);
+  // Parse URL Parameters
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
+
   const initialLat = parseFloat(urlParams.get('lat') || '22.4589');
   const initialLon = parseFloat(urlParams.get('lon') || '82.7533');
   const initialZoom = parseFloat(urlParams.get('zoom') || '3.25');
   const initialView = (urlParams.get('view') as TheaterView) || 'global';
   const initialTimeRange = urlParams.get('timeRange') || '7d';
-
   const initialLayersParam = urlParams.get('layers');
-  const initialActiveLayers: Record<LayerKey, boolean> = useMemo(() => {
+
+  const initialActiveLayers = useMemo((): Record<LayerKey, boolean> => {
     const obj: Record<LayerKey, boolean> = {
       iranAttacks: true,
       hotspots: true,
@@ -91,6 +94,43 @@ export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<TheaterView>(initialView);
   const [timeRange, setTimeRange] = useState<string>(initialTimeRange);
   const [activeLayers, setActiveLayers] = useState<Record<LayerKey, boolean>>(initialActiveLayers);
+
+  // Theme Management (Dark default, persists in localStorage)
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    return (localStorage.getItem('manvis_theme') as ThemeMode) || 'dark';
+  });
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      document.body.classList.add('dark-theme');
+      document.body.classList.remove('light-theme');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      document.body.classList.add('light-theme');
+      document.body.classList.remove('dark-theme');
+    }
+    localStorage.setItem('manvis_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Keyboard shortcut for Command Palette (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // UI Panels
   const [isRightPanelOpen, setIsRightPanelOpen] = useState<boolean>(true);
@@ -191,8 +231,8 @@ export const App: React.FC = () => {
       setMapCenter([30.0, 25.0]);
       setMapZoom(2.8);
     } else if (view === 'india') {
-      setMapCenter([80.0, 24.5]);
-      setMapZoom(4.3);
+      setMapCenter([80.0, 23.5]);
+      setMapZoom(4.4);
     } else if (view === 'middle-east') {
       setMapCenter([48.0, 29.5]);
       setMapZoom(4.8);
@@ -288,7 +328,7 @@ export const App: React.FC = () => {
   }, [selectedCountry, allFeatures]);
 
   return (
-    <div className="flex flex-col w-screen h-screen overflow-hidden bg-[#07090e] text-slate-100 font-sans">
+    <div className="flex flex-col w-screen h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] font-sans select-none transition-colors">
       {/* 1. Header Navigation Bar */}
       <Header
         currentView={currentView}
@@ -297,20 +337,12 @@ export const App: React.FC = () => {
         onSelectTimeRange={setTimeRange}
         isRightPanelOpen={isRightPanelOpen}
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
-        isLayerDockOpen={isLayerDockOpen}
-        onToggleLayerDock={() => setIsLayerDockOpen(!isLayerDockOpen)}
-        counts={{
-          hotspots: layerCounts.hotspots,
-          strikes: layerCounts.iranAttacks,
-          bases: layerCounts.bases,
-          nuclear: layerCounts.nuclear,
-          conflicts: layerCounts.conflicts,
-          natural: layerCounts.natural,
-          outages: layerCounts.outages
-        }}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
       />
 
-      {/* 2. Breaking Alert Ticker Strip */}
+      {/* 2. Urgent Breaking News / Telemetry Ticker */}
       <AlertTicker alerts={newsFeed} onSelectAlert={handleSelectAlert} />
 
       {/* 3. Main Central Operations Area (Side-by-Side: Map on LEFT, Panel on RIGHT) */}
@@ -324,6 +356,7 @@ export const App: React.FC = () => {
             hotspots={INTEL_HOTSPOTS}
             conflicts={CONFLICT_ZONES}
             features={allFeatures}
+            theme={theme}
             onSelectFeature={handleSelectFeature}
             onSelectCountry={handleSelectCountry}
             onViewChange={(c, z) => {
@@ -370,6 +403,21 @@ export const App: React.FC = () => {
         }}
         relatedNews={countryNews}
         relatedAssets={countryAssets}
+      />
+
+      {/* 5. Tactical Command Palette (Cmd+K / Search) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectCountry={(code, name) => handleSelectCountry({ code, name })}
+        onSelectView={handleSelectView}
+        onCenterMap={(c, z) => {
+          setMapCenter(c);
+          if (z) setMapZoom(z);
+        }}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+        onToggleLayer={handleToggleLayer}
       />
     </div>
   );

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { Compass } from 'lucide-react';
 import {
   LayerKey,
   MapFeatureItem,
   IntelHotspot,
-  ConflictZoneFeature
+  ConflictZoneFeature,
+  ThemeMode
 } from '../types';
 import { INDIA_OFFICIAL_BOUNDARY } from '../data/indiaOfficialBoundary';
 import { getFlagEmoji } from '../data/countryIntel';
@@ -17,6 +19,7 @@ interface MapComponentProps {
   hotspots: IntelHotspot[];
   conflicts: ConflictZoneFeature[];
   features: MapFeatureItem[];
+  theme?: ThemeMode;
   onSelectFeature: (feature: MapFeatureItem | IntelHotspot | ConflictZoneFeature) => void;
   onSelectCountry?: (country: { code: string; name: string }) => void;
   onViewChange: (center: [number, number], zoom: number) => void;
@@ -29,6 +32,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   hotspots,
   conflicts,
   features,
+  theme = 'dark',
   onSelectFeature,
   onSelectCountry,
   onViewChange
@@ -37,6 +41,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [is3D, setIs3D] = useState(false);
 
   // Initialize Map
   useEffect(() => {
@@ -110,6 +115,46 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       });
     }
   }, [center, zoom]);
+
+  // Theme Switching (Carto Dark Matter vs Positron)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const targetStyle = theme === 'light'
+      ? 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+      : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+    setMapLoaded(false);
+    map.setStyle(targetStyle);
+    map.once('style.load', () => {
+      setMapLoaded(true);
+    });
+  }, [theme]);
+
+  // Floating Control Handlers
+  const handleToggle3D = () => {
+    if (!mapRef.current) return;
+    const nextPitch = is3D ? 0 : 45;
+    mapRef.current.easeTo({ pitch: nextPitch, duration: 800 });
+    setIs3D(!is3D);
+  };
+
+  const handleZoomIn = () => {
+    mapRef.current?.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    mapRef.current?.zoomOut();
+  };
+
+  const handleResetNorth = () => {
+    mapRef.current?.resetNorthPitch({ duration: 600 });
+    setIs3D(false);
+  };
+
+  const handleFocusIndia = () => {
+    mapRef.current?.flyTo({ center: [80.0, 23.5], zoom: 4.5, essential: true });
+  };
 
   // Update GeoJSON Sources and Layers
   useEffect(() => {
@@ -568,6 +613,50 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   return (
     <div className="relative w-full h-full flex-1 overflow-hidden">
       <div ref={mapContainerRef} className="w-full h-full" />
+
+      {/* Floating Tactical Map Controls */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 p-1 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xl backdrop-blur-md select-none">
+        <button
+          onClick={handleZoomIn}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
+          title="Zoom In"
+        >
+          +
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
+          title="Zoom Out"
+        >
+          −
+        </button>
+        <div className="h-px w-5 bg-[var(--border-subtle)] mx-auto my-0.5" />
+        <button
+          onClick={handleToggle3D}
+          className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
+            is3D
+              ? 'bg-sky-500 text-slate-950 shadow-xs'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
+          }`}
+          title={is3D ? 'Reset to 2D Planar View' : 'Switch to 3D Perspective (45° Pitch)'}
+        >
+          3D
+        </button>
+        <button
+          onClick={handleResetNorth}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
+          title="Reset Compass / Orient North"
+        >
+          <Compass size={14} />
+        </button>
+        <button
+          onClick={handleFocusIndia}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs hover:scale-115 transition-transform"
+          title="Center Sovereign India (SOI)"
+        >
+          🇮🇳
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,23 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --bg-darkest: #07090e;
-  --bg-darker: #0c1017;
-  --bg-card: rgba(15, 23, 42, 0.75);
-  --bg-card-hover: rgba(30, 41, 59, 0.85);
-  --border-color: rgba(56, 189, 248, 0.15);
-  --border-glow: rgba(56, 189, 248, 0.35);
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  /* Light Theme Defaults */
+  --bg-app: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-surface-hover: #f1f5f9;
+  --bg-surface-subtle: #f8fafc;
+  --border-subtle: rgba(226, 232, 240, 0.9);
+  --border-medium: rgba(203, 213, 225, 0.8);
+  --border-accent: rgba(2, 132, 199, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --accent-cyan: #0284c7;
+  --accent-blue: #2563eb;
+  --accent-red: #dc2626;
+  --accent-amber: #d97706;
+  --accent-emerald: #059669;
+  --accent-purple: #7c3aed;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --shadow-hud: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+}
+
+.dark, body.dark-theme {
+  /* Dark Theme Command Center (Default) */
+  --bg-app: #080a0f;
+  --bg-surface: #0e121a;
+  --bg-surface-elevated: #131824;
+  --bg-surface-hover: #1a2234;
+  --bg-surface-subtle: #0b0e15;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(56, 189, 248, 0.3);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
   --accent-cyan: #38bdf8;
   --accent-blue: #3b82f6;
   --accent-red: #ef4444;
   --accent-amber: #f59e0b;
   --accent-emerald: #10b981;
   --accent-purple: #a855f7;
-  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --glass-bg: rgba(14, 18, 26, 0.88);
+  --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px 0 rgba(56, 189, 248, 0.05);
 }
 
 * {
@@ -30,136 +60,74 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--bg-darkest);
-  color: var(--text-main);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(12, 16, 23, 0.5);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.2);
-  border-radius: 3px;
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.4);
+  background: rgba(148, 163, 184, 0.45);
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+/* High-Tech Tactical Glassmorphism */
+.tactical-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-hud);
 }
 
-.glow-border {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+.tactical-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tactical Monospace Badges */
-.mono-label {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.tactical-card:hover {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-medium);
 }
 
-/* Pulsing radar dot */
-@keyframes radar-pulse {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-  }
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-  }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-  }
+/* Pulsing Radars */
+@keyframes radar-pulse-red {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-.pulse-red {
-  animation: radar-pulse 2s infinite;
+@keyframes radar-pulse-green {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-@keyframes green-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-  }
+@keyframes radar-pulse-cyan {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
 }
 
-.pulse-green {
-  animation: green-pulse 2s infinite;
-}
+.pulse-red { animation: radar-pulse-red 2s infinite; }
+.pulse-green { animation: radar-pulse-green 2s infinite; }
+.pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
 
-/* Maplibre control override */
-.maplibregl-ctrl-group {
-  background: rgba(15, 23, 42, 0.85) !important;
-  border: 1px solid var(--border-color) !important;
-  backdrop-filter: blur(8px);
-}
-.maplibregl-ctrl-group button {
-  border-bottom: 1px solid var(--border-color) !important;
-}
-.maplibregl-ctrl-group button:last-child {
-  border-bottom: none !important;
-}
-.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  filter: invert(1) hue-rotate(180deg);
-}
-
-/* Map popup override */
-.maplibregl-popup-content {
-  background: rgba(12, 16, 23, 0.95) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 8px !important;
-  color: var(--text-main) !important;
-  padding: 12px 14px !important;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important;
-  backdrop-filter: blur(10px) !important;
-  max-width: 320px;
-}
-.maplibregl-popup-anchor-top .maplibregl-popup-tip {
-  border-bottom-color: rgba(12, 16, 23, 0.95) !important;
-}
-.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-  border-top-color: rgba(12, 16, 23, 0.95) !important;
-}
-.maplibregl-popup-anchor-left .maplibregl-popup-tip {
-  border-right-color: rgba(12, 16, 23, 0.95) !important;
-}
-.maplibregl-popup-anchor-right .maplibregl-popup-tip {
-  border-left-color: rgba(12, 16, 23, 0.95) !important;
-}
-.maplibregl-popup-close-button {
-  color: var(--text-muted) !important;
-  padding: 4px 8px !important;
-  font-size: 16px !important;
-}
-.maplibregl-popup-close-button:hover {
-  color: var(--accent-cyan) !important;
-  background: transparent !important;
-}
-
-/* Animations */
-@keyframes marquee {
+/* Marquee for alert ticker */
+@keyframes marquee-flow {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
 }
@@ -167,8 +135,54 @@ html, body, #root {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee 60s linear infinite;
+  animation: marquee-flow 60s linear infinite;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Maplibre control overrides for tactical polish */
+.maplibregl-ctrl-group {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-hud) !important;
+}
+.maplibregl-ctrl-group button {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+.maplibregl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Tactical Popup Override */
+.maplibregl-popup-content {
+  background: var(--bg-surface-elevated) !important;
+  border: 1px solid var(--border-accent) !important;
+  border-radius: 12px !important;
+  color: var(--text-primary) !important;
+  padding: 14px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(12px) !important;
+  max-width: 340px !important;
+  font-family: var(--font-sans) !important;
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--bg-surface-elevated) !important; }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--bg-surface-elevated) !important; }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--bg-surface-elevated) !important; }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--bg-surface-elevated) !important; }
+.maplibregl-popup-close-button {
+  color: var(--text-muted) !important;
+  padding: 6px 8px !important;
+  font-size: 16px !important;
+}
+.maplibregl-popup-close-button:hover {
+  color: var(--accent-cyan) !important;
+  background: transparent !important;
 }

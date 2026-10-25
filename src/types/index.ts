@@ -76,6 +76,8 @@ export interface IntelNewsItem {
 
 export type TheaterView = 'global' | 'india' | 'middle-east' | 'indo-pacific' | 'europe' | 'americas' | 'africa';
 
+export type ThemeMode = 'dark' | 'light';
+
 export interface TheaterConfig {
   id: TheaterView;
   name: string;
