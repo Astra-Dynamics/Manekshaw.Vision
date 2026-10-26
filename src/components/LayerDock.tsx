@@ -216,19 +216,19 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
       {/* 2. Search Layers Input matching reference image */}
       <div className="p-2.5 pb-2 bg-[#090c12] border-b border-zinc-800/80 space-y-2">
-        <div className="relative flex items-center">
-          <Search size={12} className="absolute left-2.5 text-zinc-500 pointer-events-none" />
+        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#141822] border border-zinc-700/80 focus-within:border-cyan-500/80 rounded-md transition-colors">
+          <Search size={13} className="text-zinc-500 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search layers..."
-            className="w-full bg-[#141822] border border-zinc-700/80 focus:border-cyan-500/80 pl-8 pr-7 py-1.5 rounded text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
+            className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 text-zinc-400 hover:text-white"
+              className="text-zinc-400 hover:text-white shrink-0 ml-1"
             >
               <X size={12} />
             </button>
