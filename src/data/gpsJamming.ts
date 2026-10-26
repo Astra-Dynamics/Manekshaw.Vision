@@ -1,11 +1,50 @@
 import { MapFeatureItem, GpsJammingZone } from '../types';
 
+/**
+ * Calculates a smooth, mathematically precise geodesic ellipse representing
+ * physical radio-frequency (RF) signal propagation and electronic warfare envelopes.
+ */
+function createGeodesicEllipse(
+  centerLon: number,
+  centerLat: number,
+  semiMajorKm: number,
+  semiMinorKm: number,
+  angleDeg: number,
+  numPoints: number = 48
+): [number, number][] {
+  const R = 6371; // Earth radius in km
+  const latRad = (centerLat * Math.PI) / 180;
+  const lonRad = (centerLon * Math.PI) / 180;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  const coords: [number, number][] = [];
+
+  for (let i = 0; i <= numPoints; i++) {
+    const theta = (i * 2 * Math.PI) / numPoints;
+    const a = semiMajorKm;
+    const b = semiMinorKm;
+    const rKm = (a * b) / Math.sqrt((b * Math.cos(theta)) ** 2 + (a * Math.sin(theta)) ** 2);
+    const dByR = rKm / R;
+    const bearing = theta + angleRad;
+
+    const sinLat = Math.sin(latRad) * Math.cos(dByR) + Math.cos(latRad) * Math.sin(dByR) * Math.cos(bearing);
+    const ptLatRad = Math.asin(sinLat);
+    const y = Math.sin(bearing) * Math.sin(dByR) * Math.cos(latRad);
+    const x = Math.cos(dByR) - Math.sin(latRad) * sinLat;
+    const ptLonRad = lonRad + Math.atan2(y, x);
+
+    const ptLon = (ptLonRad * 180) / Math.PI;
+    const ptLat = (ptLatRad * 180) / Math.PI;
+    coords.push([Number(ptLon.toFixed(4)), Number(ptLat.toFixed(4))]);
+  }
+  return coords;
+}
+
 export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
   {
     id: 'ew_baltic_kaliningrad',
     name: 'Baltic Sea & Kaliningrad EW Corridor',
     region: 'Baltic / Eastern Europe',
-    center: [20.8, 54.9],
+    center: [20.45, 54.71],
     intensity: 'critical',
     attenuationPercent: 92,
     frequencies: ['GPS L1 (1575.42 MHz)', 'GPS L2 (1227.60 MHz)', 'Galileo E1', 'GLONASS L1'],
@@ -13,22 +52,13 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Commercial aviation reports widespread loss of primary GNSS navigation across Poland, Baltic states, and southern Sweden. Aircraft reverting to VOR/DME terrestrial beacons and inertial navigation.',
     description: 'Commercial aviation reports widespread loss of primary GNSS navigation across Poland, Baltic states, and southern Sweden. Aircraft reverting to VOR/DME terrestrial beacons and inertial navigation.',
     updatedAt: 'Continuous Electronic Attack',
-    coords: [
-      [18.5, 54.2],
-      [20.5, 54.0],
-      [22.8, 54.5],
-      [23.5, 55.6],
-      [22.2, 56.4],
-      [20.0, 56.2],
-      [18.2, 55.4],
-      [18.5, 54.2]
-    ]
+    coords: createGeodesicEllipse(20.45, 54.71, 380, 260, 25, 48)
   },
   {
     id: 'ew_black_sea_crimea',
     name: 'Black Sea & Crimean Electronic Warfare Bastion',
     region: 'Black Sea / Southern Ukraine',
-    center: [33.8, 44.9],
+    center: [33.5, 44.8],
     intensity: 'critical',
     attenuationPercent: 96,
     frequencies: ['GPS L1/L2/L5', 'BeiDou B1', 'GLONASS (selective)'],
@@ -36,22 +66,13 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Severe GNSS spoofing with maritime vessels appearing inland near Sevastopol and Novorossiysk. High-threat drone jamming prevents commercial SAR and satellite comms.',
     description: 'Severe GNSS spoofing with maritime vessels appearing inland near Sevastopol and Novorossiysk. High-threat drone jamming prevents commercial SAR and satellite comms.',
     updatedAt: 'Active Naval & Aerial Jamming',
-    coords: [
-      [31.2, 45.8],
-      [34.5, 46.2],
-      [37.2, 45.4],
-      [38.5, 44.5],
-      [36.8, 43.6],
-      [33.0, 43.8],
-      [31.0, 44.5],
-      [31.2, 45.8]
-    ]
+    coords: createGeodesicEllipse(33.5, 44.8, 320, 210, 80, 48)
   },
   {
     id: 'ew_levant_mediterranean',
     name: 'Eastern Mediterranean & Levant Jamming Umbrella',
     region: 'Middle East',
-    center: [35.2, 33.2],
+    center: [35.3, 33.2],
     intensity: 'critical',
     attenuationPercent: 94,
     frequencies: ['GPS L1', 'GPS L2', 'Galileo E1/E5a'],
@@ -59,21 +80,13 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Extensive GNSS spoofing originating in northern Israel and south Lebanon, causing false position fixes across Beirut, Tel Aviv, and Cyprus civil airspace (Flightradar aircraft reporting false Cairo/Beirut locations).',
     description: 'Extensive GNSS spoofing originating in northern Israel and south Lebanon, causing false position fixes across Beirut, Tel Aviv, and Cyprus civil airspace (Flightradar aircraft reporting false Cairo/Beirut locations).',
     updatedAt: '24/7 Air Defense Electronic Shield',
-    coords: [
-      [33.8, 31.8],
-      [35.8, 31.8],
-      [36.5, 33.6],
-      [36.2, 34.8],
-      [34.6, 34.8],
-      [33.5, 33.5],
-      [33.8, 31.8]
-    ]
+    coords: createGeodesicEllipse(35.3, 33.2, 220, 160, 15, 48)
   },
   {
     id: 'ew_red_sea_yemen',
     name: 'Southern Red Sea & Bab el-Mandeb Spoofing Sector',
     region: 'Red Sea',
-    center: [42.8, 13.5],
+    center: [42.5, 14.2],
     intensity: 'high',
     attenuationPercent: 84,
     frequencies: ['GPS L1', 'AIS VHF Marine Tracking'],
@@ -81,15 +94,7 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Merchant shipping experiencing GPS dropouts and simulated AIS ghost ship tracks intended to steer commercial tankers into Houthi drone and missile strike arcs.',
     description: 'Merchant shipping experiencing GPS dropouts and simulated AIS ghost ship tracks intended to steer commercial tankers into Houthi drone and missile strike arcs.',
     updatedAt: 'Maritime Defense Alert',
-    coords: [
-      [41.5, 12.2],
-      [43.8, 12.0],
-      [44.5, 13.5],
-      [43.8, 15.2],
-      [42.0, 15.0],
-      [41.2, 13.8],
-      [41.5, 12.2]
-    ]
+    coords: createGeodesicEllipse(42.5, 14.2, 340, 130, 145, 48)
   },
   {
     id: 'ew_persian_gulf',
@@ -103,21 +108,13 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Vessels navigating near Abu Musa and the Tunb Islands report GPS deviation alerts of up to 4 nautical miles, with vessels falsely indicated inside Iranian territorial waters.',
     description: 'Vessels navigating near Abu Musa and the Tunb Islands report GPS deviation alerts of up to 4 nautical miles, with vessels falsely indicated inside Iranian territorial waters.',
     updatedAt: 'Ongoing Maritime Advisory',
-    coords: [
-      [54.2, 25.5],
-      [56.8, 25.3],
-      [57.4, 26.5],
-      [56.8, 27.4],
-      [55.2, 27.2],
-      [54.0, 26.4],
-      [54.2, 25.5]
-    ]
+    coords: createGeodesicEllipse(55.8, 26.2, 250, 140, 70, 48)
   },
   {
     id: 'ew_korean_dmz',
     name: 'Korean DMZ & Incheon Approach GNSS Interdiction',
     region: 'East Asia',
-    center: [126.6, 37.8],
+    center: [126.8, 37.8],
     intensity: 'high',
     attenuationPercent: 86,
     frequencies: ['GPS L1', 'GLONASS L1', 'Civil Aviation Nav'],
@@ -125,14 +122,7 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Periodic electronic warfare pulses broadcast from Kaesong and Haeju toward Incheon International Airport and the Yellow Sea Northern Limit Line (NLL), disrupting civil airliners and fishing flotillas.',
     description: 'Periodic electronic warfare pulses broadcast from Kaesong and Haeju toward Incheon International Airport and the Yellow Sea Northern Limit Line (NLL), disrupting civil airliners and fishing flotillas.',
     updatedAt: 'Intermittent High-Power Pulses',
-    coords: [
-      [125.4, 37.2],
-      [127.4, 37.4],
-      [127.8, 38.3],
-      [126.5, 38.4],
-      [125.2, 38.0],
-      [125.4, 37.2]
-    ]
+    coords: createGeodesicEllipse(126.8, 37.8, 170, 100, 75, 48)
   },
   {
     id: 'ew_taiwan_strait',
@@ -146,20 +136,13 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Continuous radar frequency agility testing, ESM interception, and localized UAV datalink disruption across the median line and southwest ADIZ air corridors.',
     description: 'Continuous radar frequency agility testing, ESM interception, and localized UAV datalink disruption across the median line and southwest ADIZ air corridors.',
     updatedAt: 'Active Electronic Reconnaissance',
-    coords: [
-      [118.2, 22.8],
-      [120.8, 22.5],
-      [121.5, 24.8],
-      [120.2, 25.6],
-      [118.5, 24.5],
-      [118.2, 22.8]
-    ]
+    coords: createGeodesicEllipse(119.8, 24.0, 320, 110, 45, 48)
   },
   {
     id: 'ew_myanmar_border',
     name: 'Myanmar Border Transnational Communications Jamming',
     region: 'Southeast Asia',
-    center: [98.5, 22.5],
+    center: [98.8, 22.8],
     intensity: 'medium',
     attenuationPercent: 72,
     frequencies: ['Cellular GSM/LTE Bands', 'VHF/UHF Tactical Comms', 'Commercial Satellite Comms'],
@@ -167,14 +150,7 @@ export const GPS_JAMMING_ZONES: GpsJammingZone[] = [
     advisory: 'Cross-border communication blackouts and civilian satellite internet degradation in Shan State and Kokang border zones.',
     description: 'Cross-border communication blackouts and civilian satellite internet degradation in Shan State and Kokang border zones.',
     updatedAt: 'Counter-Insurgency EW',
-    coords: [
-      [97.0, 21.0],
-      [99.8, 21.2],
-      [100.2, 23.6],
-      [98.4, 23.8],
-      [96.8, 22.4],
-      [97.0, 21.0]
-    ]
+    coords: createGeodesicEllipse(98.8, 22.8, 160, 110, 30, 48)
   }
 ];
 

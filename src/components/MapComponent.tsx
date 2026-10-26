@@ -339,7 +339,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         source: 'conflicts-source',
         paint: {
           'fill-color': '#dc2626',
-          'fill-opacity': 0.18
+          'fill-opacity': 0.12
         }
       });
 
@@ -347,10 +347,14 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'conflicts-outline',
         type: 'line',
         source: 'conflicts-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
         paint: {
           'line-color': '#ef4444',
-          'line-width': 2,
-          'line-dasharray': [2, 2]
+          'line-width': 1.8,
+          'line-dasharray': [3, 2]
         }
       });
     }
@@ -396,7 +400,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         source: 'adiz-source',
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': 0.08
+          'fill-opacity': 0.05
         }
       });
 
@@ -404,9 +408,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'adiz-line',
         type: 'line',
         source: 'adiz-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
         paint: {
           'line-color': ['get', 'color'],
-          'line-width': 2,
+          'line-width': 1.8,
           'line-dasharray': [4, 2],
           'line-opacity': 0.85
         }
@@ -455,7 +463,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         source: 'gps-jamming-source',
         paint: {
           'fill-color': '#06b6d4',
-          'fill-opacity': 0.16
+          'fill-opacity': 0.10
         }
       });
 
@@ -463,11 +471,15 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'gps-jamming-outline',
         type: 'line',
         source: 'gps-jamming-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
         paint: {
           'line-color': '#22d3ee',
-          'line-width': 2,
+          'line-width': 1.6,
           'line-dasharray': [2, 2],
-          'line-opacity': 0.95
+          'line-opacity': 0.85
         }
       });
     }
@@ -510,6 +522,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'fortified-borders-glow',
         type: 'line',
         source: 'fortified-borders-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
         paint: {
           'line-color': ['get', 'color'],
           'line-width': 5,
@@ -522,9 +538,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'fortified-borders-line',
         type: 'line',
         source: 'fortified-borders-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
         paint: {
           'line-color': ['get', 'color'],
-          'line-width': 2.4,
+          'line-width': 2.2,
           'line-dasharray': [3, 1.5],
           'line-opacity': 0.95
         }
