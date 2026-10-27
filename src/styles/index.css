@@ -235,6 +235,21 @@ html, body, #root {
   background: #38bdf8;
 }
 
+/* Intelligence Desk Feed Sleek Custom Scrollbar */
+.feed-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.feed-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.feed-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+.feed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.4);
+}
+
 /* Maplibre control overrides for tactical polish */
 .maplibregl-ctrl-group {
   background: var(--hud-bg) !important;

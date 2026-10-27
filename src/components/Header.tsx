@@ -202,34 +202,43 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Divider */}
         <div className="hud-divider hidden sm:block" />
 
-        {/* Time Range Filter (Compact Monospace Pills) */}
-        <div className="hidden sm:flex items-center bg-[var(--bg-surface-elevated)]/70 rounded-md border border-[var(--hud-border)] p-0.5 font-mono text-[10px]">
-          {timeRanges.map((tr) => (
-            <button
-              key={tr}
-              onClick={() => onSelectTimeRange(tr)}
-              className={`px-1.5 py-0.5 rounded transition-all uppercase font-medium ${
-                timeRange.toLowerCase() === tr.toLowerCase()
-                  ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {tr}
-            </button>
-          ))}
+        {/* Time Range Filter (Segmented Control Container) */}
+        <div className="hidden sm:flex items-center bg-slate-900/80 p-0.5 rounded border border-white/10 gap-[2px] font-mono text-[10px]">
+          {timeRanges.map((tr) => {
+            const isActive = timeRange.toLowerCase() === tr.toLowerCase();
+            return (
+              <button
+                key={tr}
+                onClick={() => onSelectTimeRange(tr)}
+                className={`px-2 py-[2px] rounded-[3px] transition-all uppercase font-semibold ${
+                  isActive
+                    ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30 shadow-xs'
+                    : 'text-slate-400 hover:text-white border border-transparent'
+                }`}
+              >
+                {tr}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* 2. Center: Seamless Integrated Alert Dispatch Marquee */}
-      <div className="flex-1 min-w-0 mx-2 hidden md:flex items-center overflow-hidden h-full">
+      {/* 2. Center: Seamless Integrated Alert Dispatch Marquee with Mask Fade */}
+      <div className="flex-1 min-w-0 mx-3 hidden md:flex items-center overflow-hidden h-full">
         <div className="hud-divider" />
         
-        <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9px] font-mono font-bold tracking-wider shrink-0 mr-2">
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9px] font-mono font-bold tracking-wider shrink-0 mr-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
           DISPATCH
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div
+          className="flex-1 min-w-0 overflow-hidden relative"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 20px), transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 20px), transparent)'
+          }}
+        >
           <div className="animate-marquee flex items-center gap-8 whitespace-nowrap font-mono text-[11px]">
             {alerts && alerts.length > 0 ? (
               alerts.concat(alerts).map((item, idx) => (

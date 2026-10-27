@@ -173,16 +173,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
       {/* 2. Modern Segmented Tab Bar */}
       <div className="p-2 border-b border-[var(--hud-border)] bg-[var(--bg-surface-subtle)]/60">
-        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-lg p-0.5 border border-[var(--hud-border)] text-[11px] font-mono">
+        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-lg p-0.5 border border-[var(--hud-border)] font-sans text-[12px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-1 px-0.5 rounded text-center transition-all relative font-medium truncate ${
+                className={`flex-1 py-1 px-1 rounded text-center transition-all relative font-medium truncate ${
                   isActive
-                    ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
+                    ? 'bg-sky-500/20 text-sky-400 font-semibold border border-sky-500/30'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
@@ -226,7 +226,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       )}
 
       {/* 4. Tab Panels */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 feed-scrollbar">
         {/* 1. Feed Tab */}
         {activeTab === 'feed' && (
           <div className="space-y-3">
@@ -252,32 +252,32 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       });
                     }
                   }}
-                  className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-sky-500/40 shadow-xs transition-all cursor-pointer group"
+                  className="p-[14px_16px] rounded-lg bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] border-b border-b-white/[0.06] hover:border-sky-500/40 shadow-xs transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span
-                      className={`text-[9px] font-mono px-2 py-0.5 rounded-md font-bold uppercase ${
+                      className={`text-[11px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
                         item.severity === 'critical'
-                          ? 'bg-red-500/15 text-red-500 border border-red-500/30'
+                          ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                           : item.severity === 'high'
-                          ? 'bg-amber-500/15 text-amber-500 border border-amber-500/30'
-                          : 'bg-blue-500/15 text-sky-500 border border-blue-500/30'
+                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
                       }`}
                     >
                       {item.category} • {item.severity}
                     </span>
-                    <span className="text-[10px] font-mono text-[var(--text-muted)]">{item.timeAgo}</span>
+                    <span className="text-[11px] font-mono text-[var(--text-muted)]">{item.timeAgo}</span>
                   </div>
 
-                  <h3 className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-sky-400 leading-snug mb-1.5 font-sans">
+                  <h3 className="text-[13.5px] font-semibold text-[#F8FAFC] group-hover:text-sky-400 leading-[1.35] mb-1.5 font-sans">
                     {item.title}
                   </h3>
 
-                  <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed font-sans">
+                  <p className="text-[12px] text-[#94A3B8] line-clamp-2 leading-[1.5] font-sans">
                     {item.summary}
                   </p>
 
-                  <div className="mt-2.5 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
+                  <div className="mt-2.5 pt-2 border-t border-[var(--hud-border)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
                     <div className="flex items-center gap-2">
                       <span>{item.source}</span>
                       <button
@@ -286,7 +286,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           const url = (item as any).link || `https://news.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}`;
                           window.open(url, '_blank', 'noopener,noreferrer');
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--bg-surface)] hover:bg-sky-500/20 text-sky-500 hover:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--bg-surface)] hover:bg-sky-500/20 text-sky-400 border border-[var(--hud-border)] hover:border-sky-500/40 transition-colors shadow-xs"
                         title="Open source report in new tab"
                       >
                         <span>To Source</span>
