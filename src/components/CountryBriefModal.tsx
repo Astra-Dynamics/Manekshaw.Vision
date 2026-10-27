@@ -17,7 +17,7 @@ import {
   Layers,
   Globe
 } from 'lucide-react';
-import { CountryIntelDetails, getFlagEmoji } from '../data/countryIntel';
+import { CountryIntelDetails } from '../data/countryIntel';
 import { IntelNewsItem, MapFeatureItem } from '../types';
 
 interface CountryBriefModalProps {
@@ -48,8 +48,6 @@ export const CountryBriefModal: React.FC<CountryBriefModalProps> = ({
   }, [onClose]);
 
   if (!country) return null;
-
-  const flag = getFlagEmoji(country.code);
 
   const handleCopy = () => {
     const text = `
@@ -99,21 +97,20 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-4xl max-h-[92vh] rounded-[8px] p-6 flex flex-col overflow-hidden text-[#F8FAFC] font-sans shadow-2xl"
+        className="w-full max-w-[760px] max-h-[90vh] rounded-[10px] p-[24px_28px] flex flex-col overflow-hidden text-[#F8FAFC] font-sans shadow-2xl"
         style={{
-          background: 'rgba(10, 14, 22, 0.95)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)'
+          background: '#0A0E17',
+          border: '1px solid rgba(255, 255, 255, 0.14)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.85)'
         }}
       >
-        {/* 1. Header Row (Clean ISO Tactical Box + Title + Right Instability Index) */}
+        {/* 1. Header Row (Tactical 42x42 Square Box + Country Title + Clean Right Instability Index) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-3.5">
-            {/* Tactical 40x40 Square Box for Country Code */}
-            <div className="w-10 h-10 rounded border border-white/10 bg-white/5 flex items-center justify-center font-mono font-bold text-sm text-sky-400 shrink-0">
+          <div className="flex items-center gap-[14px]">
+            {/* Tactical 42x42 Square Badge (No duplicate text, clean sovereign code) */}
+            <div className="w-[42px] h-[42px] rounded-[6px] border border-white/10 bg-white/5 flex items-center justify-center font-mono font-bold text-sm text-sky-400 shrink-0 shadow-inner">
               {country.code}
             </div>
-            <span className="text-3xl select-none shrink-0 drop-shadow-sm">{flag}</span>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-[#F8FAFC] tracking-tight">
                 {country.name}
@@ -216,34 +213,41 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           </button>
         </div>
 
-        {/* 3. Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-4 feed-scrollbar">
+        {/* 3. Modal Scrollable Body with Vertical Rhythm (flex flex-col gap-4) */}
+        <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4 feed-scrollbar">
           {/* Tab 1: Strategic Brief */}
           {activeTab === 'brief' && (
-            <div className="space-y-4">
-              {/* Executive Summary */}
-              <div className="p-4 rounded-[6px] border border-white/[0.07] bg-white/[0.02] space-y-1.5">
-                <span className="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="flex flex-col gap-4">
+              {/* Executive Summary Box */}
+              <div
+                className="rounded-[6px] border border-white/[0.07]"
+                style={{
+                  padding: '14px 18px',
+                  background: 'rgba(255, 255, 255, 0.025)'
+                }}
+              >
+                <span className="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 mb-[6px]">
                   <Activity size={13} /> EXECUTIVE INTELLIGENCE SUMMARY
                 </span>
-                <p className="text-[13px] text-[#94A3B8] leading-relaxed font-sans pt-0.5">
+                <p className="text-[13px] text-[#94A3B8] leading-relaxed font-sans">
                   {country.executiveSummary}
                 </p>
               </div>
 
               {/* Vulnerabilities Callout Box (Single left-accented callout box) */}
               <div
-                className="rounded-[4px] space-y-2 font-sans"
+                className="rounded-[6px] font-sans"
                 style={{
-                  borderLeft: '2px solid #F59E0B',
+                  border: '1px solid rgba(245, 158, 11, 0.15)',
+                  borderLeft: '3px solid #F59E0B',
                   background: 'rgba(245, 158, 11, 0.04)',
-                  padding: '12px 16px'
+                  padding: '14px 18px'
                 }}
               >
-                <span className="text-[10.5px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-[10.5px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 mb-[6px]">
                   <AlertTriangle size={13} /> STRATEGIC VULNERABILITIES & FLASHPOINTS
                 </span>
-                <div className="space-y-1.5 pt-0.5">
+                <div className="flex flex-col gap-[6px]">
                   {country.strategicRisks.map((risk, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs text-amber-200/90 leading-relaxed">
                       <span className="text-amber-400 font-bold shrink-0 mt-0.5">•</span>
@@ -253,49 +257,61 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                 </div>
               </div>
 
-              {/* Metric Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              {/* 4-Column Metric Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     Population
                   </span>
-                  <span className="text-[14px] font-semibold text-[#F1F5F9] block mt-1">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug break-words">
                     {country.population}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     Nominal GDP
                   </span>
-                  <span className="text-[14px] font-semibold text-[#F1F5F9] block mt-1">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug break-words">
                     {country.gdp}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     FX Reserves
                   </span>
-                  <span className="text-[14px] font-semibold text-[#F1F5F9] block mt-1 truncate">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug break-words">
                     {country.economicStatus.foreignReserves}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     Readiness
                   </span>
-                  <span className="text-[13px] font-semibold text-emerald-400 block mt-1 truncate">
+                  <span className="text-[13px] font-semibold text-emerald-400 block leading-snug break-words">
                     {country.militaryPosture.readiness}
                   </span>
                 </div>
@@ -305,52 +321,64 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
 
           {/* Tab 2: Defense & Military */}
           {activeTab === 'military' && (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     ACTIVE ARMED FORCES
                   </span>
-                  <span className="text-[15px] font-semibold text-[#F1F5F9] block mt-1">
+                  <span className="text-[14px] font-semibold text-[#F1F5F9] block leading-snug">
                     {country.militaryPosture.activePersonnel}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     ANNUAL DEFENSE BUDGET
                   </span>
-                  <span className="text-[15px] font-semibold text-sky-400 block mt-1">
+                  <span className="text-[14px] font-semibold text-sky-400 block leading-snug">
                     {country.militaryPosture.defenseBudget}
                   </span>
                 </div>
               </div>
 
               <div
-                className="rounded-[6px] p-[14px_16px] border border-white/[0.07] space-y-1.5"
-                style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                className="rounded-[6px] border border-white/[0.07]"
+                style={{
+                  padding: '14px 18px',
+                  background: 'rgba(255, 255, 255, 0.02)'
+                }}
               >
-                <span className="text-[10.5px] font-mono font-bold text-amber-400 uppercase tracking-wider block">
+                <span className="text-[10.5px] font-mono font-bold text-amber-400 uppercase tracking-wider block mb-[6px]">
                   NUCLEAR ARSENAL & STRATEGIC DETERRENT
                 </span>
-                <p className="text-xs text-[#94A3B8] leading-relaxed font-sans pt-0.5">
+                <p className="text-xs text-[#94A3B8] leading-relaxed font-sans">
                   {country.militaryPosture.nuclearStatus}
                 </p>
               </div>
 
               <div
-                className="rounded-[6px] p-[14px_16px] border border-white/[0.07] space-y-2"
-                style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                className="rounded-[6px] border border-white/[0.07]"
+                style={{
+                  padding: '14px 18px',
+                  background: 'rgba(255, 255, 255, 0.02)'
+                }}
               >
-                <span className="text-[10.5px] font-mono font-bold text-sky-400 uppercase tracking-wider block">
+                <span className="text-[10.5px] font-mono font-bold text-sky-400 uppercase tracking-wider block mb-2">
                   SECURITY ALLIANCES & TREATY COMMITMENTS
                 </span>
-                <div className="flex flex-wrap gap-2 pt-0.5">
+                <div className="flex flex-wrap gap-2">
                   {country.militaryPosture.alliances.map((alliance, idx) => (
                     <span
                       key={idx}
@@ -366,51 +394,63 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
 
           {/* Tab 3: Economy & Trade */}
           {activeTab === 'economy' && (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     CURRENCY
                   </span>
-                  <span className="text-[14px] font-semibold text-[#F1F5F9] block mt-1">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug">
                     {country.economicStatus.currency}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     INFLATION RATE
                   </span>
-                  <span className="text-[14px] font-semibold text-[#F1F5F9] block mt-1">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug">
                     {country.economicStatus.inflation}
                   </span>
                 </div>
                 <div
-                  className="rounded-[6px] p-[12px_14px] border border-white/[0.07]"
-                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                  className="rounded-[6px] border border-white/[0.07]"
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}
                 >
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[#64748B] block font-semibold mb-1">
                     SANCTIONS REGIME
                   </span>
-                  <span className="text-[13px] font-semibold text-[#F1F5F9] block mt-1 truncate">
+                  <span className="text-[13px] font-semibold text-[#F1F5F9] block leading-snug">
                     {country.economicStatus.sanctionsStatus}
                   </span>
                 </div>
               </div>
 
               <div
-                className="rounded-[6px] p-[14px_16px] border border-white/[0.07] space-y-2"
-                style={{ background: 'rgba(255, 255, 255, 0.02)' }}
+                className="rounded-[6px] border border-white/[0.07]"
+                style={{
+                  padding: '14px 18px',
+                  background: 'rgba(255, 255, 255, 0.02)'
+                }}
               >
-                <span className="text-[10.5px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">
+                <span className="text-[10.5px] font-mono font-bold text-emerald-400 uppercase tracking-wider block mb-2">
                   KEY EXPORT DRIVERS & COMMODITIES
                 </span>
-                <div className="flex flex-wrap gap-2 pt-0.5">
+                <div className="flex flex-wrap gap-2">
                   {country.economicStatus.primaryExports.map((item, idx) => (
                     <span
                       key={idx}
@@ -426,7 +466,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
 
           {/* Tab 4: News Feed */}
           {activeTab === 'news' && (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {relatedNews.length === 0 ? (
                 <div className="text-center py-12 text-xs text-[#64748B] font-mono">
                   No active breaking alerts directly tagged for {country.name} in the past 24 hours.
@@ -435,7 +475,8 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                 relatedNews.map((n) => (
                   <div
                     key={n.id}
-                    className="p-[14px_16px] rounded-[6px] border border-white/[0.07] bg-white/[0.02] space-y-1.5"
+                    className="rounded-[6px] border border-white/[0.07] bg-white/[0.02] space-y-1.5"
+                    style={{ padding: '14px 18px' }}
                   >
                     <div className="flex items-center justify-between text-[10px] font-mono">
                       <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 font-bold uppercase">
@@ -453,18 +494,18 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           )}
         </div>
 
-        {/* 4. Footer Actions (Sleek rectangular tactical buttons with top divider) */}
-        <div className="mt-5 pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2">
+        {/* 4. Footer Action Row (Rectangular tactical buttons with clean top divider) */}
+        <div className="pt-4 mt-1 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={handleFocusCountry}
-              className="px-3 py-1.5 rounded-[4px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+              className="px-3.5 py-[7px] rounded-[5px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold flex items-center gap-1.5 transition-colors shadow-xs"
             >
               <Crosshair size={13} /> Center on Map
             </button>
             <button
               onClick={handleCopy}
-              className="px-3 py-1.5 rounded-[4px] bg-white/5 hover:bg-white/10 text-[#F8FAFC] font-medium flex items-center gap-1.5 border border-white/10 transition-colors"
+              className="px-3.5 py-[7px] rounded-[5px] bg-white/5 hover:bg-white/10 text-[#F8FAFC] font-medium flex items-center gap-1.5 border border-white/10 transition-colors"
             >
               {copied ? <CheckCircle size={13} className="text-emerald-400" /> : <Copy size={13} />}
               <span>{copied ? 'Copied' : 'Copy Brief'}</span>
@@ -473,7 +514,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
 
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-[4px] bg-transparent hover:bg-white/5 text-[#94A3B8] hover:text-white border border-white/10 transition-colors"
+            className="px-3.5 py-[7px] rounded-[5px] bg-transparent hover:bg-white/5 text-[#94A3B8] hover:text-white border border-white/10 transition-colors"
           >
             Close (Esc)
           </button>

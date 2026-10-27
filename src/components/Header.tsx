@@ -224,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* 2. Center: Seamless Integrated Alert Dispatch Marquee with Mask Fade */}
-      <div className="flex-1 min-w-0 mx-3 hidden md:flex items-center overflow-hidden h-full">
+      <div className="flex-1 min-w-0 mx-3 mr-4 hidden md:flex items-center overflow-hidden h-full">
         <div className="hud-divider" />
         
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9px] font-mono font-bold tracking-wider shrink-0 mr-2.5">
@@ -276,13 +276,15 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
       <div className="flex items-center gap-1.5 shrink-0">
-        {/* Monospace Live Telemetry Coordinates Readout */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/60 border border-[var(--hud-border)] font-mono text-[10.5px] text-[var(--text-muted)]">
-          <span className="text-sky-400 font-semibold">{latDisplay}</span>
-          <span>,</span>
-          <span className="text-sky-400 font-semibold">{lonDisplay}</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-amber-400 font-semibold">Z{zoom.toFixed(1)}</span>
+        {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border */}
+        <div className="hidden lg:flex items-center gap-1.5 pl-4 border-l border-white/10 pr-1 text-[10.5px] font-mono text-[var(--text-muted)]">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/60 border border-[var(--hud-border)]">
+            <span className="text-sky-400 font-semibold">{latDisplay}</span>
+            <span>,</span>
+            <span className="text-sky-400 font-semibold">{lonDisplay}</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-amber-400 font-semibold">Z{zoom.toFixed(1)}</span>
+          </div>
         </div>
 
         {/* Divider */}

@@ -403,7 +403,14 @@ export const App: React.FC = () => {
 
       {/* Right: Floating Intelligence Desk */}
       {isRightPanelOpen && (
-        <div className="absolute top-14 right-3 bottom-3 z-30 w-full max-w-[calc(100vw-24px)] sm:w-[420px] lg:w-[450px] flex flex-col hud-panel rounded-xl overflow-hidden shadow-2xl animate-fade-in">
+        <div
+          className="absolute top-14 right-3 bottom-3 z-30 w-full max-w-[calc(100vw-24px)] sm:w-[420px] lg:w-[450px] flex flex-col rounded-xl overflow-hidden shadow-2xl animate-fade-in"
+          style={{
+            background: 'rgba(8, 12, 20, 0.92)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid var(--hud-border)'
+          }}
+        >
           <RightIntelligencePanel
             isOpen={isRightPanelOpen}
             onClose={() => setIsRightPanelOpen(false)}

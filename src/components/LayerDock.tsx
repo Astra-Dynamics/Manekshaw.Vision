@@ -275,7 +275,14 @@ export const LayerDock: React.FC<LayerDockProps> = ({
   }
 
   return (
-    <div className="absolute top-13 left-13 sm:left-14 z-20 w-[295px] sm:w-[320px] hud-panel rounded-xl select-none font-mono text-xs overflow-hidden flex flex-col max-h-[calc(100vh-64px)] animate-fade-in transition-all">
+    <div
+      className="absolute top-13 left-13 sm:left-14 z-20 w-[295px] sm:w-[320px] rounded-xl select-none font-mono text-xs overflow-hidden flex flex-col max-h-[calc(100vh-64px)] animate-fade-in transition-all shadow-2xl"
+      style={{
+        background: 'rgba(8, 12, 20, 0.90)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid var(--hud-border)'
+      }}
+    >
       {/* 1. Header Bar: Title, Active Counter & Minimize */}
       <div
         onClick={() => setIsOpen(false)}
@@ -296,7 +303,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       </div>
 
       {/* 2. Search & Bulk Actions Bar */}
-      <div className="p-2.5 bg-[var(--bg-surface-subtle)]/50 border-b border-[var(--hud-border)] space-y-2">
+      <div className="px-3.5 py-2.5 bg-[var(--bg-surface-subtle)]/50 border-b border-[var(--hud-border)] space-y-2">
         <div className="flex items-center gap-2 px-2.5 py-1.5 bg-[var(--bg-surface-elevated)]/90 border border-[var(--hud-border)] focus-within:border-sky-500/70 rounded-md transition-colors">
           <Search size={12} className="text-[var(--text-muted)] shrink-0" />
           <input
@@ -350,10 +357,10 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
             return (
               <div key={cat.id} className="border-b border-[var(--hud-border)]/60 last:border-b-0">
-                {/* Category Header */}
+                {/* Category Header with 14px padding */}
                 <div
                   onClick={() => toggleCategoryCollapse(cat.id)}
-                  className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-surface-elevated)]/40 hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors"
+                  className="flex items-center justify-between px-3.5 py-2 bg-[var(--bg-surface-elevated)]/40 hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xs">{cat.icon}</span>
@@ -379,7 +386,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                   </div>
                 </div>
 
-                {/* Category Layer Rows */}
+                {/* Category Layer Rows with 14px padding */}
                 {!isCatCollapsed && (
                   <div className="divide-y divide-[var(--hud-border)]/40">
                     {cat.layers.map((layer) => {
@@ -391,7 +398,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                         <div key={layer.id} className="group">
                           <div
                             onClick={() => onToggleLayer(layer.id)}
-                            className={`flex items-center justify-between px-3 py-1.5 hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors ${
+                            className={`flex items-center justify-between px-3.5 py-2 hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors ${
                               isActive ? 'bg-transparent' : 'opacity-60'
                             }`}
                           >
@@ -483,7 +490,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       </div>
 
       {/* 4. Footer Branding */}
-      <div className="px-3 py-1.5 bg-[var(--bg-surface-subtle)] border-t border-[var(--hud-border)] flex items-center justify-between text-[9.5px] font-mono text-sky-400">
+      <div className="px-3.5 py-2 bg-[var(--bg-surface-subtle)] border-t border-[var(--hud-border)] flex items-center justify-between text-[9.5px] font-mono text-sky-400">
         <span className="truncate">© MANEKSHAW.VISION</span>
         <span className="text-[var(--text-muted)]">GEOINT v1.5</span>
       </div>

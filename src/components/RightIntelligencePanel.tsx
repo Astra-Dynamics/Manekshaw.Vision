@@ -153,9 +153,15 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   ];
 
   return (
-    <aside className="w-full h-full flex flex-col bg-transparent select-none transition-colors">
+    <aside
+      className="w-full h-full flex flex-col select-none transition-colors"
+      style={{
+        background: 'rgba(8, 12, 20, 0.92)',
+        backdropFilter: 'blur(20px)'
+      }}
+    >
       {/* 1. Header Desk Bar */}
-      <div className="px-3.5 py-2.5 border-b border-[var(--hud-border)] flex items-center justify-between bg-[var(--bg-surface-subtle)]/80">
+      <div className="px-[18px] py-3 border-b border-[var(--hud-border)] flex items-center justify-between bg-[var(--bg-surface-subtle)]/80">
         <div className="flex items-center gap-2">
           <Radio size={14} className="text-sky-400" />
           <h2 className="hud-micro-header text-zinc-200">
@@ -172,8 +178,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       </div>
 
       {/* 2. Modern Segmented Tab Bar */}
-      <div className="p-2 border-b border-[var(--hud-border)] bg-[var(--bg-surface-subtle)]/60">
-        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-lg p-0.5 border border-[var(--hud-border)] font-sans text-[12px]">
+      <div className="px-[18px] py-2 border-b border-[var(--hud-border)] bg-[var(--bg-surface-subtle)]/60">
+        <div className="flex items-center gap-1 bg-[var(--bg-surface-elevated)]/80 rounded-lg p-0.5 border border-[var(--hud-border)] font-sans text-[12px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -198,7 +204,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
       {/* 3. Sleek Search and Filter Bar */}
       {activeTab !== 'dossier' && (
-        <div className="p-2.5 border-b border-[var(--hud-border)] flex items-center gap-2 bg-[var(--bg-surface-subtle)]/40">
+        <div className="px-[18px] py-2.5 border-b border-[var(--hud-border)] flex items-center gap-2 bg-[var(--bg-surface-subtle)]/40">
           <div className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 border border-[var(--hud-border)] focus-within:border-sky-500/70 transition-colors shadow-2xs">
             <Search size={13} className="text-[var(--text-muted)] shrink-0" />
             <input
@@ -226,10 +232,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       )}
 
       {/* 4. Tab Panels */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 feed-scrollbar">
+      <div className="flex-1 overflow-y-auto px-[18px] py-3.5 space-y-3.5 feed-scrollbar">
         {/* 1. Feed Tab */}
         {activeTab === 'feed' && (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {filteredNews.length === 0 ? (
               <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                 No intelligence reports match query.
@@ -252,9 +258,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       });
                     }
                   }}
-                  className="p-[14px_16px] rounded-lg bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] border-b border-b-white/[0.06] hover:border-sky-500/40 shadow-xs transition-all cursor-pointer group"
+                  className="p-[16px_20px] rounded-lg bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] border-b border-b-white/[0.06] hover:border-sky-500/40 shadow-xs transition-all cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-[6px]">
                     <span
                       className={`text-[11px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
                         item.severity === 'critical'
@@ -269,11 +275,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     <span className="text-[11px] font-mono text-[var(--text-muted)]">{item.timeAgo}</span>
                   </div>
 
-                  <h3 className="text-[13.5px] font-semibold text-[#F8FAFC] group-hover:text-sky-400 leading-[1.35] mb-1.5 font-sans">
+                  <h3 className="text-[13.5px] font-semibold text-[#F8FAFC] group-hover:text-sky-400 leading-[1.35] mb-[6px] font-sans">
                     {item.title}
                   </h3>
 
-                  <p className="text-[12px] text-[#94A3B8] line-clamp-2 leading-[1.5] font-sans">
+                  <p className="text-[12px] text-[#94A3B8] line-clamp-2 leading-[1.5] font-sans mb-[8px]">
                     {item.summary}
                   </p>
 
