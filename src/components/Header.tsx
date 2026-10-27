@@ -203,18 +203,29 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="hud-divider hidden sm:block" />
 
         {/* Time Range Filter (Segmented Control Container) */}
-        <div className="hidden sm:flex items-center bg-slate-900/80 p-0.5 rounded border border-white/10 gap-[2px] font-mono text-[10px]">
+        <div
+          className="hidden sm:flex items-center p-0.5 rounded-[2px] border gap-[2px] font-mono text-[10px]"
+          style={{
+            background: 'var(--bg-surface-elevated)',
+            borderColor: 'var(--border-subtle)'
+          }}
+        >
           {timeRanges.map((tr) => {
             const isActive = timeRange.toLowerCase() === tr.toLowerCase();
             return (
               <button
                 key={tr}
                 onClick={() => onSelectTimeRange(tr)}
-                className={`px-2 py-[2px] rounded-[3px] transition-all uppercase font-semibold ${
+                className={`px-2 py-[2px] rounded-[2px] transition-all uppercase font-semibold ${
                   isActive
-                    ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30 shadow-xs'
-                    : 'text-slate-400 hover:text-white border border-transparent'
+                    ? 'font-bold shadow-xs'
+                    : 'hover:bg-[var(--bg-surface-hover)]'
                 }`}
+                style={{
+                  background: isActive ? 'rgba(14, 165, 233, 0.15)' : 'transparent',
+                  color: isActive ? '#0284c7' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid rgba(14, 165, 233, 0.35)' : '1px solid transparent'
+                }}
               >
                 {tr}
               </button>
