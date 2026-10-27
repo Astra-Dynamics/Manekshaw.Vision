@@ -1,53 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  /* Light Theme Defaults */
+  /* Light Theme Defaults (Tactical Slate Light) */
   --bg-app: #f4f6fa;
+  --bg-canvas: #f4f6fa;
   --bg-surface: #ffffff;
   --bg-surface-elevated: #ffffff;
   --bg-surface-hover: #f1f5f9;
   --bg-surface-subtle: #f8fafc;
+  --hud-bg: rgba(255, 255, 255, 0.88);
+  --hud-border: rgba(203, 213, 225, 0.8);
+  --hud-border-active: rgba(2, 132, 199, 0.5);
+  --hud-glow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+
   --border-subtle: rgba(226, 232, 240, 0.9);
   --border-medium: rgba(203, 213, 225, 0.8);
-  --border-accent: rgba(2, 132, 199, 0.3);
+  --border-accent: rgba(2, 132, 199, 0.4);
+
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-faint: #94a3b8;
+
+  /* Semantic Layer Accents */
+  --accent-kinetic: #f43f5e;
+  --accent-military: #f59e0b;
+  --accent-strategic: #06b6d4;
+  --accent-infra: #10b981;
+  --accent-env: #6366f1;
+  --accent-geo: #8b5cf6;
+
   --accent-cyan: #0284c7;
   --accent-blue: #2563eb;
-  --accent-red: #dc2626;
-  --accent-amber: #d97706;
-  --accent-emerald: #059669;
-  --accent-purple: #7c3aed;
-  --glass-bg: rgba(255, 255, 255, 0.85);
+  --accent-red: #f43f5e;
+  --accent-amber: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-purple: #8b5cf6;
+  --glass-bg: rgba(255, 255, 255, 0.88);
   --shadow-hud: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
 }
 
 .dark, body.dark-theme {
-  /* Dark Theme Command Center (Default) */
-  --bg-app: #080a0f;
-  --bg-surface: #0e121a;
-  --bg-surface-elevated: #131824;
-  --bg-surface-hover: #1a2234;
-  --bg-surface-subtle: #0b0e15;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-medium: rgba(255, 255, 255, 0.12);
-  --border-accent: rgba(56, 189, 248, 0.3);
+  /* Tactical Obsidian & Slate Command Center (Default Theme) */
+  --bg-app: #07090e;
+  --bg-canvas: #07090e;
+  --bg-surface: #0b0f17;
+  --bg-surface-elevated: #0f141c;
+  --bg-surface-hover: #161d2a;
+  --bg-surface-subtle: #080b11;
+  --hud-bg: rgba(15, 20, 28, 0.78);
+  --hud-border: rgba(255, 255, 255, 0.08);
+  --hud-border-active: rgba(56, 189, 248, 0.4);
+  --hud-glow: 0 16px 36px -8px rgba(0, 0, 0, 0.75), 0 0 20px 0 rgba(56, 189, 248, 0.04);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-accent: rgba(56, 189, 248, 0.4);
+
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-faint: #475569;
+
+  /* Semantic Layer Accents (Neon-on-Dark) */
+  --accent-kinetic: #f43f5e;
+  --accent-military: #f59e0b;
+  --accent-strategic: #06b6d4;
+  --accent-infra: #10b981;
+  --accent-env: #6366f1;
+  --accent-geo: #8b5cf6;
+
   --accent-cyan: #38bdf8;
   --accent-blue: #3b82f6;
-  --accent-red: #ef4444;
+  --accent-red: #f43f5e;
   --accent-amber: #f59e0b;
   --accent-emerald: #10b981;
-  --accent-purple: #a855f7;
-  --glass-bg: rgba(14, 18, 26, 0.88);
-  --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px 0 rgba(56, 189, 248, 0.05);
+  --accent-purple: #8b5cf6;
+  --glass-bg: rgba(15, 20, 28, 0.78);
+  --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.75), 0 0 20px 0 rgba(56, 189, 248, 0.05);
 }
 
 * {
@@ -83,13 +115,52 @@ html, body, #root {
   background: rgba(148, 163, 184, 0.45);
 }
 
-/* High-Tech Tactical Glassmorphism */
+/* Modular HUD Panel Architecture */
+.hud-panel {
+  background: var(--hud-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--hud-border);
+  box-shadow: var(--hud-glow);
+}
+
+.hud-panel-elevated {
+  background: rgba(20, 26, 38, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.85);
+}
+
+.hud-micro-header {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+
+.hud-telemetry {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.hud-divider {
+  width: 1px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
 .tactical-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-hud);
+  background: var(--hud-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--hud-border);
+  box-shadow: var(--hud-glow);
 }
 
 .tactical-card {
@@ -97,36 +168,42 @@ html, body, #root {
   border: 1px solid var(--border-subtle);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 .tactical-card:hover {
   background-color: var(--bg-surface-hover);
   border-color: var(--border-medium);
 }
 
-/* Pulsing Radars */
-@keyframes radar-pulse-red {
-  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-@keyframes radar-pulse-green {
-  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+/* Pulsing Radar / Hotspot / Attack Beacons */
+@keyframes radar-pulse-coral {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(244, 63, 94, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
 }
 
 @keyframes radar-pulse-cyan {
-  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
-  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(6, 182, 212, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
 }
 
-.pulse-red { animation: radar-pulse-red 2s infinite; }
-.pulse-green { animation: radar-pulse-green 2s infinite; }
-.pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
+@keyframes radar-pulse-amber {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(245, 158, 11, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
 
-/* Marquee for alert ticker */
+@keyframes radar-pulse-emerald {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.pulse-red, .pulse-coral { animation: radar-pulse-coral 2s infinite; }
+.pulse-green, .pulse-emerald { animation: radar-pulse-emerald 2s infinite; }
+.pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
+.pulse-amber { animation: radar-pulse-amber 2s infinite; }
+
+/* Marquee for alert ticker in Top Telemetry Bar */
 @keyframes marquee-flow {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
@@ -135,24 +212,24 @@ html, body, #root {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee-flow 130s linear infinite;
+  animation: marquee-flow 120s linear infinite;
   will-change: transform;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-/* WorldMonitor Style Layers Scrollbar */
+/* WorldMonitor / OSINT Style Layers Scrollbar */
 .layers-scrollbar::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
 }
 .layers-scrollbar::-webkit-scrollbar-track {
-  background: #090c12;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 12, 18, 0.85);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 .layers-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 2px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
 }
 .layers-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #38bdf8;
@@ -160,14 +237,15 @@ html, body, #root {
 
 /* Maplibre control overrides for tactical polish */
 .maplibregl-ctrl-group {
-  background: var(--bg-surface) !important;
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 10px !important;
+  background: var(--hud-bg) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--hud-border) !important;
+  border-radius: 8px !important;
   overflow: hidden !important;
-  box-shadow: var(--shadow-hud) !important;
+  box-shadow: var(--hud-glow) !important;
 }
 .maplibregl-ctrl-group button {
-  border-bottom: 1px solid var(--border-subtle) !important;
+  border-bottom: 1px solid var(--hud-border) !important;
   width: 32px !important;
   height: 32px !important;
 }
@@ -180,24 +258,25 @@ html, body, #root {
 
 /* Tactical Popup Override */
 .maplibregl-popup-content {
-  background: var(--bg-surface-elevated) !important;
-  border: 1px solid var(--border-accent) !important;
-  border-radius: 12px !important;
+  background: var(--hud-bg) !important;
+  border: 1px solid var(--hud-border) !important;
+  border-radius: 10px !important;
   color: var(--text-primary) !important;
-  padding: 14px !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(12px) !important;
+  padding: 12px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
   max-width: 340px !important;
   font-family: var(--font-sans) !important;
 }
-.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--bg-surface-elevated) !important; }
-.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--bg-surface-elevated) !important; }
-.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--bg-surface-elevated) !important; }
-.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--bg-surface-elevated) !important; }
+.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: rgba(15, 20, 28, 0.88) !important; }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: rgba(15, 20, 28, 0.88) !important; }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: rgba(15, 20, 28, 0.88) !important; }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: rgba(15, 20, 28, 0.88) !important; }
 .maplibregl-popup-close-button {
   color: var(--text-muted) !important;
-  padding: 6px 8px !important;
-  font-size: 16px !important;
+  padding: 4px 6px !important;
+  font-size: 15px !important;
 }
 .maplibregl-popup-close-button:hover {
   color: var(--accent-cyan) !important;

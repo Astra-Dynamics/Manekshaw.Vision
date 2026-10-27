@@ -153,12 +153,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   ];
 
   return (
-    <aside className="w-full sm:w-[420px] lg:w-[460px] h-full flex flex-col shrink-0 border-l border-[var(--border-subtle)] bg-[var(--bg-surface)] z-20 backdrop-blur-2xl shadow-2xl select-none transition-colors">
+    <aside className="w-full h-full flex flex-col bg-transparent select-none transition-colors">
       {/* 1. Header Desk Bar */}
-      <div className="p-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-surface-subtle)]">
-        <div className="flex items-center gap-2.5">
-          <Radio size={15} className="text-sky-400" />
-          <h2 className="text-xs font-mono font-bold text-[var(--text-primary)] uppercase tracking-widest">
+      <div className="px-3.5 py-2.5 border-b border-[var(--hud-border)] flex items-center justify-between bg-[var(--bg-surface-subtle)]/80">
+        <div className="flex items-center gap-2">
+          <Radio size={14} className="text-sky-400" />
+          <h2 className="hud-micro-header text-zinc-200">
             INTELLIGENCE DESK
           </h2>
         </div>
@@ -172,23 +172,23 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       </div>
 
       {/* 2. Modern Segmented Tab Bar */}
-      <div className="p-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]">
-        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)] rounded-xl p-1 border border-[var(--border-subtle)] text-[11px] font-mono">
+      <div className="p-2 border-b border-[var(--hud-border)] bg-[var(--bg-surface-subtle)]/60">
+        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-lg p-0.5 border border-[var(--hud-border)] text-[11px] font-mono">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-1.5 px-0.5 rounded-lg text-center transition-all relative font-medium truncate ${
+                className={`flex-1 py-1 px-0.5 rounded text-center transition-all relative font-medium truncate ${
                   isActive
-                    ? 'bg-[var(--bg-surface)] text-sky-400 font-bold shadow-xs border border-[var(--border-subtle)]'
+                    ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <span>{tab.label}</span>
                 {tab.id === 'dossier' && selectedFeature && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute top-1.5 right-1.5 shadow-[0_0_6px_#10b981]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute top-1 right-1 shadow-[0_0_6px_#10b981]" />
                 )}
               </button>
             );
@@ -198,9 +198,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
       {/* 3. Sleek Search and Filter Bar */}
       {activeTab !== 'dossier' && (
-        <div className="p-2.5 border-b border-[var(--border-subtle)] flex items-center gap-2 bg-[var(--bg-surface)]">
-          <div className="flex-1 flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] focus-within:border-sky-500 transition-colors shadow-2xs">
-            <Search size={14} className="text-[var(--text-muted)] shrink-0" />
+        <div className="p-2.5 border-b border-[var(--hud-border)] flex items-center gap-2 bg-[var(--bg-surface-subtle)]/40">
+          <div className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 border border-[var(--hud-border)] focus-within:border-sky-500/70 transition-colors shadow-2xs">
+            <Search size={13} className="text-[var(--text-muted)] shrink-0" />
             <input
               type="text"
               placeholder={activeTab === 'videos' ? "Search defense video dispatches..." : "Search intel reports, assets..."}
@@ -214,7 +214,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-[11px] text-[var(--text-secondary)] font-mono focus:outline-none focus:border-sky-500"
+              className="bg-[var(--bg-surface-elevated)] border border-[var(--hud-border)] rounded-md px-2 py-1.5 text-[11px] text-[var(--text-secondary)] font-mono focus:outline-none focus:border-sky-500/70"
             >
               <option value="all">All Levels</option>
               <option value="critical">Critical</option>

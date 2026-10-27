@@ -353,8 +353,27 @@ export const App: React.FC = () => {
   }, [selectedCountry, allFeatures]);
 
   return (
-    <div className="flex flex-col w-screen h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] font-sans select-none transition-colors">
-      {/* 1. Header Navigation Bar */}
+    <div className="relative w-screen h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] font-sans select-none transition-colors">
+      {/* 1. Full-Bleed Map Canvas (100vw x 100vh) */}
+      <div className="absolute inset-0 w-full h-full">
+        <MapComponent
+          center={mapCenter}
+          zoom={mapZoom}
+          activeLayers={activeLayers}
+          hotspots={INTEL_HOTSPOTS}
+          conflicts={CONFLICT_ZONES}
+          features={allFeatures}
+          theme={theme}
+          onSelectFeature={handleSelectFeature}
+          onSelectCountry={handleSelectCountry}
+          onViewChange={(c, z) => {
+            setMapCenter(c);
+            setMapZoom(z);
+          }}
+        />
+      </div>
+
+      {/* 2. Top Telemetry HUD Bar (Single-line 44px bar, floating z-30) */}
       <Header
         currentView={currentView}
         onSelectView={handleSelectView}
@@ -365,60 +384,44 @@ export const App: React.FC = () => {
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        coordinates={mapCenter}
+        zoom={mapZoom}
+        alerts={newsFeed}
+        onSelectAlert={handleSelectAlert}
       />
 
-      {/* 2. Urgent Breaking News / Telemetry Ticker */}
-      <AlertTicker alerts={newsFeed} onSelectAlert={handleSelectAlert} />
+      {/* 3. Floating Modular HUD Panels */}
+      {/* Left: Categorized Layer Matrix */}
+      {isLayerDockOpen && (
+        <LayerDock
+          activeLayers={activeLayers}
+          onToggleLayer={handleToggleLayer}
+          onSetAllLayers={handleSetAllLayers}
+          counts={layerCounts}
+        />
+      )}
 
-      {/* 3. Main Central Operations Area (Side-by-Side: Map on LEFT, Panel on RIGHT) */}
-      <div className="relative flex-1 w-full h-full overflow-hidden flex flex-row">
-        {/* LEFT SIDE: Interactive Map Area */}
-        <div className="relative flex-1 h-full overflow-hidden flex flex-col">
-          <MapComponent
-            center={mapCenter}
-            zoom={mapZoom}
-            activeLayers={activeLayers}
+      {/* Right: Floating Intelligence Desk */}
+      {isRightPanelOpen && (
+        <div className="absolute top-14 right-3 bottom-3 z-30 w-full max-w-[calc(100vw-24px)] sm:w-[420px] lg:w-[450px] flex flex-col hud-panel rounded-xl overflow-hidden shadow-2xl animate-fade-in">
+          <RightIntelligencePanel
+            isOpen={isRightPanelOpen}
+            onClose={() => setIsRightPanelOpen(false)}
             hotspots={INTEL_HOTSPOTS}
             conflicts={CONFLICT_ZONES}
             features={allFeatures}
-            theme={theme}
+            news={newsFeed}
+            selectedFeature={selectedFeature}
             onSelectFeature={handleSelectFeature}
-            onSelectCountry={handleSelectCountry}
-            onViewChange={(c, z) => {
+            onCenterMap={(c) => {
               setMapCenter(c);
-              setMapZoom(z);
+              setMapZoom(6.5);
             }}
           />
-
-          {/* Bottom Floating Layer Control Dock over the Map */}
-          {isLayerDockOpen && (
-            <LayerDock
-              activeLayers={activeLayers}
-              onToggleLayer={handleToggleLayer}
-              onSetAllLayers={handleSetAllLayers}
-              counts={layerCounts}
-            />
-          )}
         </div>
+      )}
 
-        {/* RIGHT SIDE: Dedicated Intelligence & Dossier Panel */}
-        <RightIntelligencePanel
-          isOpen={isRightPanelOpen}
-          onClose={() => setIsRightPanelOpen(false)}
-          hotspots={INTEL_HOTSPOTS}
-          conflicts={CONFLICT_ZONES}
-          features={allFeatures}
-          news={newsFeed}
-          selectedFeature={selectedFeature}
-          onSelectFeature={handleSelectFeature}
-          onCenterMap={(c) => {
-            setMapCenter(c);
-            setMapZoom(6.5);
-          }}
-        />
-      </div>
-
-      {/* 4. Country Intelligence Dossier Modal (Opens when clicking any country on the map) */}
+      {/* 4. Country Intelligence Dossier Modal */}
       <CountryBriefModal
         country={selectedCountry}
         onClose={() => setSelectedCountry(null)}

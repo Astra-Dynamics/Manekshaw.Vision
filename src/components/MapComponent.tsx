@@ -684,18 +684,18 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         const p = f.properties;
 
         const html = `
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
-              <span style="color: ${p.color}; font-weight: bold; text-transform: uppercase;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+              <span style="color: ${p.color}; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
                 ${p.layer}
               </span>
-              ${p.score ? `<span style="background: rgba(239,68,68,0.2); color: #f87171; padding: 1px 4px; border-radius: 3px; font-weight: bold;">L${p.score}</span>` : ''}
+              ${p.score ? `<span style="background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); padding: 1px 5px; border-radius: 3px; font-weight: 700; font-size: 9.5px;">LEVEL ${p.score}</span>` : ''}
             </div>
-            <div style="font-weight: 700; color: #f1f5f9; font-size: 12px; margin-bottom: 4px;">
+            <div style="font-weight: 700; color: #f8fafc; font-size: 12px; margin-bottom: 4px; line-height: 1.3;">
               ${p.name}
             </div>
-            <div style="color: #94a3b8; font-size: 10px; line-height: 1.3;">
-              ${p.description ? p.description.slice(0, 110) + '...' : ''}
+            <div style="color: #94a3b8; font-size: 10px; line-height: 1.4; font-family: 'Inter', sans-serif;">
+              ${p.description ? p.description.slice(0, 115) + '...' : ''}
             </div>
           </div>
         `;
@@ -832,29 +832,29 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   }, [mapLoaded, activeLayers, hotspots, conflicts, features]);
 
   return (
-    <div className="relative w-full h-full flex-1 overflow-hidden">
+    <div className="relative w-full h-full flex-1 overflow-hidden bg-[#07090e]">
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Floating Tactical Map Controls */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 p-1 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xl backdrop-blur-md select-none">
+      <div className="absolute top-13 left-3 z-10 flex flex-col gap-1 p-1 rounded-lg hud-panel shadow-2xl select-none">
         <button
           onClick={handleZoomIn}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
+          className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
           title="Zoom In"
         >
           +
         </button>
         <button
           onClick={handleZoomOut}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
+          className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
           title="Zoom Out"
         >
           −
         </button>
-        <div className="h-px w-5 bg-[var(--border-subtle)] mx-auto my-0.5" />
+        <div className="h-px w-5 bg-[var(--hud-border)] mx-auto my-0.5" />
         <button
           onClick={handleToggle3D}
-          className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
+          className={`w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
             is3D
               ? 'bg-sky-500 text-slate-950 shadow-xs'
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
@@ -865,14 +865,14 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         <button
           onClick={handleResetNorth}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
+          className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
           title="Reset Compass / Orient North"
         >
-          <Compass size={14} />
+          <Compass size={13} />
         </button>
         <button
           onClick={handleFocusIndia}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs hover:scale-115 transition-transform"
+          className="w-7 h-7 rounded-md flex items-center justify-center text-xs hover:scale-115 transition-transform"
           title="Center Sovereign India (SOI)"
         >
           🇮🇳

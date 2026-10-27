@@ -10,9 +10,10 @@ import {
   VolumeX,
   Sun,
   Moon,
-  Search
+  Search,
+  ChevronRight
 } from 'lucide-react';
-import { TheaterView, ThemeMode } from '../types';
+import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
 
 interface HeaderProps {
   currentView: TheaterView;
@@ -24,6 +25,10 @@ interface HeaderProps {
   theme: ThemeMode;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
+  coordinates?: [number, number]; // [lon, lat]
+  zoom?: number;
+  alerts?: IntelNewsItem[];
+  onSelectAlert?: (alert: IntelNewsItem) => void;
 }
 
 interface CityTimeZone {
@@ -35,7 +40,7 @@ interface CityTimeZone {
 
 const STRATEGIC_CITIES: CityTimeZone[] = [
   { id: 'delhi', city: 'Delhi', offsetLabel: 'GMT+5:30', timeZone: 'Asia/Kolkata' },
-  { id: 'gmt', city: 'UTC / GMT', offsetLabel: 'GMT+0', timeZone: 'UTC' },
+  { id: 'gmt', city: 'UTC', offsetLabel: 'GMT+0', timeZone: 'UTC' },
   { id: 'moscow', city: 'Moscow', offsetLabel: 'GMT+3', timeZone: 'Europe/Moscow' },
   { id: 'beijing', city: 'Beijing', offsetLabel: 'GMT+8', timeZone: 'Asia/Shanghai' },
   { id: 'london', city: 'London', offsetLabel: 'GMT+0', timeZone: 'Europe/London' },
@@ -52,7 +57,11 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleRightPanel,
   theme,
   onToggleTheme,
-  onOpenCommandPalette
+  onOpenCommandPalette,
+  coordinates = [82.75, 22.46],
+  zoom = 3.25,
+  alerts = [],
+  onSelectAlert
 }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
   const [formattedTime, setFormattedTime] = useState<string>('');
@@ -85,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
           hour12: false
         }).format(now);
         setFormattedTime(timeStr);
-      } catch (err) {
+      } catch {
         setFormattedTime(now.toTimeString().slice(0, 8));
       }
     };
@@ -104,12 +113,11 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // Theaters matching the reference image dropdown exactly
   const theaters: { id: TheaterView; label: string }[] = [
     { id: 'global', label: 'Global' },
     { id: 'india', label: 'India' },
     { id: 'americas', label: 'Americas' },
-    { id: 'middle-east', label: 'Middle East and North Africa' },
+    { id: 'middle-east', label: 'Middle East' },
     { id: 'europe', label: 'Europe' },
     { id: 'indo-pacific', label: 'Asia' },
     { id: 'latin-america', label: 'Latin America' },
@@ -120,49 +128,53 @@ export const Header: React.FC<HeaderProps> = ({
   const currentTheater = theaters.find((th) => th.id === currentView) || theaters[0];
   const timeRanges = ['1h', '6h', '24h', '7d', '30d'];
 
+  const lon = coordinates[0];
+  const lat = coordinates[1];
+  const latDisplay = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'}`;
+  const lonDisplay = `${Math.abs(lon).toFixed(2)}°${lon >= 0 ? 'E' : 'W'}`;
+
   return (
-    <header className="w-full h-14 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] px-4 flex items-center justify-between select-none z-30 relative backdrop-blur-xl shrink-0 transition-colors">
-      {/* 1. Left: Brand & Sovereign Telemetry Emblem */}
-      <div className="flex items-center gap-3.5">
-        <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shadow-xs">
-            <Radio size={16} className="animate-pulse" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+    <header className="w-full h-11 bg-[var(--hud-bg)] border-b border-[var(--hud-border)] px-3 flex items-center justify-between select-none z-30 relative backdrop-blur-xl shrink-0 transition-colors shadow-xs">
+      {/* 1. Left Cluster: Emblem, Theater Selector, Time Range */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Brand Emblem */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400">
+            <Radio size={13} className="animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-extrabold tracking-wider text-[var(--text-primary)] font-mono">
-                MANEKSHAW<span className="text-sky-400">.VISION</span>
-              </h1>
-              <span className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                LIVE OPS
-              </span>
-            </div>
-            <p className="text-[10px] text-[var(--text-muted)] font-mono tracking-tight hidden lg:block">
-              SOVEREIGN SITUATIONAL AWARENESS
-            </p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-primary)]">
+              MANEKSHAW<span className="text-sky-400">.VISION</span>
+            </span>
+            <span className="hidden xl:inline-block px-1 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              LIVE
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* 2. Center: Dropdown Selector Matching Theme */}
-      <div className="flex items-center gap-2.5">
-        <div ref={theaterDropdownRef} className="relative select-none">
+        {/* Divider */}
+        <div className="hud-divider" />
+
+        {/* Theater View Selector */}
+        <div ref={theaterDropdownRef} className="relative">
           <button
             onClick={() => setIsTheaterOpen(!isTheaterOpen)}
-            className="flex items-center justify-between gap-3.5 px-4 py-2 min-w-[150px] sm:min-w-[190px] bg-[var(--bg-surface-elevated)] border border-sky-500/40 hover:border-sky-400/80 rounded-xl font-mono text-xs text-[var(--text-primary)] shadow-sm transition-all focus:outline-none"
-            title="Select Operational Theater View"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 rounded-md font-mono text-[11px] text-[var(--text-primary)] transition-all"
+            title="Operational Theater View"
           >
-            <span className="font-semibold tracking-wide truncate">{currentTheater.label}</span>
-            <span className="text-[10px] text-sky-400 transition-transform duration-200">
-              {isTheaterOpen ? '▲' : '▼'}
+            <span className="font-semibold tracking-wide truncate max-w-[90px] sm:max-w-none">
+              {currentTheater.label}
             </span>
+            <span className="text-[9px] text-sky-400">{isTheaterOpen ? '▲' : '▼'}</span>
           </button>
 
           {isTheaterOpen && (
-            <div className="absolute left-0 top-full mt-2 w-auto min-w-[250px] max-w-[320px] bg-[var(--bg-surface-elevated)] border border-sky-500/40 shadow-2xl z-50 p-2 font-mono text-xs rounded-xl animate-fade-in backdrop-blur-xl space-y-1">
+            <div className="absolute left-0 top-full mt-1.5 w-52 hud-panel-elevated p-1.5 font-mono text-[11px] rounded-lg animate-fade-in z-50 space-y-0.5">
+              <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--hud-border)] mb-1">
+                Select Theater
+              </div>
               {theaters.map((th) => {
                 const isSelected = currentView === th.id;
                 return (
@@ -172,13 +184,14 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectView(th.id);
                       setIsTheaterOpen(false);
                     }}
-                    className={`px-3.5 py-2 rounded-lg cursor-pointer transition-colors ${
+                    className={`px-2.5 py-1.5 rounded cursor-pointer transition-colors flex items-center justify-between ${
                       isSelected
-                        ? 'bg-sky-600 text-white font-bold shadow-xs'
+                        ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
                         : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                     }`}
                   >
-                    {th.label}
+                    <span>{th.label}</span>
+                    {isSelected && <span className="text-[10px] text-sky-400">●</span>}
                   </div>
                 );
               })}
@@ -186,18 +199,18 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Time Range Filter (Compact Pill) */}
-        <div className="hidden xl:flex items-center bg-[var(--bg-surface-elevated)] rounded-xl border border-[var(--border-subtle)] p-1 gap-0.5 font-mono text-[11px]">
-          <span className="px-1.5 text-[var(--text-muted)]">
-            <Clock size={12} />
-          </span>
+        {/* Divider */}
+        <div className="hud-divider hidden sm:block" />
+
+        {/* Time Range Filter (Compact Monospace Pills) */}
+        <div className="hidden sm:flex items-center bg-[var(--bg-surface-elevated)]/70 rounded-md border border-[var(--hud-border)] p-0.5 font-mono text-[10px]">
           {timeRanges.map((tr) => (
             <button
               key={tr}
               onClick={() => onSelectTimeRange(tr)}
-              className={`px-2 py-0.5 rounded-lg transition-all uppercase ${
-                timeRange === tr
-                  ? 'bg-[var(--bg-surface-hover)] text-sky-400 font-bold border border-[var(--border-subtle)]'
+              className={`px-1.5 py-0.5 rounded transition-all uppercase font-medium ${
+                timeRange.toLowerCase() === tr.toLowerCase()
+                  ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -207,32 +220,75 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 3. Right: Command Search, Clock, Theme & Desk Toggle */}
-      <div className="flex items-center gap-2">
-        {/* Quick Search / Cmd+K Button */}
-        <button
-          onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-accent)] text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
-          title="Open Tactical Command Palette (Cmd+K / Ctrl+K)"
-        >
-          <Search size={13} className="text-sky-400 group-hover:scale-110 transition-transform" />
-          <span className="hidden xl:inline font-sans">Search...</span>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-faint)]">
-            ⌘K
-          </kbd>
-        </button>
+      {/* 2. Center: Seamless Integrated Alert Dispatch Marquee */}
+      <div className="flex-1 min-w-0 mx-2 hidden md:flex items-center overflow-hidden h-full">
+        <div className="hud-divider" />
+        
+        <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9px] font-mono font-bold tracking-wider shrink-0 mr-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+          DISPATCH
+        </div>
 
-        {/* Defense Clock with Dropdown Menu for GMT & Strategic Cities */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-primary)]">
-          <Clock size={13} className="text-sky-400 shrink-0" />
-          <span className="font-semibold text-sky-400 min-w-[65px] text-center">
+        <div className="flex-1 overflow-hidden relative">
+          <div className="animate-marquee flex items-center gap-8 whitespace-nowrap font-mono text-[11px]">
+            {alerts && alerts.length > 0 ? (
+              alerts.concat(alerts).map((item, idx) => (
+                <div
+                  key={`${item.id}-${idx}`}
+                  onClick={() => onSelectAlert && onSelectAlert(item)}
+                  className="inline-flex items-center gap-1.5 cursor-pointer group text-[var(--text-secondary)] hover:text-sky-400 transition-colors"
+                >
+                  <span
+                    className={`px-1 py-0.1 rounded text-[8.5px] font-bold uppercase ${
+                      item.severity === 'critical'
+                        ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                        : item.severity === 'high'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                    }`}
+                  >
+                    {item.category}
+                  </span>
+                  <span className="font-medium text-[var(--text-primary)] group-hover:underline truncate max-w-[280px]">
+                    {item.title}
+                  </span>
+                  <span className="text-[9.5px] text-[var(--text-muted)]">
+                    {item.timeAgo}
+                  </span>
+                  <ChevronRight size={10} className="text-[var(--text-muted)] group-hover:text-sky-400" />
+                </div>
+              ))
+            ) : (
+              <span className="text-[var(--text-muted)]">ALL SENSORS NORMAL • MONITORING ACTIVE THEATERS</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        {/* Monospace Live Telemetry Coordinates Readout */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/60 border border-[var(--hud-border)] font-mono text-[10.5px] text-[var(--text-muted)]">
+          <span className="text-sky-400 font-semibold">{latDisplay}</span>
+          <span>,</span>
+          <span className="text-sky-400 font-semibold">{lonDisplay}</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-amber-400 font-semibold">Z{zoom.toFixed(1)}</span>
+        </div>
+
+        {/* Divider */}
+        <div className="hud-divider hidden lg:block" />
+
+        {/* Defense Clock with Strategic City Dropdown */}
+        <div className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/70 border border-[var(--hud-border)] font-mono text-[11px] text-[var(--text-primary)]">
+          <Clock size={11} className="text-sky-400 shrink-0" />
+          <span className="font-semibold text-sky-400 min-w-[58px] text-center">
             {formattedTime || '00:00:00'}
           </span>
-          <div className="h-3 w-px bg-[var(--border-subtle)] mx-0.5" />
           <select
             value={selectedCityId}
             onChange={(e) => setSelectedCityId(e.target.value)}
-            className="bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono text-[11px] font-semibold focus:outline-none cursor-pointer pr-1"
+            className="bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono text-[10px] font-medium focus:outline-none cursor-pointer pr-0.5"
           >
             {STRATEGIC_CITIES.map((c) => (
               <option key={c.id} value={c.id} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
@@ -242,49 +298,63 @@ export const Header: React.FC<HeaderProps> = ({
           </select>
         </div>
 
-        {/* Theme Toggle Button (Dark / Light) */}
+        {/* Divider */}
+        <div className="hud-divider hidden sm:block" />
+
+        {/* Search / Command Palette (Cmd+K) */}
+        <button
+          onClick={onOpenCommandPalette}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
+          title="Tactical Command Palette (Cmd+K / Ctrl+K)"
+        >
+          <Search size={12} className="text-sky-400 group-hover:scale-110 transition-transform" />
+          <kbd className="hidden sm:inline-block px-1 py-0.1 rounded text-[9px] bg-[var(--bg-surface)] border border-[var(--hud-border)] text-[var(--text-faint)]">
+            ⌘K
+          </kbd>
+        </button>
+
+        {/* Theme Toggle */}
         <button
           onClick={onToggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          className="p-2 rounded-xl bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shadow-xs"
+          className="p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
         >
           {theme === 'dark' ? (
-            <Sun size={15} className="text-amber-400" />
+            <Sun size={13} className="text-amber-400" />
           ) : (
-            <Moon size={15} className="text-sky-600" />
+            <Moon size={13} className="text-sky-500" />
           )}
         </button>
 
-        {/* Audio Mute & Fullscreen Cluster */}
-        <div className="hidden sm:flex items-center gap-0.5 bg-[var(--bg-surface-elevated)] rounded-xl border border-[var(--border-subtle)] p-0.5">
+        {/* Audio / Fullscreen */}
+        <div className="hidden xl:flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-md border border-[var(--hud-border)] p-0.5">
           <button
             onClick={() => setAudioEnabled(!audioEnabled)}
             title={audioEnabled ? 'Audio Pings: On' : 'Audio Pings: Muted'}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
+            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
-            {audioEnabled ? <Volume2 size={15} className="text-emerald-400" /> : <VolumeX size={15} />}
+            {audioEnabled ? <Volume2 size={12} className="text-emerald-400" /> : <VolumeX size={12} />}
           </button>
-
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
+            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
-            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
           </button>
         </div>
 
-        {/* Intel Desk Toggle Button */}
+        {/* Intel Desk Toggle */}
         <button
           onClick={onToggleRightPanel}
           title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono text-xs transition-all shadow-sm ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border font-mono text-[10.5px] transition-all ${
             isRightPanelOpen
-              ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold shadow-sky-500/20'
-              : 'bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-accent)]'
+              ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold shadow-sky-500/25'
+              : 'bg-[var(--bg-surface-elevated)]/80 text-[var(--text-primary)] border-[var(--hud-border)] hover:border-sky-500/40'
           }`}
         >
-          {isRightPanelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
+          {isRightPanelOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
           <span className="hidden sm:inline">INTEL DESK</span>
         </button>
       </div>
