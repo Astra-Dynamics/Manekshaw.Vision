@@ -261,32 +261,26 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         className="select-none z-20"
         style={{
           position: 'absolute',
-          top: '56px',
-          left: '48px'
+          top: '52px',
+          left: '44px'
         }}
       >
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 px-3 py-1.5 rounded-[2px] text-[var(--text-primary)] font-mono text-xs shadow-xl transition-all group border hover:border-sky-500/60"
+          className="flex items-center gap-2 px-2.5 py-1.2 rounded-[6px] text-slate-200 font-mono text-xs shadow-xl transition-all group border border-white/10 hover:border-sky-500/50"
           style={{
-            background: 'var(--bg-surface)',
-            borderColor: 'var(--border-medium)'
+            background: 'rgba(13, 19, 30, 0.84)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)'
           }}
           title="Open Tactical Layer Matrix"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-          <span className="font-bold tracking-wider uppercase text-xs">LAYERS</span>
-          <span
-            className="text-[10px] px-1.5 py-0.2 rounded-[2px] font-bold border"
-            style={{
-              background: 'var(--bg-surface-elevated)',
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-muted)'
-            }}
-          >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+          <span className="font-bold tracking-wider uppercase text-[11px]">LAYERS</span>
+          <span className="text-[9.5px] px-1 py-0.2 rounded bg-white/5 text-slate-400 font-bold border border-white/10">
             {activeCount}/{totalLayers}
           </span>
-          <ChevronDown size={12} className="text-[var(--text-muted)] group-hover:text-sky-500 transition-colors" />
+          <ChevronDown size={11} className="text-slate-400 group-hover:text-sky-400 transition-colors" />
         </button>
       </div>
     );
@@ -294,107 +288,90 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
   return (
     <div
-      className="z-20 select-none font-mono text-xs overflow-hidden flex flex-col max-h-[calc(100vh-72px)] animate-fade-in transition-all shadow-2xl relative"
+      className="z-20 select-none font-mono text-xs overflow-hidden flex flex-col animate-fade-in transition-all shadow-2xl"
       style={{
         position: 'absolute',
-        top: '56px',
-        left: '48px',
-        width: '310px',
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-medium)',
-        borderRadius: '3px',
+        top: '52px',
+        left: '44px',
+        width: '240px',
+        maxHeight: 'calc(100vh - 100px)',
+        background: 'rgba(13, 19, 30, 0.84)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '6px',
         boxSizing: 'border-box'
       }}
     >
-      {/* Corner Bracket Accents */}
-      <span className="bracket-tl" />
-      <span className="bracket-tr" />
-      <span className="bracket-bl" />
-      <span className="bracket-br" />
-
       {/* 1. Header Bar: Title, Active Counter & Minimize */}
       <div
         onClick={() => setIsOpen(false)}
-        className="flex items-center justify-between cursor-pointer transition-colors"
+        className="flex items-center justify-between cursor-pointer hover:bg-white/[0.04] transition-colors"
         style={{
-          padding: '10px 14px',
-          background: 'var(--bg-surface-subtle)',
-          borderBottom: '1px solid var(--border-subtle)'
+          padding: '6px 10px',
+          background: 'rgba(255, 255, 255, 0.02)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
         }}
         title="Click to collapse Layer Matrix"
       >
-        <div className="flex items-center gap-2">
-          <span className="hud-micro-header font-bold" style={{ color: 'var(--text-primary)' }}>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10.5px] font-bold text-slate-200 tracking-wider">
             TACTICAL LAYERS
           </span>
-          <span
-            className="text-[10px] px-1.5 py-0.2 rounded-[2px] font-bold font-mono border"
-            style={{
-              background: 'rgba(14, 165, 233, 0.12)',
-              borderColor: 'rgba(14, 165, 233, 0.3)',
-              color: '#0284c7'
-            }}
-          >
+          <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400 font-bold font-mono">
             {activeCount}/{totalLayers}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
-          <ChevronUp size={13} className="hover:text-[var(--text-primary)]" />
+        <div className="flex items-center gap-1 text-slate-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+          <ChevronUp size={12} className="hover:text-white" />
         </div>
       </div>
 
       {/* 2. Search & Bulk Actions Bar */}
       <div
-        className="space-y-2"
+        className="space-y-1.5"
         style={{
-          padding: '10px 14px',
-          background: 'var(--bg-surface)',
-          borderBottom: '1px solid var(--border-subtle)'
+          padding: '6px 10px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
         }}
       >
         <div
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-[2px] border transition-colors focus-within:border-sky-500"
-          style={{
-            background: 'var(--bg-surface-elevated)',
-            borderColor: 'var(--border-subtle)'
-          }}
+          className="flex items-center gap-1.5 px-2 py-1 rounded border border-white/10 bg-white/[0.03] transition-colors focus-within:border-sky-500/50"
         >
-          <Search size={12} className="shrink-0" style={{ color: 'var(--text-muted)' }} />
+          <Search size={11} className="text-slate-400 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter matrix layers..."
-            className="w-full bg-transparent border-none text-[11px] placeholder:text-[var(--text-muted)] focus:outline-none font-mono"
-            style={{ color: 'var(--text-primary)' }}
+            placeholder="Filter matrix..."
+            className="w-full bg-transparent border-none text-[10.5px] text-slate-200 placeholder:text-slate-500 focus:outline-none font-mono"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="hover:text-[var(--text-primary)] shrink-0 ml-1"
-              style={{ color: 'var(--text-muted)' }}
+              className="text-slate-400 hover:text-white shrink-0 ml-1"
             >
-              <X size={11} />
+              <X size={10} />
             </button>
           )}
         </div>
 
         {/* Quick Bulk Action Links */}
-        <div className="flex items-center justify-between text-[10px] px-0.5" style={{ color: 'var(--text-muted)' }}>
-          <span className="uppercase tracking-wider text-[9px] font-sans font-semibold">Bulk Actions:</span>
-          <div className="flex items-center gap-2 font-mono">
+        <div className="flex items-center justify-between text-[9px] text-slate-400 px-0.5">
+          <span className="uppercase tracking-wider font-sans font-semibold">Bulk:</span>
+          <div className="flex items-center gap-1.5 font-mono">
             <button
               onClick={() => onSetAllLayers(true)}
-              className="hover:text-emerald-500 transition-colors uppercase font-bold"
+              className="hover:text-emerald-400 transition-colors uppercase font-bold"
             >
               Select All
             </button>
             <span>•</span>
             <button
               onClick={() => onSetAllLayers(false)}
-              className="hover:text-rose-500 transition-colors uppercase font-bold"
+              className="hover:text-rose-400 transition-colors uppercase font-bold"
             >
               Clear All
             </button>
@@ -403,9 +380,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       </div>
 
       {/* 3. Categorized Layer List with Collapsible Accordions */}
-      <div className="overflow-y-auto layers-scrollbar py-1 flex-1 space-y-1">
+      <div className="overflow-y-auto layers-scrollbar py-0.5 flex-1 space-y-0.5">
         {filteredCategories.length === 0 ? (
-          <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-center py-6 text-slate-400 text-xs font-mono">
             No matching layers found
           </div>
         ) : (
@@ -416,30 +393,32 @@ export const LayerDock: React.FC<LayerDockProps> = ({
             return (
               <div
                 key={cat.id}
-                className="last:border-b-0"
-                style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                className="border-b border-white/[0.04] last:border-b-0"
               >
-                {/* Category Header with 14px padding */}
+                {/* Category Header with single-line guarantee (nowrap) */}
                 <div
                   onClick={() => toggleCategoryCollapse(cat.id)}
-                  className="flex items-center justify-between cursor-pointer transition-colors"
+                  className="flex items-center justify-between cursor-pointer hover:bg-white/[0.03] transition-colors"
                   style={{
-                    padding: '6px 14px',
+                    padding: '4px 10px',
                     boxSizing: 'border-box',
-                    background: 'var(--category-header-bg)',
-                    color: 'var(--category-header-text)'
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    whiteSpace: 'nowrap'
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs">{cat.icon}</span>
-                    <span className="hud-micro-header text-[10px] font-bold" style={{ color: 'var(--category-header-text)' }}>
+                  <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                    <span className="text-[11px] shrink-0">{cat.icon}</span>
+                    <span
+                      className="text-[9.5px] font-bold tracking-wider text-slate-200 truncate uppercase"
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
                       {cat.title}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1 shrink-0">
                     <span
-                      className="text-[9px] px-1.5 py-0.2 rounded-[2px] font-mono font-bold"
+                      className="text-[8.5px] px-1 py-0.2 rounded font-mono font-bold"
                       style={{
                         backgroundColor: `${cat.accentColor}18`,
                         color: cat.accentColor,
@@ -448,15 +427,15 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                     >
                       {catActiveCount}/{cat.layers.length}
                     </span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    <span className="text-[9px] text-slate-400">
                       {isCatCollapsed ? '▶' : '▼'}
                     </span>
                   </div>
                 </div>
 
-                {/* Category Layer Rows with 14px padding */}
+                {/* Category Layer Rows with tight 3px 10px padding */}
                 {!isCatCollapsed && (
-                  <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                  <div className="divide-y divide-white/[0.03]">
                     {cat.layers.map((layer) => {
                       const isActive = !!activeLayers[layer.id];
                       const count = counts[layer.id];
@@ -466,26 +445,28 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                         <div key={layer.id} className="group">
                           <div
                             onClick={() => onToggleLayer(layer.id)}
-                            className={`flex items-center justify-between hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors ${
+                            className={`flex items-center justify-between hover:bg-white/[0.04] cursor-pointer transition-colors ${
                               isActive ? 'bg-transparent' : 'opacity-60'
                             }`}
                             style={{
-                              padding: '6px 14px',
-                              boxSizing: 'border-box'
+                              padding: '3px 10px',
+                              height: '22px',
+                              boxSizing: 'border-box',
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             {/* Left: Custom Tactical Checkbox + Status Dot + Label */}
-                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="flex items-center gap-2 min-w-0 pr-1 overflow-hidden">
                               {/* Tactical Checkbox with Layer Accent Border/Background */}
                               <div
-                                className="w-3.5 h-3.5 rounded-[2px] flex items-center justify-center shrink-0 transition-all border"
+                                className="w-3 h-3 rounded-[2px] flex items-center justify-center shrink-0 transition-all border"
                                 style={{
-                                  backgroundColor: isActive ? layer.color : 'var(--bg-surface-elevated)',
-                                  borderColor: isActive ? layer.color : 'var(--border-medium)',
+                                  backgroundColor: isActive ? layer.color : 'rgba(255, 255, 255, 0.05)',
+                                  borderColor: isActive ? layer.color : 'rgba(255, 255, 255, 0.15)',
                                   boxShadow: isActive ? `0 0 6px ${layer.color}66` : undefined
                                 }}
                               >
-                                {isActive && <Check size={10} strokeWidth={3.5} className="text-slate-950" />}
+                                {isActive && <Check size={8} strokeWidth={3.5} className="text-slate-950" />}
                               </div>
 
                               {/* Semantic Status Indicator Dot */}
@@ -499,38 +480,36 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
                               {/* Layer Name */}
                               <span
-                                className={`truncate text-[11px] font-mono tracking-wide ${
-                                  isActive ? 'font-semibold' : ''
+                                className={`truncate text-[10.5px] font-mono tracking-wide ${
+                                  isActive ? 'text-slate-100 font-semibold' : 'text-slate-300'
                                 }`}
-                                style={{
-                                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
-                                }}
+                                style={{ whiteSpace: 'nowrap' }}
                               >
                                 {layer.label}
                               </span>
 
                               {/* Count Badge */}
                               {typeof count === 'number' && count > 0 && (
-                                <span className="text-[9.5px] font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>
+                                <span className="text-[9px] text-slate-400 font-mono shrink-0">
                                   ({count})
                                 </span>
                               )}
                             </div>
 
-                            {/* Right: Info Circle */}
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Right: Tiny Muted Borderless (i) Glyph */}
+                            <div className="flex items-center shrink-0">
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setInfoExpandedId(isInfoOpen ? null : layer.id);
                                 }}
-                                className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-serif transition-all"
+                                className="w-3.5 h-3.5 flex items-center justify-center text-[10px] font-serif transition-colors hover:text-[#38BDF8]"
                                 style={{
-                                  background: isInfoOpen ? 'rgba(14, 165, 233, 0.15)' : 'transparent',
-                                  borderColor: isInfoOpen ? '#0284c7' : 'var(--border-subtle)',
-                                  color: isInfoOpen ? '#0284c7' : 'var(--text-muted)',
-                                  border: '1px solid'
+                                  color: isInfoOpen ? '#38BDF8' : 'rgba(148, 163, 184, 0.35)',
+                                  background: 'transparent',
+                                  border: 'none',
+                                  padding: 0
                                 }}
                                 title="Inspect Layer Metadata"
                               >
@@ -542,21 +521,21 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                           {/* Collapsible Info Drawer under row */}
                           {isInfoOpen && (
                             <div
-                              className="text-[10.5px] space-y-1 font-sans leading-relaxed animate-fade-in"
+                              className="text-[10px] space-y-1 font-sans leading-relaxed animate-fade-in"
                               style={{
-                                padding: '8px 14px',
+                                padding: '6px 10px',
                                 boxSizing: 'border-box',
-                                background: 'var(--bg-surface-elevated)',
-                                borderTop: '1px solid var(--border-subtle)',
-                                color: 'var(--text-secondary)'
+                                background: 'rgba(0, 0, 0, 0.3)',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                                color: '#94A3B8'
                               }}
                             >
                               <p>{layer.description}</p>
                               <div
-                                className="flex items-center justify-between text-[9px] font-mono pt-1"
+                                className="flex items-center justify-between text-[8.5px] font-mono pt-1"
                                 style={{
-                                  borderTop: '1px solid var(--border-subtle)',
-                                  color: 'var(--text-muted)'
+                                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                                  color: '#64748B'
                                 }}
                               >
                                 <span>KEY: {layer.id}</span>
@@ -577,16 +556,16 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
       {/* 4. Footer Branding */}
       <div
-        className="flex items-center justify-between text-[9.5px] font-mono"
+        className="flex items-center justify-between text-[9px] font-mono"
         style={{
-          padding: '8px 14px',
-          background: 'var(--bg-surface-subtle)',
-          borderTop: '1px solid var(--border-subtle)',
-          color: '#0284c7'
+          padding: '4px 10px',
+          background: 'rgba(255, 255, 255, 0.02)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.04)',
+          color: '#38bdf8'
         }}
       >
         <span className="truncate">© MANEKSHAW.VISION</span>
-        <span style={{ color: 'var(--text-muted)' }}>GEOINT v1.5</span>
+        <span style={{ color: '#64748B' }}>GEOINT v1.5</span>
       </div>
     </div>
   );

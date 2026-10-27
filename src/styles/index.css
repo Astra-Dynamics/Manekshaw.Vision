@@ -23,17 +23,17 @@
   --text-muted: #64748b;
   --text-faint: #94a3b8;
 
-  --badge-bg-critical: #ffe4e6;
-  --badge-text-critical: #be123c;
-  --badge-border-critical: #fda4af;
+  --badge-bg-critical: rgba(244, 63, 94, 0.10);
+  --badge-text-critical: #e11d48;
+  --badge-border-critical: rgba(244, 63, 94, 0.25);
 
-  --badge-bg-high: #fef3c7;
-  --badge-text-high: #b45309;
-  --badge-border-high: #fcd34d;
+  --badge-bg-high: rgba(245, 158, 11, 0.10);
+  --badge-text-high: #d97706;
+  --badge-border-high: rgba(245, 158, 11, 0.25);
 
-  --badge-bg-info: #e0f2fe;
-  --badge-text-info: #0369a1;
-  --badge-border-info: #7dd3fc;
+  --badge-bg-info: rgba(2, 132, 199, 0.10);
+  --badge-text-info: #0284c7;
+  --badge-border-info: rgba(2, 132, 199, 0.25);
 
   --category-header-bg: #e2e8f0;
   --category-header-text: #334155;
@@ -74,17 +74,17 @@
   --text-muted: #64748b;
   --text-faint: #475569;
 
-  --badge-bg-critical: rgba(244, 63, 94, 0.15);
+  --badge-bg-critical: rgba(244, 63, 94, 0.12);
   --badge-text-critical: #f43f5e;
-  --badge-border-critical: rgba(244, 63, 94, 0.35);
+  --badge-border-critical: rgba(244, 63, 94, 0.25);
 
-  --badge-bg-high: rgba(245, 158, 11, 0.15);
+  --badge-bg-high: rgba(245, 158, 11, 0.12);
   --badge-text-high: #fbbf24;
-  --badge-border-high: rgba(245, 158, 11, 0.35);
+  --badge-border-high: rgba(245, 158, 11, 0.25);
 
-  --badge-bg-info: rgba(56, 189, 248, 0.15);
+  --badge-bg-info: rgba(56, 189, 248, 0.12);
   --badge-text-info: #38bdf8;
-  --badge-border-info: rgba(56, 189, 248, 0.35);
+  --badge-border-info: rgba(56, 189, 248, 0.25);
 
   --category-header-bg: rgba(20, 28, 44, 0.6);
   --category-header-text: #94a3b8;

@@ -187,19 +187,19 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       {/* 2. Modern Segmented Tab Bar */}
       <div
         style={{
-          padding: '8px 18px',
+          padding: '6px 8px',
           borderBottom: '1px solid var(--border-subtle)',
           background: 'var(--bg-surface-subtle)'
         }}
       >
-        <div className="flex items-center gap-1 bg-[var(--bg-surface-elevated)] rounded p-0.5 border border-[var(--border-subtle)] font-sans text-[11.5px]">
+        <div className="flex items-center gap-0.5 bg-[var(--bg-surface-elevated)] rounded p-0.5 border border-[var(--border-subtle)] font-sans text-[11.5px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-1 px-1 rounded-[2px] text-center transition-all relative font-medium truncate ${
+                className={`flex-1 rounded-[2px] text-center transition-all relative font-medium ${
                   isActive
                     ? 'font-semibold shadow-xs'
                     : 'hover:bg-[var(--bg-surface-hover)]'
@@ -207,7 +207,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 style={{
                   background: isActive ? 'rgba(14, 165, 233, 0.15)' : 'transparent',
                   color: isActive ? '#0284c7' : 'var(--text-secondary)',
-                  border: isActive ? '1px solid rgba(14, 165, 233, 0.4)' : '1px solid transparent'
+                  border: isActive ? '1px solid rgba(14, 165, 233, 0.4)' : '1px solid transparent',
+                  padding: '4px 6px',
+                  fontSize: '11.5px',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <span>{tab.label}</span>
@@ -221,42 +224,40 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       </div>
 
       {/* 3. Sleek Search and Filter Bar */}
-      {activeTab !== 'dossier' && (
-        <div
-          className="flex items-center gap-2"
-          style={{
-            padding: '10px 18px',
-            borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-surface-subtle)'
-          }}
-        >
-          <div className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-[2px] bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] focus-within:border-sky-500 transition-colors shadow-2xs">
-            <Search size={13} className="text-[var(--text-muted)] shrink-0" />
-            <input
-              type="text"
-              placeholder={activeTab === 'videos' ? "Search defense video dispatches..." : "Search intel reports, assets..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-xs placeholder:text-[var(--text-muted)] focus:outline-none font-sans"
-              style={{ color: 'var(--text-primary)' }}
-            />
-          </div>
-
-          {activeTab !== 'videos' && (
-            <select
-              value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              <option value="all">All Levels</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-            </select>
-          )}
+      <div
+        className="flex items-center gap-2"
+        style={{
+          padding: '10px 18px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface-subtle)'
+        }}
+      >
+        <div className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-[2px] bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] focus-within:border-sky-500 transition-colors shadow-2xs">
+          <Search size={13} className="text-[var(--text-muted)] shrink-0" />
+          <input
+            type="text"
+            placeholder={activeTab === 'videos' ? "Search defense video dispatches..." : "Search intel reports, assets..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent text-xs placeholder:text-[var(--text-muted)] focus:outline-none font-sans"
+            style={{ color: 'var(--text-primary)' }}
+          />
         </div>
-      )}
+
+        {activeTab !== 'videos' && (
+          <select
+            value={selectedSeverity}
+            onChange={(e) => setSelectedSeverity(e.target.value)}
+            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <option value="all">All Levels</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+          </select>
+        )}
+      </div>
 
       {/* 4. Tab Panels */}
       <div className="flex-1 overflow-y-auto feed-scrollbar">
@@ -295,7 +296,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2 mb-[6px]">
                     <span
-                      className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase"
+                      className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
                       style={{
                         background:
                           item.severity === 'critical'
@@ -314,7 +315,13 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                             ? '1px solid var(--badge-border-critical)'
                             : item.severity === 'high'
                             ? '1px solid var(--badge-border-high)'
-                            : '1px solid var(--badge-border-info)'
+                            : '1px solid var(--badge-border-info)',
+                        textShadow:
+                          item.severity === 'critical'
+                            ? '0 0 6px rgba(244, 63, 94, 0.35)'
+                            : item.severity === 'high'
+                            ? '0 0 6px rgba(245, 158, 11, 0.35)'
+                            : 'none'
                       }}
                     >
                       {item.category} • {item.severity}
@@ -337,18 +344,37 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </p>
 
                   <div
-                    className="mt-2.5 pt-2 flex items-center justify-between text-[11px] font-mono"
-                    style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
+                    className="mt-2.5 pt-2 text-[11px] font-mono"
+                    style={{
+                      borderTop: '1px solid var(--border-subtle)',
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      whiteSpace: 'nowrap',
+                      gap: '8px'
+                    }}
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{item.source}</span>
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+                      <span
+                        className="truncate text-[10.5px]"
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          minWidth: 0
+                        }}
+                        title={item.source}
+                      >
+                        {item.source}
+                      </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           const url = (item as any).link || `https://news.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}`;
                           window.open(url, '_blank', 'noopener,noreferrer');
                         }}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-2xs shrink-0 text-[10px]"
                         title="Open source report in new tab"
                       >
                         <span>To Source</span>
@@ -356,7 +382,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       </button>
                     </div>
 
-                    <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform font-bold text-[10.5px]">
+                    <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform font-bold text-[10.5px] shrink-0">
                       Inspect & Map <ChevronRight size={11} />
                     </span>
                   </div>
@@ -482,11 +508,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     </span>
                   </div>
                   <span
-                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] font-extrabold uppercase"
+                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
                     style={{
                       background: hs.escalationScore >= 5 ? 'var(--badge-bg-critical)' : hs.escalationScore >= 4 ? 'var(--badge-bg-high)' : 'var(--badge-bg-info)',
                       color: hs.escalationScore >= 5 ? 'var(--badge-text-critical)' : hs.escalationScore >= 4 ? 'var(--badge-text-high)' : 'var(--badge-text-info)',
-                      border: hs.escalationScore >= 5 ? '1px solid var(--badge-border-critical)' : hs.escalationScore >= 4 ? '1px solid var(--badge-border-high)' : '1px solid var(--badge-border-info)'
+                      border: hs.escalationScore >= 5 ? '1px solid var(--badge-border-critical)' : hs.escalationScore >= 4 ? '1px solid var(--badge-border-high)' : '1px solid var(--badge-border-info)',
+                      textShadow: hs.escalationScore >= 5 ? '0 0 6px rgba(244, 63, 94, 0.35)' : hs.escalationScore >= 4 ? '0 0 6px rgba(245, 158, 11, 0.35)' : 'none'
                     }}
                   >
                     LEVEL {hs.escalationScore}/5 • {hs.escalationTrend}
@@ -539,11 +566,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     {c.name}
                   </span>
                   <span
-                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold"
+                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold tracking-[0.05em]"
                     style={{
                       background: 'var(--badge-bg-critical)',
                       color: 'var(--badge-text-critical)',
-                      border: '1px solid var(--badge-border-critical)'
+                      border: '1px solid var(--badge-border-critical)',
+                      textShadow: '0 0 6px rgba(244, 63, 94, 0.35)'
                     }}
                   >
                     {c.intensity}
