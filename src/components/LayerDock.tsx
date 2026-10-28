@@ -261,7 +261,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         className="select-none z-20"
         style={{
           position: 'absolute',
-          top: '52px',
+          top: '84px',
           left: '44px'
         }}
       >
@@ -291,10 +291,10 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       className="z-20 select-none font-mono text-xs overflow-hidden flex flex-col animate-fade-in transition-all shadow-2xl"
       style={{
         position: 'absolute',
-        top: '52px',
+        top: '84px',
         left: '44px',
         width: '240px',
-        maxHeight: 'calc(100vh - 100px)',
+        maxHeight: 'calc(100vh - 110px)',
         background: 'rgba(13, 19, 30, 0.84)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',

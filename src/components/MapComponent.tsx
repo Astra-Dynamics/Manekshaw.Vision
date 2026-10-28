@@ -835,8 +835,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     <div className="relative w-full h-full flex-1 overflow-hidden bg-[#07090e]">
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      {/* Floating Tactical Map Controls */}
-      <div className="absolute top-13 left-3 z-10 flex flex-col gap-1 p-1 rounded-lg hud-panel shadow-2xl select-none">
+      {/* Floating Tactical Map Controls (Offset below Header 44px + TabBar 32px) */}
+      <div className="absolute top-[84px] left-3 z-10 flex flex-col gap-1 p-1 rounded-lg hud-panel shadow-2xl select-none">
         <button
           onClick={handleZoomIn}
           className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"

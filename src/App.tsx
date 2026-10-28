@@ -7,6 +7,7 @@ import { RightIntelligencePanel } from './components/RightIntelligencePanel';
 import { CountryBriefModal } from './components/CountryBriefModal';
 import { CommandPalette } from './components/CommandPalette';
 import { LandingPage } from './components/LandingPage';
+import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -16,7 +17,8 @@ import {
   ConflictZoneFeature,
   StrategicFeature,
   IntelNewsItem,
-  ThemeMode
+  ThemeMode,
+  WorkspaceTab
 } from './types';
 
 // Curated Datasets
@@ -141,12 +143,251 @@ export const App: React.FC = () => {
     setCurrentPath('/');
   };
 
+  // -------------------------------------------------------------
+  // Multi-Tab Tactical Workspace State
+  // -------------------------------------------------------------
+  const [tabs, setTabs] = useState<WorkspaceTab[]>(() => {
+    const defaultTab: WorkspaceTab = {
+      id: 'tab_main',
+      title:
+        initialView && initialView !== 'global'
+          ? `${initialView.charAt(0).toUpperCase() + initialView.slice(1)} Ops`
+          : 'Main',
+      lat: initialLat,
+      lon: initialLon,
+      zoom: initialZoom,
+      view: initialView,
+      timeRange: initialTimeRange,
+      activeLayers: initialActiveLayers
+    };
+
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (hasExplicitUrlParams) {
+      return [defaultTab];
+    }
+
+    try {
+      const saved = sessionStorage.getItem('manvis_workspace_tabs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved workspace tabs:', e);
+    }
+    return [defaultTab];
+  });
+
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (hasExplicitUrlParams) {
+      return 'tab_main';
+    }
+
+    try {
+      const savedId = sessionStorage.getItem('manvis_active_tab_id');
+      if (savedId) {
+        return savedId;
+      }
+    } catch (e) {}
+    return 'tab_main';
+  });
+
   // State
-  const [mapCenter, setMapCenter] = useState<[number, number]>([initialLon, initialLat]);
-  const [mapZoom, setMapZoom] = useState<number>(initialZoom);
-  const [currentView, setCurrentView] = useState<TheaterView>(initialView);
-  const [timeRange, setTimeRange] = useState<string>(initialTimeRange);
-  const [activeLayers, setActiveLayers] = useState<Record<LayerKey, boolean>>(initialActiveLayers);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (!hasExplicitUrlParams) {
+      try {
+        const saved = sessionStorage.getItem('manvis_workspace_tabs');
+        const savedId = sessionStorage.getItem('manvis_active_tab_id');
+        if (saved && savedId) {
+          const parsed: WorkspaceTab[] = JSON.parse(saved);
+          const found = parsed.find((t) => t.id === savedId);
+          if (found) return [found.lon, found.lat];
+        }
+      } catch (e) {}
+    }
+    return [initialLon, initialLat];
+  });
+
+  const [mapZoom, setMapZoom] = useState<number>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (!hasExplicitUrlParams) {
+      try {
+        const saved = sessionStorage.getItem('manvis_workspace_tabs');
+        const savedId = sessionStorage.getItem('manvis_active_tab_id');
+        if (saved && savedId) {
+          const parsed: WorkspaceTab[] = JSON.parse(saved);
+          const found = parsed.find((t) => t.id === savedId);
+          if (found) return found.zoom;
+        }
+      } catch (e) {}
+    }
+    return initialZoom;
+  });
+
+  const [currentView, setCurrentView] = useState<TheaterView>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (!hasExplicitUrlParams) {
+      try {
+        const saved = sessionStorage.getItem('manvis_workspace_tabs');
+        const savedId = sessionStorage.getItem('manvis_active_tab_id');
+        if (saved && savedId) {
+          const parsed: WorkspaceTab[] = JSON.parse(saved);
+          const found = parsed.find((t) => t.id === savedId);
+          if (found) return found.view;
+        }
+      } catch (e) {}
+    }
+    return initialView;
+  });
+
+  const [timeRange, setTimeRange] = useState<string>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (!hasExplicitUrlParams) {
+      try {
+        const saved = sessionStorage.getItem('manvis_workspace_tabs');
+        const savedId = sessionStorage.getItem('manvis_active_tab_id');
+        if (saved && savedId) {
+          const parsed: WorkspaceTab[] = JSON.parse(saved);
+          const found = parsed.find((t) => t.id === savedId);
+          if (found) return found.timeRange;
+        }
+      } catch (e) {}
+    }
+    return initialTimeRange;
+  });
+
+  const [activeLayers, setActiveLayers] = useState<Record<LayerKey, boolean>>(() => {
+    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
+    if (!hasExplicitUrlParams) {
+      try {
+        const saved = sessionStorage.getItem('manvis_workspace_tabs');
+        const savedId = sessionStorage.getItem('manvis_active_tab_id');
+        if (saved && savedId) {
+          const parsed: WorkspaceTab[] = JSON.parse(saved);
+          const found = parsed.find((t) => t.id === savedId);
+          if (found && found.activeLayers) return found.activeLayers;
+        }
+      } catch (e) {}
+    }
+    return initialActiveLayers;
+  });
+
+  // Synchronize active tab snapshot whenever state changes
+  useEffect(() => {
+    setTabs((prevTabs) => {
+      const updated = prevTabs.map((t) =>
+        t.id === activeTabId
+          ? {
+              ...t,
+              lon: mapCenter[0],
+              lat: mapCenter[1],
+              zoom: mapZoom,
+              view: currentView,
+              timeRange: timeRange,
+              activeLayers: { ...activeLayers }
+            }
+          : t
+      );
+      try {
+        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(updated));
+        sessionStorage.setItem('manvis_active_tab_id', activeTabId);
+      } catch (e) {}
+      return updated;
+    });
+  }, [activeTabId, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
+
+  // Tab interaction handlers
+  const handleSelectTab = useCallback(
+    (targetTabId: string) => {
+      if (targetTabId === activeTabId) return;
+
+      const targetTab = tabs.find((t) => t.id === targetTabId);
+      if (!targetTab) return;
+
+      setActiveTabId(targetTabId);
+      setMapCenter([targetTab.lon, targetTab.lat]);
+      setMapZoom(targetTab.zoom);
+      setCurrentView(targetTab.view);
+      setTimeRange(targetTab.timeRange);
+      setActiveLayers(targetTab.activeLayers);
+
+      try {
+        sessionStorage.setItem('manvis_active_tab_id', targetTabId);
+      } catch (e) {}
+    },
+    [activeTabId, tabs]
+  );
+
+  const handleNewTab = useCallback(() => {
+    const nextNum = tabs.length + 1;
+    const newTabId = `tab_${Date.now()}`;
+    const newTab: WorkspaceTab = {
+      id: newTabId,
+      title: `Sector ${nextNum}`,
+      lon: mapCenter[0],
+      lat: mapCenter[1],
+      zoom: mapZoom,
+      view: currentView,
+      timeRange: timeRange,
+      activeLayers: { ...activeLayers }
+    };
+
+    const nextTabs = [...tabs, newTab];
+    setTabs(nextTabs);
+    setActiveTabId(newTabId);
+
+    try {
+      sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+      sessionStorage.setItem('manvis_active_tab_id', newTabId);
+    } catch (e) {}
+  }, [tabs, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
+
+  const handleCloseTab = useCallback(
+    (tabIdToClose: string) => {
+      if (tabs.length <= 1) return; // Prevent closing if only 1 tab remains
+
+      const closeIndex = tabs.findIndex((t) => t.id === tabIdToClose);
+      if (closeIndex === -1) return;
+
+      const remainingTabs = tabs.filter((t) => t.id !== tabIdToClose);
+
+      if (tabIdToClose === activeTabId) {
+        const nextIndex = closeIndex === 0 ? 0 : closeIndex - 1;
+        const nextTab = remainingTabs[nextIndex];
+
+        setActiveTabId(nextTab.id);
+        setMapCenter([nextTab.lon, nextTab.lat]);
+        setMapZoom(nextTab.zoom);
+        setCurrentView(nextTab.view);
+        setTimeRange(nextTab.timeRange);
+        setActiveLayers(nextTab.activeLayers);
+
+        try {
+          sessionStorage.setItem('manvis_active_tab_id', nextTab.id);
+        } catch (e) {}
+      }
+
+      setTabs(remainingTabs);
+      try {
+        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(remainingTabs));
+      } catch (e) {}
+    },
+    [tabs, activeTabId]
+  );
+
+  const handleRenameTab = useCallback((tabId: string, newTitle: string) => {
+    setTabs((prevTabs) => {
+      const nextTabs = prevTabs.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t));
+      try {
+        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+      } catch (e) {}
+      return nextTabs;
+    });
+  }, []);
 
   // Theme Management (Dark default, persists in localStorage)
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -463,6 +704,17 @@ export const App: React.FC = () => {
         onSelectAlert={handleSelectAlert}
       />
 
+      {/* 2.5 Multi-Tab Tactical Workspace Bar (Below Header, height: 32px, z-30) */}
+      <WorkspaceTabBar
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onSelectTab={handleSelectTab}
+        onNewTab={handleNewTab}
+        onCloseTab={handleCloseTab}
+        onRenameTab={handleRenameTab}
+        theme={theme}
+      />
+
       {/* 3. Floating Modular HUD Panels */}
       {/* Left: Categorized Layer Matrix */}
       {isLayerDockOpen && (
@@ -479,7 +731,7 @@ export const App: React.FC = () => {
         <div
           className="absolute z-30 flex flex-col animate-fade-in"
           style={{
-            top: '44px',
+            top: '76px',
             right: 0,
             bottom: 0,
             width: '380px',

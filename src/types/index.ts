@@ -144,3 +144,17 @@ export interface TheaterConfig {
   center: [number, number]; // [lon, lat]
   zoom: number;
 }
+
+export interface WorkspaceTab {
+  id: string;
+  title: string;
+  lat: number;
+  lon: number;
+  zoom: number;
+  view: TheaterView;
+  timeRange: string;
+  activeLayers: Record<LayerKey, boolean>;
+  searchQuery?: string;
+  selectedCountryCode?: string | null;
+  selectedCountryName?: string | null;
+}
