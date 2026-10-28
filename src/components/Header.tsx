@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Radio,
   Clock,
+  Compass,
   PanelRightClose,
   PanelRightOpen,
   Maximize2,
@@ -12,6 +13,7 @@ import {
   Moon,
   Search,
   ChevronRight,
+  ChevronDown,
   Share2,
   Check,
   Bookmark,
@@ -53,14 +55,54 @@ interface CityTimeZone {
 }
 
 const STRATEGIC_CITIES: CityTimeZone[] = [
-  { id: 'delhi', city: 'Delhi', offsetLabel: 'GMT+5:30', timeZone: 'Asia/Kolkata' },
-  { id: 'gmt', city: 'UTC', offsetLabel: 'GMT+0', timeZone: 'UTC' },
-  { id: 'moscow', city: 'Moscow', offsetLabel: 'GMT+3', timeZone: 'Europe/Moscow' },
-  { id: 'beijing', city: 'Beijing', offsetLabel: 'GMT+8', timeZone: 'Asia/Shanghai' },
-  { id: 'london', city: 'London', offsetLabel: 'GMT+0', timeZone: 'Europe/London' },
-  { id: 'washington', city: 'Washington', offsetLabel: 'GMT-4', timeZone: 'America/New_York' },
-  { id: 'tokyo', city: 'Tokyo', offsetLabel: 'GMT+9', timeZone: 'Asia/Tokyo' }
+  { id: 'delhi', city: 'Delhi', offsetLabel: 'IST (GMT+5:30)', timeZone: 'Asia/Kolkata' },
+  { id: 'gmt', city: 'UTC / Zulu', offsetLabel: 'GMT+0', timeZone: 'UTC' },
+  { id: 'washington', city: 'Washington', offsetLabel: 'EST (GMT-4)', timeZone: 'America/New_York' },
+  { id: 'london', city: 'London', offsetLabel: 'GMT (GMT+0)', timeZone: 'Europe/London' },
+  { id: 'moscow', city: 'Moscow', offsetLabel: 'MSK (GMT+3)', timeZone: 'Europe/Moscow' },
+  { id: 'beijing', city: 'Beijing', offsetLabel: 'CST (GMT+8)', timeZone: 'Asia/Shanghai' },
+  { id: 'tokyo', city: 'Tokyo', offsetLabel: 'JST (GMT+9)', timeZone: 'Asia/Tokyo' }
 ];
+
+export interface HoverExpandButtonProps {
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  active?: boolean;
+  activeClassName?: string;
+  onClick?: (e: React.MouseEvent) => void;
+  title?: string;
+  className?: string;
+}
+
+export const HoverExpandButton: React.FC<HoverExpandButtonProps> = ({
+  icon,
+  label,
+  active = false,
+  activeClassName = 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]',
+  onClick,
+  title,
+  className = ''
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[11px] shrink-0 border border-transparent ${
+        active
+          ? activeClassName
+          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
+      } ${className}`}
+    >
+      <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+        {icon}
+      </span>
+      <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium">
+        {label}
+      </span>
+    </button>
+  );
+};
 
 /**
  * Flexible coordinate and angle parser supporting:
@@ -196,12 +238,30 @@ export const Header: React.FC<HeaderProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
   const [isTheaterOpen, setIsTheaterOpen] = useState<boolean>(false);
+  const [isClockOpen, setIsClockOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
   // Editable coordinates state
   const [isEditingCoords, setIsEditingCoords] = useState<boolean>(false);
   const [coordsInput, setCoordsInput] = useState<string>('');
   const coordsInputRef = useRef<HTMLInputElement>(null);
+  const clockDropdownRef = useRef<HTMLDivElement>(null);
+  const theaterDropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (theaterDropdownRef.current && !theaterDropdownRef.current.contains(e.target as Node)) {
+        setIsTheaterOpen(false);
+      }
+      if (clockDropdownRef.current && !clockDropdownRef.current.contains(e.target as Node)) {
+        setIsClockOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleShareLink = () => {
     const shareUrl = getShareUrl ? getShareUrl() : window.location.href;
@@ -225,19 +285,6 @@ export const Header: React.FC<HeaderProps> = ({
       onChangeCoordinates(parsed.coords, parsed.zoom);
     }
   };
-
-  const theaterDropdownRef = useRef<HTMLDivElement>(null);
-  const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (theaterDropdownRef.current && !theaterDropdownRef.current.contains(e.target as Node)) {
-        setIsTheaterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -412,42 +459,46 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Divider */}
         <div className="hud-divider hidden sm:block" />
 
-        {/* Time Range Filter (Segmented Control Container) */}
+        {/* 1.3 Left-Side Time Range Selector (Hover-Expandable Micro-Pill) */}
         <div
-          className="hidden sm:flex items-center p-0.5 rounded-[2px] border gap-[2px] font-mono text-[10px]"
-          style={{
-            background: 'var(--bg-surface-elevated)',
-            borderColor: 'var(--border-subtle)'
-          }}
+          className="relative group/timerange hidden sm:flex items-center h-[30px] rounded-md border border-[var(--hud-border)] hover:border-sky-500/40 bg-[var(--bg-surface-elevated)]/90 transition-all duration-250 ease-out overflow-hidden select-none font-mono text-[10px]"
+          title="Telemetry Time Window (Hover to expand all ranges)"
         >
-          {timeRanges.map((tr) => {
-            const isActive = timeRange.toLowerCase() === tr.toLowerCase();
-            return (
-              <button
-                key={tr}
-                onClick={() => onSelectTimeRange(tr)}
-                className={`px-2 py-[2px] rounded-[2px] transition-all uppercase font-semibold ${
-                  isActive
-                    ? 'font-bold shadow-xs'
-                    : 'hover:bg-[var(--bg-surface-hover)]'
-                }`}
-                style={{
-                  background: isActive ? 'rgba(14, 165, 233, 0.15)' : 'transparent',
-                  color: isActive ? '#0284c7' : 'var(--text-secondary)',
-                  border: isActive ? '1px solid rgba(14, 165, 233, 0.35)' : '1px solid transparent'
-                }}
-              >
-                {tr}
-              </button>
-            );
-          })}
+          {/* Resting State: Small Clock Icon + Active Range Badge */}
+          <div className="flex items-center gap-1.5 px-2.5 text-sky-400 font-bold shrink-0 cursor-pointer">
+            <Clock size={11} className="text-sky-400 shrink-0" />
+            <span className="uppercase tracking-wider">{timeRange}</span>
+          </div>
+
+          {/* On Hover: Smoothly expand horizontally to reveal all 5 range buttons */}
+          <div className="max-w-0 opacity-0 group-hover/timerange:max-w-[200px] group-hover/timerange:opacity-100 transition-all duration-250 ease-out overflow-hidden flex items-center gap-[2px] pr-1.5">
+            <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-80" />
+            {timeRanges.map((tr) => {
+              const isActive = timeRange.toLowerCase() === tr.toLowerCase();
+              return (
+                <button
+                  key={tr}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectTimeRange(tr);
+                  }}
+                  className={`px-1.5 py-0.5 rounded-[2px] uppercase font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/40 shadow-xs'
+                      : 'text-[var(--text-secondary)] hover:text-sky-300 hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  {tr}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* 2. Center: Seamless Integrated Alert Dispatch Marquee with Mask Fade */}
-      <div className="flex-1 min-w-0 mx-3 mr-4 hidden md:flex items-center overflow-hidden h-full">
-        <div className="hud-divider" />
-
+      <div className="flex-1 min-w-0 mx-2.5 hidden md:flex items-center overflow-hidden h-full">
         <div
           className="flex-1 min-w-0 overflow-hidden relative"
           style={{
@@ -490,212 +541,277 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
-      <div className="flex items-center gap-1.5 shrink-0 relative z-50">
-        {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border (Directly Editable, No Icons) */}
-        <div className={`hidden lg:flex items-center gap-1.5 pl-4 border-l ${theme === 'light' ? 'border-[#CBD5E1]' : 'border-white/10'} pr-1 text-[10.5px] font-mono text-[var(--text-muted)]`}>
-          {isEditingCoords ? (
-            <div
-              className={`flex items-center px-1.5 py-0.5 rounded-md border transition-colors ${
-                theme === 'light'
-                  ? 'bg-white border-sky-500 shadow-2xs'
-                  : 'bg-[var(--bg-surface-elevated)] border-sky-500/80 shadow-[0_0_8px_rgba(56,189,248,0.25)]'
-              }`}
-            >
+      {/* 3. Center-Right Telemetry Readouts (Coordinates & World Clock) */}
+      <div className="hidden lg:flex items-center gap-1.5 shrink-0 relative mr-1">
+        {/* Compass / Coordinates Readout Pill (Hover Expandable + In-Place Editable) */}
+        <div
+          className={`group/coords flex items-center h-[30px] rounded-md border transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10.5px] ${
+            theme === 'light'
+              ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
+              : 'bg-[var(--bg-surface-elevated)]/90 border-[var(--hud-border)] hover:border-sky-500/50 shadow-xs'
+          } ${isEditingCoords ? 'border-sky-500 ring-1 ring-sky-500/40' : ''}`}
+          onClick={() => {
+            if (!isEditingCoords) {
+              setCoordsInput(`${latDisplay}, ${lonDisplay} • Z${zoom.toFixed(1)}`);
+              setIsEditingCoords(true);
+            }
+          }}
+          title="Telemetry Coordinates (Hover to expand, click to edit custom coordinates/zoom)"
+        >
+          {/* Resting State: 30x30px Compass Icon */}
+          <div className="flex items-center justify-center w-[30px] h-[30px] shrink-0 text-sky-400">
+            <Compass size={13} className="text-sky-400 group-hover/coords:rotate-45 transition-transform duration-300" />
+          </div>
+
+          {/* On Hover (or while editing): Expand to show full coordinates */}
+          <div
+            className={`overflow-hidden transition-all duration-250 ease-out flex items-center whitespace-nowrap ${
+              isEditingCoords
+                ? 'max-w-[220px] opacity-100 pr-2 pl-0.5'
+                : 'max-w-0 opacity-0 group-hover/coords:max-w-[220px] group-hover/coords:opacity-100 group-hover/coords:pr-2 group-hover/coords:pl-0.5'
+            }`}
+          >
+            {isEditingCoords ? (
               <input
                 ref={coordsInputRef}
                 type="text"
                 value={coordsInput}
                 onChange={(e) => setCoordsInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSaveCoords();
-                  } else if (e.key === 'Escape') {
-                    setIsEditingCoords(false);
-                  }
+                  if (e.key === 'Enter') handleSaveCoords();
+                  else if (e.key === 'Escape') setIsEditingCoords(false);
                 }}
                 onBlur={handleSaveCoords}
-                className={`w-[185px] bg-transparent outline-none font-mono text-[10.5px] font-semibold text-center ${
+                className={`w-[175px] bg-transparent outline-none font-mono text-[10.5px] font-semibold text-center ${
                   theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'
                 }`}
                 placeholder="lat, lon • Z3.5"
                 autoComplete="off"
                 spellCheck={false}
               />
-            </div>
-          ) : (
-            <div
-              onClick={() => {
-                setCoordsInput(`${latDisplay}, ${lonDisplay} • Z${zoom.toFixed(1)}`);
-                setIsEditingCoords(true);
-              }}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-md border cursor-pointer transition-colors ${
-                theme === 'light'
-                  ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
-                  : 'bg-[var(--bg-surface-elevated)]/60 border-[var(--hud-border)] hover:border-sky-500/60'
-              }`}
-              title="Click to enter custom coordinates or zoom (Enter to navigate)"
-            >
-              <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{latDisplay}</span>
-              <span>,</span>
-              <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{lonDisplay}</span>
-              <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
-              <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'} font-semibold`}>Z{zoom.toFixed(1)}</span>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center gap-1.5 font-semibold">
+                <span className={theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'}>{latDisplay}</span>
+                <span className="text-[var(--text-muted)]">,</span>
+                <span className={theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'}>{lonDisplay}</span>
+                <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
+                <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'}`}>Z{zoom.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Divider */}
-        <div className="hud-divider hidden lg:block" />
-
-        {/* Defense Clock with Strategic City Dropdown */}
-        <div className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/70 border border-[var(--hud-border)] font-mono text-[11px] text-[var(--text-primary)]">
-          <Clock size={11} className="text-sky-400 shrink-0" />
-          <span className="font-semibold text-sky-400 min-w-[58px] text-center">
-            {formattedTime || '00:00:00'}
-          </span>
-          <select
-            value={selectedCityId}
-            onChange={(e) => setSelectedCityId(e.target.value)}
-            className="bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono text-[10px] font-medium focus:outline-none cursor-pointer pr-0.5"
+        {/* Live Clock & Timezone Selector Pill (Hover Expandable + Dropdown) */}
+        <div ref={clockDropdownRef} className="relative">
+          <div
+            onClick={() => setIsClockOpen(!isClockOpen)}
+            className={`group/clock flex items-center h-[30px] rounded-md border transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10.5px] ${
+              theme === 'light'
+                ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
+                : 'bg-[var(--bg-surface-elevated)]/90 border-[var(--hud-border)] hover:border-sky-500/50 shadow-xs'
+            } ${isClockOpen ? 'border-sky-500' : ''}`}
+            title={`Live Tactical Clock: ${selectedCity.city} (${selectedCity.offsetLabel}) - Click to select timezone`}
           >
-            {STRATEGIC_CITIES.map((c) => (
-              <option key={c.id} value={c.id} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                {c.city} ({c.offsetLabel})
-              </option>
-            ))}
-          </select>
-        </div>
+            {/* Resting: Clock Icon + live ticking HH:MM:SS */}
+            <div className="flex items-center gap-1.5 px-2 text-sky-400 font-semibold shrink-0">
+              <Clock size={12} className="text-sky-400 shrink-0 group-hover/clock:scale-105 transition-transform" />
+              <span className="min-w-[56px] text-center">{formattedTime || '00:00:00'}</span>
+            </div>
 
-        {/* Divider */}
-        <div className="hud-divider hidden sm:block" />
+            {/* On Hover or when Open: Smoothly expand to show City + Offset + Chevron */}
+            <div
+              className={`overflow-hidden transition-all duration-250 ease-out flex items-center gap-1 text-[var(--text-secondary)] group-hover/clock:text-[var(--text-primary)] ${
+                isClockOpen
+                  ? 'max-w-[200px] opacity-100 pr-2 pl-0.5'
+                  : 'max-w-0 opacity-0 group-hover/clock:max-w-[200px] group-hover/clock:opacity-100 group-hover/clock:pr-2 group-hover/clock:pl-0.5'
+              }`}
+            >
+              <span className="text-[10px] truncate">{selectedCity.city} ({selectedCity.offsetLabel})</span>
+              <ChevronDown size={11} className="text-sky-400 shrink-0" />
+            </div>
+          </div>
 
-        {/* Search / Command Palette (Cmd+K) */}
-        <button
-          onClick={onOpenCommandPalette}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
-          title="Tactical Command Palette (Cmd+K / Ctrl+K)"
-        >
-          <Search size={12} className="text-sky-400 group-hover:scale-110 transition-transform" />
-          <kbd className="hidden sm:inline-block px-1 py-0.1 rounded text-[9px] bg-[var(--bg-surface)] border border-[var(--hud-border)] text-[var(--text-faint)]">
-            ⌘K
-          </kbd>
-        </button>
-
-        {/* Share Dashboard Intel Link (Icon Only) */}
-        <button
-          onClick={handleShareLink}
-          className="flex items-center justify-center p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group cursor-pointer"
-          title={copiedLink ? "Link Copied to Clipboard!" : "Copy Sharable Dashboard Link"}
-        >
-          {copiedLink ? (
-            <Check size={13} className="text-emerald-400" />
-          ) : (
-            <Share2 size={13} className="text-sky-400 group-hover:scale-110 transition-transform" />
+          {/* Clean Solid-Background Timezone Dropdown */}
+          {isClockOpen && (
+            <div
+              className="absolute right-0 top-full mt-1.5 animate-fade-in font-mono text-[11px] rounded-md border shadow-2xl p-1 min-w-[210px] z-[3000]"
+              style={{
+                backgroundColor: theme === 'dark' ? '#0B101B' : '#FFFFFF',
+                borderColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.3)' : '#CBD5E1'
+              }}
+            >
+              <div
+                className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider mb-1"
+                style={{
+                  color: theme === 'dark' ? '#64748B' : '#94A3B8',
+                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0'
+                }}
+              >
+                Select Strategic Timezone
+              </div>
+              {STRATEGIC_CITIES.map((c) => {
+                const isSelected = c.id === selectedCityId;
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => {
+                      setSelectedCityId(c.id);
+                      setIsClockOpen(false);
+                    }}
+                    className="flex items-center justify-between px-2.5 py-1.5 rounded cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor: isSelected
+                        ? 'rgba(14, 165, 233, 0.18)'
+                        : 'transparent',
+                      color: isSelected
+                        ? '#38BDF8'
+                        : theme === 'dark'
+                        ? '#CBD5E1'
+                        : '#334155',
+                      fontWeight: isSelected ? 600 : 400
+                    }}
+                  >
+                    <span>{c.city}</span>
+                    <span className="text-[9.5px] opacity-70">{c.offsetLabel}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </button>
+        </div>
+      </div>
 
-        {/* Bookmark / Save Workspace Layout (YouTube Style - Icon Only) */}
-        <button
+      {/* 4. Right-Side Utility & Workstation Dock (Individual Hover-Reveal Labels) */}
+      <div className="flex items-center gap-0.5 p-0.5 rounded-md border border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 shadow-xs font-mono text-[11px] shrink-0 relative z-50">
+        {/* 1. Search */}
+        <HoverExpandButton
+          icon={<Search size={13} className="text-sky-400" />}
+          label={
+            <>
+              <span>Search</span>
+              <kbd className="px-1 py-0.2 rounded text-[9px] bg-white/10 text-slate-300">⌘K</kbd>
+            </>
+          }
+          onClick={onOpenCommandPalette}
+          title="Tactical Command Palette (Cmd+K / Ctrl+K)"
+        />
+
+        {/* 2. Share */}
+        <HoverExpandButton
+          icon={
+            copiedLink ? (
+              <Check size={13} className="text-emerald-400" />
+            ) : (
+              <Share2 size={13} className="text-sky-400" />
+            )
+          }
+          label={copiedLink ? 'Link Copied!' : 'Share Dashboard'}
+          onClick={handleShareLink}
+          title={copiedLink ? 'Link Copied to Clipboard!' : 'Copy Sharable Dashboard Link'}
+        />
+
+        {/* 3. Save */}
+        <HoverExpandButton
+          icon={
+            <Bookmark
+              size={13}
+              className={isWorkspaceSaved ? 'fill-sky-400 text-sky-400' : 'text-sky-400'}
+            />
+          }
+          label={isWorkspaceSaved ? 'Saved (Unsave)' : 'Save Dashboard'}
+          active={isWorkspaceSaved}
+          activeClassName="bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.25)]"
           onClick={onToggleSaveWorkspace}
-          className={`flex items-center justify-center p-1.5 rounded-md border text-[11px] font-mono transition-all shadow-xs group cursor-pointer ${
-            isWorkspaceSaved
-              ? 'bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
-              : 'bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border-[var(--hud-border)] hover:border-sky-500/40 text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-          }`}
           title={
             isWorkspaceSaved
-              ? 'Workspace Saved: Layout will restore on your next login (Click to unsave)'
-              : 'Save Workspace: Click to save tabs, Intel Desk & Workspace layout for your next login'
+              ? 'Workspace Saved (Click to unsave)'
+              : 'Save Workspace for your next login'
           }
-        >
-          <Bookmark
-            size={13}
-            className={`transition-all group-hover:scale-110 ${
-              isWorkspaceSaved ? 'fill-sky-400 text-sky-400' : 'text-sky-400'
-            }`}
-          />
-        </button>
+        />
 
-        {/* Operator Profile / Auth */}
+        {/* Divider */}
+        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
+
+        {/* 4. Operator Profile / Auth Shield */}
         <UserNav
           onOpenAuthModal={onOpenAuthModal || (() => {})}
           onNavigateLogin={onNavigateLogin}
         />
 
-        {/* Theme Toggle */}
-        <button
+        {/* 5. Theme Toggle */}
+        <HoverExpandButton
+          icon={
+            theme === 'dark' ? (
+              <Sun size={13} className="text-amber-400" />
+            ) : (
+              <Moon size={13} className="text-sky-500" />
+            )
+          }
+          label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           onClick={onToggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          className="p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-        >
-          {theme === 'dark' ? (
-            <Sun size={13} className="text-amber-400" />
-          ) : (
-            <Moon size={13} className="text-sky-500" />
-          )}
-        </button>
+        />
 
-        {/* Audio / Fullscreen */}
-        <div className="hidden xl:flex items-center gap-0.5 bg-[var(--bg-surface-elevated)]/80 rounded-md border border-[var(--hud-border)] p-0.5">
-          <button
-            onClick={() => setAudioEnabled(!audioEnabled)}
-            title={audioEnabled ? 'Audio Pings: On' : 'Audio Pings: Muted'}
-            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            {audioEnabled ? <Volume2 size={12} className="text-emerald-400" /> : <VolumeX size={12} />}
-          </button>
-          <button
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-          </button>
-        </div>
+        {/* Divider */}
+        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
 
-        {/* Unified Intel Workstation & Intel Desk Toggle Control */}
-        <div
-          className="flex items-center rounded-md border border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 hover:border-sky-500/40 p-0.5 shadow-xs font-mono text-[10.5px] transition-all"
-        >
-          {/* Intel Workstation Option Icon (Left side) */}
-          <button
-            type="button"
-            onClick={onToggleWorkspaceDrawer}
-            title={
-              isWorkspaceDrawerOpen
-                ? 'Collapse Intel Workstation (Workspace Canvas)'
-                : 'Open Intel Workstation (Workspace Canvas)'
-            }
-            aria-label="Toggle Intel Workstation"
-            className={`flex items-center justify-center p-1 px-1.5 rounded-sm transition-all cursor-pointer ${
-              isWorkspaceDrawerOpen
-                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]'
-                : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/5'
-            }`}
-          >
-            <LayoutGrid size={13} />
-          </button>
+        {/* 6. Audio Toggle */}
+        <HoverExpandButton
+          icon={
+            audioEnabled ? (
+              <Volume2 size={13} className="text-emerald-400" />
+            ) : (
+              <VolumeX size={13} className="text-slate-400" />
+            )
+          }
+          label={audioEnabled ? 'Audio: ON' : 'Audio: MUTE'}
+          onClick={() => setAudioEnabled(!audioEnabled)}
+          title={audioEnabled ? 'Audio Pings: On' : 'Audio Pings: Muted'}
+        />
 
-          {/* Separation Bar In Between */}
-          <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-80" />
+        {/* 7. Fullscreen Toggle */}
+        <HoverExpandButton
+          icon={isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+          label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+        />
 
-          {/* Intel Desk Option (Right side) */}
-          <button
-            type="button"
-            onClick={onToggleRightPanel}
-            title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
-            aria-label="Toggle Intelligence Desk"
-            className={`flex items-center gap-1.5 px-2 py-1 rounded-sm transition-all cursor-pointer ${
-              isRightPanelOpen
-                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]'
-                : 'text-[var(--text-primary)] hover:text-sky-400 hover:bg-white/5'
-            }`}
-          >
-            {isRightPanelOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
-            <span className="hidden sm:inline font-semibold">INTEL DESK</span>
-          </button>
-        </div>
+        {/* Divider */}
+        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
+
+        {/* 8. Four-Square Grid (Intel Workstation) */}
+        <HoverExpandButton
+          icon={
+            <LayoutGrid
+              size={13}
+              className={isWorkspaceDrawerOpen ? 'text-slate-950' : 'text-sky-400'}
+            />
+          }
+          label="Intel Workstation"
+          active={isWorkspaceDrawerOpen}
+          onClick={onToggleWorkspaceDrawer}
+          title={
+            isWorkspaceDrawerOpen
+              ? 'Collapse Intel Workstation (Workspace Canvas)'
+              : 'Open Intel Workstation (Workspace Canvas)'
+          }
+        />
+
+        {/* 9. Intel Desk Toggle */}
+        <HoverExpandButton
+          icon={
+            isRightPanelOpen ? (
+              <PanelRightClose size={13} className="text-slate-950" />
+            ) : (
+              <PanelRightOpen size={13} className="text-sky-400" />
+            )
+          }
+          label="Intel Desk"
+          active={isRightPanelOpen}
+          onClick={onToggleRightPanel}
+          title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
+        />
       </div>
     </header>
   );

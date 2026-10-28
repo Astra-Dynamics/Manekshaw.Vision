@@ -40,38 +40,49 @@ export const UserNav: React.FC<UserNavProps> = ({
     }
   };
 
-  // 1. Logged Out: Just the clean cyan shield icon (no text taking up space)
+  // 1. Logged Out: Hover-expandable micro-pill (Rest: shield icon -> Hover: "Sign In / Sign Up")
   if (!user) {
     return (
       <button
         onClick={handleLoginClick}
-        className="p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/50 text-sky-400 hover:text-sky-300 transition-all shadow-xs cursor-pointer active:scale-95 group flex items-center justify-center shrink-0"
-        title="Sign in to Manekshaw.Vision"
+        className="group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[11px] shrink-0 text-amber-400 hover:text-amber-300 hover:bg-[var(--bg-surface-hover)]"
+        title="Sign In / Sign Up to Manekshaw.Vision"
       >
-        <Shield size={14} className="group-hover:scale-110 transition-transform text-sky-400" />
+        <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+          <Shield size={13} className="text-amber-400" />
+        </span>
+        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium text-amber-300">
+          Sign In / Sign Up
+        </span>
       </button>
     );
   }
 
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'Operator';
+  const roleLabel = isAdmin ? 'ADMIN' : 'ANALYST';
 
   return (
     <div className="relative font-mono z-50 shrink-0" ref={menuRef}>
-      {/* 2. Logged In: Ultra-compact shield with tick inside */}
+      {/* 2. Logged In: Hover-expandable micro-pill with user callsign / name */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className={`p-1.5 rounded-md transition-all cursor-pointer shadow-xs border flex items-center justify-center shrink-0 ${
+        className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[11px] shrink-0 ${
           menuOpen
             ? isAdmin
-              ? 'bg-[#18233c] border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.35)]'
-              : 'bg-slate-800 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.35)]'
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
+              : 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
             : isAdmin
-            ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/40 text-amber-400 hover:border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.15)]'
-            : 'bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/40 text-sky-400 hover:border-sky-400'
+            ? 'text-amber-400 hover:text-amber-300 hover:bg-[var(--bg-surface-hover)]'
+            : 'text-sky-400 hover:text-sky-300 hover:bg-[var(--bg-surface-hover)]'
         }`}
-        title={`${displayName} (${isAdmin ? 'Admin' : 'Individual'}) - Click to view dossier`}
+        title={`${displayName} (${roleLabel}) - Click to view dossier`}
       >
-        <ShieldCheck size={15} className={isAdmin ? 'text-amber-400' : 'text-sky-400'} />
+        <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+          <ShieldCheck size={14} className={isAdmin ? 'text-amber-400' : 'text-sky-400'} />
+        </span>
+        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium truncate">
+          {displayName} // {roleLabel}
+        </span>
       </button>
 
       {/* Profile Overview Card (Solid, Modern, Floating Above All Tickers) */}
