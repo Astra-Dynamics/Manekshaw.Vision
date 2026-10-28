@@ -416,29 +416,23 @@ export const Header: React.FC<HeaderProps> = ({
           </kbd>
         </button>
 
-        {/* Share Dashboard Intel Link */}
+        {/* Share Dashboard Intel Link (Icon Only) */}
         <button
           onClick={handleShareLink}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
-          title="Copy Sharable Dashboard Link"
+          className="flex items-center justify-center p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group cursor-pointer"
+          title={copiedLink ? "Link Copied to Clipboard!" : "Copy Sharable Dashboard Link"}
         >
           {copiedLink ? (
-            <>
-              <Check size={12} className="text-emerald-400" />
-              <span className="text-emerald-400 font-bold text-[10px]">COPIED</span>
-            </>
+            <Check size={13} className="text-emerald-400" />
           ) : (
-            <>
-              <Share2 size={12} className="text-sky-400 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline-block text-[10px] font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">SHARE</span>
-            </>
+            <Share2 size={13} className="text-sky-400 group-hover:scale-110 transition-transform" />
           )}
         </button>
 
-        {/* Bookmark / Save Workspace Layout (YouTube Style) */}
+        {/* Bookmark / Save Workspace Layout (YouTube Style - Icon Only) */}
         <button
           onClick={onToggleSaveWorkspace}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-mono transition-all shadow-xs group cursor-pointer ${
+          className={`flex items-center justify-center p-1.5 rounded-md border text-[11px] font-mono transition-all shadow-xs group cursor-pointer ${
             isWorkspaceSaved
               ? 'bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
               : 'bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border-[var(--hud-border)] hover:border-sky-500/40 text-[var(--text-muted)] hover:text-[var(--text-primary)]'
@@ -450,14 +444,11 @@ export const Header: React.FC<HeaderProps> = ({
           }
         >
           <Bookmark
-            size={12}
+            size={13}
             className={`transition-all group-hover:scale-110 ${
               isWorkspaceSaved ? 'fill-sky-400 text-sky-400' : 'text-sky-400'
             }`}
           />
-          <span className="hidden xl:inline-block text-[10px] font-semibold tracking-wider">
-            {isWorkspaceSaved ? 'SAVED' : 'SAVE'}
-          </span>
         </button>
 
         {/* Operator Profile / Auth */}
