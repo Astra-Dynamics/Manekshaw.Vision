@@ -359,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0 relative z-50">
         {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border */}
         <div className="hidden lg:flex items-center gap-1.5 pl-4 border-l border-white/10 pr-1 text-[10.5px] font-mono text-[var(--text-muted)]">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/60 border border-[var(--hud-border)]">

@@ -209,7 +209,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       >
         {/* 1. Primary Nav Row (Strict 48px Height) */}
         <div
-          className="w-full transition-all duration-200"
+          className="w-full transition-all duration-200 relative z-30"
           style={{
             background: scrolledPastTop ? 'rgba(6, 9, 16, 0.85)' : 'rgba(6, 9, 16, 0.65)',
             backdropFilter: 'saturate(180%) blur(20px)',
@@ -298,7 +298,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* 2. Live Dispatches Ticker Sub-Bar (Auto-Hides on Scroll >= 50px) */}
         <div
-          className="w-full"
+          className="w-full relative z-10"
           style={{
             height: scrolledPastTop ? '0px' : '28px',
             maxHeight: scrolledPastTop ? '0px' : '28px',
