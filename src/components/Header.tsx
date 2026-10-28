@@ -16,6 +16,7 @@ import {
   Check
 } from 'lucide-react';
 import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
+import { UserNav } from './UserNav';
 
 interface HeaderProps {
   currentView: TheaterView;
@@ -33,6 +34,7 @@ interface HeaderProps {
   zoom?: number;
   alerts?: IntelNewsItem[];
   onSelectAlert?: (alert: IntelNewsItem) => void;
+  onOpenAuthModal?: () => void;
 }
 
 interface CityTimeZone {
@@ -67,7 +69,8 @@ export const Header: React.FC<HeaderProps> = ({
   coordinates = [82.75, 22.46],
   zoom = 3.25,
   alerts = [],
-  onSelectAlert
+  onSelectAlert,
+  onOpenAuthModal
 }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
   const [formattedTime, setFormattedTime] = useState<string>('');
@@ -421,6 +424,9 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           )}
         </button>
+
+        {/* Operator Profile / Auth */}
+        <UserNav onOpenAuthModal={onOpenAuthModal || (() => {})} />
 
         {/* Theme Toggle */}
         <button

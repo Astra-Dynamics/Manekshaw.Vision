@@ -10,6 +10,8 @@ import { CommandPalette } from './components/CommandPalette';
 import { LandingPage } from './components/LandingPage';
 import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
+import { AuthProvider } from './context/AuthContext';
+import { AuthModal } from './components/AuthModal';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -93,7 +95,7 @@ export const decodeLayersFromHex = (hex: string): Record<LayerKey, boolean> => {
   return obj;
 };
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // Parse URL Parameters (Supporting both micro bitmask and legacy format)
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
 
@@ -150,6 +152,15 @@ export const App: React.FC = () => {
   const handleNavigateHome = () => {
     window.history.pushState({}, '', '/');
     setCurrentPath('/');
+  };
+
+  // Auth Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
   };
 
   // -------------------------------------------------------------
@@ -955,7 +966,15 @@ export const App: React.FC = () => {
   if (!isDashboard) {
     return (
       <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
-        <LandingPage onLaunchDashboard={handleLaunchDashboard} />
+        <LandingPage
+          onLaunchDashboard={handleLaunchDashboard}
+          onOpenAuthModal={() => handleOpenAuth('signin')}
+        />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          defaultMode={authModalMode}
+        />
       </div>
     );
   }
@@ -998,6 +1017,7 @@ export const App: React.FC = () => {
         zoom={mapZoom}
         alerts={newsFeed}
         onSelectAlert={handleSelectAlert}
+        onOpenAuthModal={() => handleOpenAuth('signin')}
       />
 
       {/* 2.5 Multi-Tab Tactical Workspace Bar (Below Header, height: 32px, z-30) */}
@@ -1172,8 +1192,21 @@ export const App: React.FC = () => {
         onToggleTheme={handleToggleTheme}
         onToggleLayer={handleToggleLayer}
       />
+
+      {/* 6. Operator Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode={authModalMode}
+      />
     </div>
   );
 };
+
+export const App: React.FC = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 export default App;

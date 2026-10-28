@@ -31,12 +31,14 @@ import {
   Clock,
   Check
 } from 'lucide-react';
+import { UserNav } from './UserNav';
 
 interface LandingPageProps {
   onLaunchDashboard: () => void;
+  onOpenAuthModal?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard, onOpenAuthModal }) => {
   const [activeTheaterTab, setActiveTheaterTab] = useState<'indo' | 'mideast' | 'europe' | 'asia'>('indo');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [scrolledPastTop, setScrolledPastTop] = useState(false);
@@ -264,8 +266,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               </a>
             </nav>
 
-            {/* Compact CTA Button */}
-            <div className="flex items-center">
+            {/* Compact CTA Buttons */}
+            <div className="flex items-center gap-2.5">
+              <UserNav onOpenAuthModal={onOpenAuthModal || (() => {})} compact />
               <button
                 onClick={onLaunchDashboard}
                 className="relative group bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold tracking-wider uppercase transition-all shadow-[0_0_16px_rgba(56,189,248,0.35)] flex items-center gap-1.5 cursor-pointer active:scale-95"
