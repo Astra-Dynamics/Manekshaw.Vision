@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Radio, GripVertical } from 'lucide-react';
 import { Header } from './components/Header';
 import { AlertTicker } from './components/AlertTicker';
@@ -759,6 +759,282 @@ const AppContent: React.FC = () => {
   );
 
   // -------------------------------------------------------------
+  // Comprehensive Undo / Redo Engine (Ctrl+Z & Ctrl+Y / Ctrl+Shift+Z)
+  // Reverts: Desk width, Workstation width, Tab shifts, Clear All,
+  // Element drop/move/delete, and Landmarks / Map locations
+  // -------------------------------------------------------------
+  interface AppHistorySnapshot {
+    tabs: WorkspaceTab[];
+    activeTabId: string;
+    mapCenter: [number, number];
+    mapZoom: number;
+    currentView: TheaterView;
+    deskWidth: number;
+    isRightPanelOpen: boolean;
+    selectedFeature: StrategicFeature | null;
+    selectedCountry: CountryIntelDetails | null;
+  }
+
+  const undoStackRef = useRef<AppHistorySnapshot[]>([]);
+  const redoStackRef = useRef<AppHistorySnapshot[]>([]);
+  const lastCommittedKeyRef = useRef<string>('');
+  const lastCommittedSnapshotRef = useRef<AppHistorySnapshot | null>(null);
+  const isApplyingHistoryRef = useRef<boolean>(false);
+  const debounceHistoryTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [historyToast, setHistoryToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showHistoryToast = useCallback((msg: string) => {
+    setHistoryToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
+      setHistoryToast(null);
+    }, 2200);
+  }, []);
+
+  const getCurrentSnapshot = useCallback((): AppHistorySnapshot => ({
+    tabs: JSON.parse(JSON.stringify(tabs)),
+    activeTabId,
+    mapCenter: [mapCenter[0], mapCenter[1]],
+    mapZoom,
+    currentView,
+    deskWidth,
+    isRightPanelOpen,
+    selectedFeature: selectedFeature ? { ...selectedFeature } : null,
+    selectedCountry: selectedCountry ? { ...selectedCountry } : null
+  }), [tabs, activeTabId, mapCenter, mapZoom, currentView, deskWidth, isRightPanelOpen, selectedFeature, selectedCountry]);
+
+  const getSnapshotKey = useCallback((snap: AppHistorySnapshot): string => {
+    return JSON.stringify({
+      tabs: snap.tabs,
+      activeTabId: snap.activeTabId,
+      center: [snap.mapCenter[0].toFixed(3), snap.mapCenter[1].toFixed(3)],
+      zoom: snap.mapZoom.toFixed(1),
+      view: snap.currentView,
+      deskW: snap.deskWidth,
+      panelOpen: snap.isRightPanelOpen,
+      feat: snap.selectedFeature?.id,
+      country: snap.selectedCountry?.code
+    });
+  }, []);
+
+  const describeChange = useCallback((prev: AppHistorySnapshot, curr: AppHistorySnapshot): string => {
+    if (prev.activeTabId !== curr.activeTabId) return 'Workspace Tab Shift';
+    if (prev.deskWidth !== curr.deskWidth) return `Intel Desk Width (${curr.deskWidth}px)`;
+
+    const prevActiveTab = prev.tabs.find((t) => t.id === prev.activeTabId);
+    const currActiveTab = curr.tabs.find((t) => t.id === curr.activeTabId);
+    const prevDrawer = prevActiveTab?.rightDrawer;
+    const currDrawer = currActiveTab?.rightDrawer;
+
+    if (prevDrawer && currDrawer) {
+      if (prevDrawer.width !== currDrawer.width) return `Workstation Width (${currDrawer.width}px)`;
+      if (prevDrawer.isOpen !== currDrawer.isOpen) {
+        return currDrawer.isOpen ? 'Open Workstation' : 'Close Workstation';
+      }
+      if (prevDrawer.activeDrawerTabId !== currDrawer.activeDrawerTabId) {
+        return 'Workstation Tab Shift';
+      }
+      const prevItems = prevDrawer.drawerTabs.flatMap((t) => t.items).length;
+      const currItems = currDrawer.drawerTabs.flatMap((t) => t.items).length;
+      if (prevItems > 0 && currItems === 0) return 'Clear Workspace Elements';
+      if (prevItems !== currItems) return 'Workspace Elements';
+    }
+
+    if (prev.tabs.length !== curr.tabs.length) return 'Workspace Tabs';
+    if (prev.currentView !== curr.currentView) return `Theater: ${curr.currentView.toUpperCase()}`;
+    if (prev.selectedCountry?.code !== curr.selectedCountry?.code) {
+      return curr.selectedCountry ? `Landmark: ${curr.selectedCountry.name}` : 'Country Brief Closed';
+    }
+    if (prev.selectedFeature?.id !== curr.selectedFeature?.id) {
+      const featName = curr.selectedFeature
+        ? ('name' in curr.selectedFeature
+            ? (curr.selectedFeature as { name: string }).name
+            : 'title' in curr.selectedFeature
+            ? (curr.selectedFeature as { title: string }).title
+            : 'Landmark')
+        : null;
+      return featName ? `Landmark: ${featName}` : 'Landmark Closed';
+    }
+    if (
+      Math.abs(prev.mapCenter[0] - curr.mapCenter[0]) > 0.05 ||
+      Math.abs(prev.mapCenter[1] - curr.mapCenter[1]) > 0.05 ||
+      Math.abs(prev.mapZoom - curr.mapZoom) > 0.1
+    ) {
+      return `Landmark: ${curr.mapCenter[1].toFixed(2)}°, ${curr.mapCenter[0].toFixed(2)}°`;
+    }
+    return 'Workspace State';
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (undoStackRef.current.length === 0) {
+      showHistoryToast('Nothing to Undo');
+      return;
+    }
+
+    const current = getCurrentSnapshot();
+    const previous = undoStackRef.current.pop()!;
+    redoStackRef.current.push(current);
+
+    const desc = describeChange(previous, current);
+    showHistoryToast(`↩ UNDO: ${desc}`);
+
+    isApplyingHistoryRef.current = true;
+    lastCommittedKeyRef.current = getSnapshotKey(previous);
+    lastCommittedSnapshotRef.current = previous;
+
+    setTabs(previous.tabs);
+    setActiveTabId(previous.activeTabId);
+    setMapCenter(previous.mapCenter);
+    setMapZoom(previous.mapZoom);
+    setCurrentView(previous.currentView);
+    setDeskWidth(previous.deskWidth);
+    setIsRightPanelOpen(previous.isRightPanelOpen);
+    setSelectedFeature(previous.selectedFeature);
+    setSelectedCountry(previous.selectedCountry);
+
+    setTimeout(() => {
+      isApplyingHistoryRef.current = false;
+    }, 120);
+  }, [getCurrentSnapshot, getSnapshotKey, describeChange, showHistoryToast]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStackRef.current.length === 0) {
+      showHistoryToast('Nothing to Redo');
+      return;
+    }
+
+    const current = getCurrentSnapshot();
+    const next = redoStackRef.current.pop()!;
+    undoStackRef.current.push(current);
+
+    const desc = describeChange(current, next);
+    showHistoryToast(`↪ REDO: ${desc}`);
+
+    isApplyingHistoryRef.current = true;
+    lastCommittedKeyRef.current = getSnapshotKey(next);
+    lastCommittedSnapshotRef.current = next;
+
+    setTabs(next.tabs);
+    setActiveTabId(next.activeTabId);
+    setMapCenter(next.mapCenter);
+    setMapZoom(next.mapZoom);
+    setCurrentView(next.currentView);
+    setDeskWidth(next.deskWidth);
+    setIsRightPanelOpen(next.isRightPanelOpen);
+    setSelectedFeature(next.selectedFeature);
+    setSelectedCountry(next.selectedCountry);
+
+    setTimeout(() => {
+      isApplyingHistoryRef.current = false;
+    }, 120);
+  }, [getCurrentSnapshot, getSnapshotKey, describeChange, showHistoryToast]);
+
+  // Track state changes and commit snapshots
+  useEffect(() => {
+    if (isApplyingHistoryRef.current) return;
+
+    const current = getCurrentSnapshot();
+    const currentKey = getSnapshotKey(current);
+
+    if (!lastCommittedKeyRef.current) {
+      lastCommittedKeyRef.current = currentKey;
+      lastCommittedSnapshotRef.current = current;
+      return;
+    }
+
+    if (currentKey === lastCommittedKeyRef.current) return;
+
+    const prev = lastCommittedSnapshotRef.current;
+    const isDiscrete =
+      !prev ||
+      prev.activeTabId !== current.activeTabId ||
+      prev.currentView !== current.currentView ||
+      prev.isRightPanelOpen !== current.isRightPanelOpen ||
+      prev.selectedFeature?.id !== current.selectedFeature?.id ||
+      prev.selectedCountry?.code !== current.selectedCountry?.code ||
+      JSON.stringify(prev.tabs) !== JSON.stringify(current.tabs);
+
+    const commitSnapshot = () => {
+      if (isApplyingHistoryRef.current) return;
+      if (lastCommittedSnapshotRef.current) {
+        undoStackRef.current.push(lastCommittedSnapshotRef.current);
+        if (undoStackRef.current.length > 50) {
+          undoStackRef.current.shift();
+        }
+        redoStackRef.current = [];
+      }
+      lastCommittedKeyRef.current = currentKey;
+      lastCommittedSnapshotRef.current = current;
+    };
+
+    if (isDiscrete) {
+      if (debounceHistoryTimerRef.current) clearTimeout(debounceHistoryTimerRef.current);
+      commitSnapshot();
+    } else {
+      // Continuous changes: map pan/zoom or desk resize
+      if (debounceHistoryTimerRef.current) clearTimeout(debounceHistoryTimerRef.current);
+      debounceHistoryTimerRef.current = setTimeout(() => {
+        commitSnapshot();
+      }, 380);
+    }
+  }, [
+    tabs,
+    activeTabId,
+    mapCenter,
+    mapZoom,
+    currentView,
+    deskWidth,
+    isRightPanelOpen,
+    selectedFeature,
+    selectedCountry,
+    getCurrentSnapshot,
+    getSnapshotKey
+  ]);
+
+  // Global Keyboard Listener for Ctrl+Z and Ctrl+Y / Ctrl+Shift+Z
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isInput =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          (activeEl as HTMLElement).isContentEditable);
+
+      if (isInput) return;
+
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      if (!isCtrlOrMeta) return;
+
+      // Redo: Ctrl+Y or Ctrl+Shift+Z
+      if ((e.key.toLowerCase() === 'y' && !e.shiftKey) || (e.key.toLowerCase() === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+
+      // Undo: Ctrl+Z
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceHistoryTimerRef.current) clearTimeout(debounceHistoryTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  // -------------------------------------------------------------
   // YouTube-Style Workspace Bookmark & Save Engine
   // -------------------------------------------------------------
   // 1. Check if user has saved layout and auto-restore on login or user change
@@ -1417,6 +1693,21 @@ const AppContent: React.FC = () => {
         onClose={() => setIsAuthModalOpen(false)}
         defaultMode={authModalMode}
       />
+
+      {/* 7. History HUD Notification (Ctrl+Z / Ctrl+Y Feedback) */}
+      {historyToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none transition-all duration-300">
+          <div
+            className={`px-4 py-1.5 rounded-full font-mono text-[11px] font-bold tracking-wide flex items-center gap-2 shadow-2xl backdrop-blur-md border ${
+              theme === 'light'
+                ? 'bg-slate-900/90 text-white border-slate-700 shadow-slate-900/25'
+                : 'bg-[#0A101D]/90 text-sky-400 border-sky-500/40 shadow-[0_0_20px_rgba(56,189,248,0.3)]'
+            }`}
+          >
+            <span>{historyToast}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
