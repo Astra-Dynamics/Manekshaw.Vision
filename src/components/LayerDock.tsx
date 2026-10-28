@@ -207,6 +207,43 @@ export const LayerDock: React.FC<LayerDockProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [infoExpandedId, setInfoExpandedId] = useState<LayerKey | null>(null);
 
+  // Drag-Resize State for Tactical Layers HUD
+  const [dockWidth, setDockWidth] = useState<number>(250);
+  const [dockHeight, setDockHeight] = useState<number | null>(null);
+  const [isResizing, setIsResizing] = useState<'none' | 'x' | 'y' | 'corner'>('none');
+
+  const handleStartResize = (direction: 'x' | 'y' | 'corner', e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(direction);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialWidth = dockWidth;
+    const initialHeight = dockHeight || 520;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (direction === 'x' || direction === 'corner') {
+        const deltaX = moveEvent.clientX - startX;
+        setDockWidth(Math.max(220, Math.min(420, initialWidth + deltaX)));
+      }
+      if (direction === 'y' || direction === 'corner') {
+        const deltaY = moveEvent.clientY - startY;
+        const maxHeight = window.innerHeight - 96;
+        setDockHeight(Math.max(240, Math.min(maxHeight, initialHeight + deltaY)));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing('none');
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
   // Accordion state: categories can be expanded or collapsed
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
@@ -288,19 +325,21 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
   return (
     <div
-      className="z-20 select-none font-mono text-xs overflow-hidden flex flex-col animate-fade-in transition-all shadow-2xl"
+      className="z-20 select-none font-mono text-xs overflow-hidden flex flex-col animate-fade-in shadow-2xl relative cq-panel"
       style={{
         position: 'absolute',
         top: '84px',
         left: '44px',
-        width: '240px',
-        maxHeight: 'calc(100vh - 110px)',
-        background: 'rgba(13, 19, 30, 0.84)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        width: `${dockWidth}px`,
+        height: dockHeight ? `${dockHeight}px` : undefined,
+        maxHeight: dockHeight ? `${dockHeight}px` : 'calc(100vh - 110px)',
+        background: 'rgba(13, 19, 30, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: '6px',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        transition: isResizing !== 'none' ? 'none' : 'width 0.15s ease, height 0.15s ease'
       }}
     >
       {/* 1. Header Bar: Title, Active Counter & Minimize */}
@@ -379,10 +418,12 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         </div>
       </div>
 
-      {/* 3. Categorized Layer List with Collapsible Accordions */}
-      <div className="overflow-y-auto layers-scrollbar py-0.5 flex-1 space-y-0.5">
+      {/* 3. Categorized Layer List with Collapsible Accordions (Auto-reflows to 2x2 matrix when wide) */}
+      <div className={`overflow-y-auto layers-scrollbar py-0.5 flex-1 ${
+        dockWidth > 340 ? 'grid grid-cols-2 gap-1.5 p-1.5' : 'space-y-0.5'
+      }`}>
         {filteredCategories.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-xs font-mono">
+          <div className="text-center py-6 text-slate-400 text-xs font-mono col-span-2">
             No matching layers found
           </div>
         ) : (
@@ -393,7 +434,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
             return (
               <div
                 key={cat.id}
-                className="border-b border-white/[0.04] last:border-b-0"
+                className={`border-b border-white/[0.04] last:border-b-0 ${
+                  dockWidth > 340 ? 'rounded border border-white/[0.06] bg-white/[0.02] overflow-hidden' : ''
+                }`}
               >
                 {/* Category Header with single-line guarantee (nowrap) */}
                 <div
@@ -556,7 +599,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
       {/* 4. Footer Branding */}
       <div
-        className="flex items-center justify-between text-[9px] font-mono"
+        className="flex items-center justify-between text-[9px] font-mono shrink-0"
         style={{
           padding: '4px 10px',
           background: 'rgba(255, 255, 255, 0.02)',
@@ -566,6 +609,58 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       >
         <span className="truncate">© MANEKSHAW.VISION</span>
         <span style={{ color: '#64748B' }}>GEOINT v1.5</span>
+      </div>
+
+      {/* Interactive Edge & Corner Drag-Resize Handles */}
+      {/* Right Edge (↔) */}
+      <div
+        onMouseDown={(e) => handleStartResize('x', e)}
+        className="absolute right-0 top-0 bottom-0 w-[6px] -translate-x-[1px] cursor-ew-resize select-none z-30 group"
+        title="Drag horizontally to resize panel width (220px - 420px)"
+      >
+        <div
+          className={`w-[2px] h-full ml-auto transition-all ${
+            isResizing === 'x' || isResizing === 'corner'
+              ? 'bg-[#38BDF8] shadow-[0_0_10px_#38BDF8]'
+              : 'bg-transparent group-hover:bg-[#38BDF8]/60'
+          }`}
+        />
+      </div>
+
+      {/* Bottom Edge (↕) */}
+      <div
+        onMouseDown={(e) => handleStartResize('y', e)}
+        className="absolute left-0 right-0 bottom-0 h-[6px] -translate-y-[1px] cursor-ns-resize select-none z-30 group"
+        title="Drag vertically to resize panel height"
+      >
+        <div
+          className={`h-[2px] w-full mt-auto transition-all ${
+            isResizing === 'y' || isResizing === 'corner'
+              ? 'bg-[#38BDF8] shadow-[0_0_10px_#38BDF8]'
+              : 'bg-transparent group-hover:bg-[#38BDF8]/60'
+          }`}
+        />
+      </div>
+
+      {/* Bottom-Right Corner (↘) */}
+      <div
+        onMouseDown={(e) => handleStartResize('corner', e)}
+        className="absolute right-0 bottom-0 w-3.5 h-3.5 cursor-nwse-resize select-none z-40 flex items-center justify-center group"
+        title="Drag corner to resize width and height simultaneously"
+      >
+        <svg
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          fill="none"
+          className={`transition-all ${
+            isResizing === 'corner'
+              ? 'text-sky-400 scale-110 drop-shadow-[0_0_6px_#38BDF8]'
+              : 'text-slate-500 group-hover:text-sky-400'
+          }`}
+        >
+          <path d="M7 1L1 7M7 4L4 7M7 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
       </div>
     </div>
   );

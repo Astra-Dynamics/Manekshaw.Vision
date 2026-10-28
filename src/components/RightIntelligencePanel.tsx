@@ -545,7 +545,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
   return (
     <aside
-      className="w-full h-full flex flex-col select-none transition-colors"
+      className="w-full h-full flex flex-col select-none transition-colors cq-panel"
       style={{
         background: 'var(--bg-surface)',
         color: 'var(--text-primary)'
@@ -706,7 +706,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       <div className="flex-1 overflow-y-auto feed-scrollbar">
         {/* 1. Feed Tab */}
         {activeTab === 'feed' && (
-          <div>
+          <div className="cq-bento-grid">
             {filteredNews.length === 0 ? (
               <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                 No intelligence reports match query.
@@ -1259,7 +1259,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
         {/* 3. Hotspots Tab (Actionable Flashpoint Matrix) */}
         {activeTab === 'hotspots' && (
-          <div className="space-y-0">
+          <div className="cq-bento-grid space-y-0">
             {filteredHotspots.length === 0 ? (
               <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                 No active hotspots match query.
@@ -1491,7 +1491,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
         {/* 4. Conflicts / Wars Tab */}
         {activeTab === 'conflicts' && (
-          <div className="space-y-0">
+          <div className="cq-bento-grid space-y-0">
             {filteredConflicts.length === 0 ? (
               <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                 No active theaters match query.
@@ -1677,7 +1677,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               })}
             </div>
 
-            <div className="space-y-0 flex-1">
+            <div className="cq-bento-grid space-y-0 flex-1">
               {filteredInfra.length === 0 ? (
                 <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                   No strategic military assets match query.

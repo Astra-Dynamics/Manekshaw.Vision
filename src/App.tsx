@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Radio } from 'lucide-react';
+import { Radio, GripVertical } from 'lucide-react';
 import { Header } from './components/Header';
 import { AlertTicker } from './components/AlertTicker';
 import { MapComponent } from './components/MapComponent';
@@ -26,6 +26,7 @@ import {
   WorkspaceTab,
   WorkspaceDrawerItem,
   WorkspaceDrawerTab,
+  WorkspaceRow,
   WorkspaceTabIntelDeskState,
   WorkspaceTabRightDrawerState,
   createDefaultIntelDeskState,
@@ -550,11 +551,24 @@ const AppContent: React.FC = () => {
 
         let updatedDrawerTabs = currentDrawer.drawerTabs;
 
+        const newRow: WorkspaceRow = {
+          rowId: `row_${item.id}_${Date.now()}`,
+          columns: [
+            {
+              id: `col_${item.id}_${Date.now()}`,
+              item,
+              widthFlex: 1,
+              customHeight: item.type === 'video' ? 240 : undefined
+            }
+          ]
+        };
+
         if (!targetDrawerTab) {
           const newTab: WorkspaceDrawerTab = {
             id: 'drawer_tab_1',
             title: item.type === 'video' ? 'Live Stream' : 'Intel Brief',
-            items: [item]
+            items: [item],
+            rows: [newRow]
           };
           updatedDrawerTabs = [newTab];
           targetDrawerTabId = 'drawer_tab_1';
@@ -571,7 +585,8 @@ const AppContent: React.FC = () => {
                           ? 'Live Stream'
                           : 'Intel Brief'
                         : t.title,
-                    items: [...t.items, item]
+                    items: [...t.items, item],
+                    rows: [...(t.rows || []), newRow]
                   }
                 : t
             );
@@ -694,8 +709,43 @@ const AppContent: React.FC = () => {
         const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
         const updatedDrawer: WorkspaceTabRightDrawerState = {
           ...currentDrawer,
+          drawerTabs: currentDrawer.drawerTabs.map((t) => {
+            if (t.id !== tabId) return t;
+            const nextItems = t.items.filter((i) => i.id !== itemId);
+            const nextRows = (t.rows || [])
+              .map((row) => ({
+                ...row,
+                columns: row.columns.filter((c) => c.item.id !== itemId)
+              }))
+              .filter((row) => row.columns.length > 0);
+            return {
+              ...t,
+              items: nextItems,
+              rows: nextRows
+            };
+          })
+        };
+        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
+
+  const handleUpdateDrawerRows = useCallback(
+    (tabId: string, rows: WorkspaceRow[]) => {
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId);
+        if (!currentTab) return prevTabs;
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        const flattenedItems = rows.flatMap((r) => r.columns.map((c) => c.item));
+        const updatedDrawer: WorkspaceTabRightDrawerState = {
+          ...currentDrawer,
           drawerTabs: currentDrawer.drawerTabs.map((t) =>
-            t.id === tabId ? { ...t, items: t.items.filter((i) => i.id !== itemId) } : t
+            t.id === tabId ? { ...t, rows, items: flattenedItems } : t
           )
         };
         const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
@@ -707,6 +757,35 @@ const AppContent: React.FC = () => {
     },
     [activeTabId]
   );
+
+  // Interactive Panel Drag-Resizing States
+  const [deskWidth, setDeskWidth] = useState<number>(380);
+  const [isDraggingAnyResizer, setIsDraggingAnyResizer] = useState<boolean>(false);
+
+  const handleStartDeskResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingAnyResizer(true);
+
+    const startX = e.clientX;
+    const initialWidth = deskWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      // Dragging left increases width
+      const deltaX = startX - moveEvent.clientX;
+      const newWidth = Math.max(280, Math.min(680, initialWidth + deltaX));
+      setDeskWidth(Math.round(newWidth));
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingAnyResizer(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   const handleDropDrawerItem = useCallback(
     (tabId: string, item: WorkspaceDrawerItem) => {
@@ -1065,7 +1144,7 @@ const AppContent: React.FC = () => {
       {/* Right: Palantir Edge-Docked Intelligence Desk (Per-Tab Isolated State) */}
       {isRightPanelOpen && (
         <div
-          className="absolute z-30 flex flex-col animate-fade-in"
+          className="absolute z-30 flex flex-col animate-fade-in cq-panel"
           style={{
             top: '76px',
             right: activeRightDrawer.isOpen
@@ -1074,15 +1153,39 @@ const AppContent: React.FC = () => {
                 : `${activeRightDrawer.width}px`
               : '0px',
             bottom: 0,
-            width: '380px',
+            width: `${deskWidth}px`,
             maxWidth: '100vw',
             background: 'var(--bg-surface)',
             borderLeft: '1px solid var(--border-medium)',
             boxShadow: '-12px 0 24px rgba(0, 0, 0, 0.6)',
             borderRadius: 0,
-            transition: 'right 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+            transition: isDraggingAnyResizer ? 'none' : 'right 0.28s cubic-bezier(0.16, 1, 0.3, 1), width 0.15s ease'
           }}
         >
+          {/* Left-Edge Drag-Resize Handle (↔) for Intelligence Desk */}
+          <div
+            onMouseDown={handleStartDeskResize}
+            className="absolute left-0 top-0 bottom-0 w-[6px] -translate-x-[3px] z-50 cursor-ew-resize group select-none flex items-center justify-center"
+            title="Drag to resize Intelligence Desk width (280px - 680px)"
+          >
+            <div
+              className={`w-[2px] h-full transition-all ${
+                isDraggingAnyResizer
+                  ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
+                  : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
+              }`}
+            />
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
+                isDraggingAnyResizer
+                  ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
+                  : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
+              }`}
+            >
+              <GripVertical size={11} />
+            </div>
+          </div>
+
           <RightIntelligencePanel
             isOpen={isRightPanelOpen}
             onClose={() => setIsRightPanelOpen(false)}
@@ -1130,7 +1233,7 @@ const AppContent: React.FC = () => {
         onClose={() => updateActiveTabRightDrawer({ isOpen: false })}
         onToggleMinimize={() => updateActiveTabRightDrawer({ isMinimized: !activeRightDrawer.isMinimized })}
         onToggleWidth={() =>
-          updateActiveTabRightDrawer({ width: activeRightDrawer.width === 440 ? 640 : 440 })
+          updateActiveTabRightDrawer({ width: activeRightDrawer.width >= 600 ? 440 : 680 })
         }
         onSelectTab={(tabId) => updateActiveTabRightDrawer({ activeDrawerTabId: tabId })}
         onNewTab={handleNewDrawerTab}
@@ -1142,6 +1245,10 @@ const AppContent: React.FC = () => {
           setMapCenter(c);
           setMapZoom(6.5);
         }}
+        onResizeWidth={(newWidth) => updateActiveTabRightDrawer({ width: newWidth })}
+        onUpdateRows={handleUpdateDrawerRows}
+        isDraggingResizer={isDraggingAnyResizer}
+        onSetDraggingResizer={setIsDraggingAnyResizer}
       />
 
       {/* Auto-Open Drop Target on Right Edge (When dragging and drawer is closed) */}

@@ -185,15 +185,29 @@ export interface WorkspaceDrawerItem {
   raw?: any;
 }
 
+export interface WorkspaceColumn {
+  id: string;
+  item: WorkspaceDrawerItem;
+  widthFlex: number; // Default 1
+  customHeight?: number; // Canva-style vertical resize in px
+}
+
+export interface WorkspaceRow {
+  rowId: string;
+  columns: WorkspaceColumn[];
+}
+
 export interface WorkspaceDrawerTab {
   id: string;
   title: string;
   items: WorkspaceDrawerItem[];
+  rows?: WorkspaceRow[];
 }
 
 export interface WorkspaceTabIntelDeskState {
   isOpen: boolean;
   isMinimized: boolean;
+  width?: number; // Resizable between 280 and 680
   activeSubTab: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier';
   searchQuery: string;
   severityFilter: 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM';
@@ -207,7 +221,7 @@ export interface WorkspaceTabIntelDeskState {
 export interface WorkspaceTabRightDrawerState {
   isOpen: boolean;
   isMinimized: boolean;
-  width: number; // 440 or 640
+  width: number; // Resizable between 300 and 65vw
   activeDrawerTabId: string;
   drawerTabs: WorkspaceDrawerTab[];
 }
@@ -247,13 +261,14 @@ export const createDefaultIntelDeskState = (region?: string): WorkspaceTabIntelD
 export const createDefaultRightDrawerState = (): WorkspaceTabRightDrawerState => ({
   isOpen: false,
   isMinimized: false,
-  width: 440,
+  width: 460,
   activeDrawerTabId: 'drawer_tab_1',
   drawerTabs: [
     {
       id: 'drawer_tab_1',
       title: 'Tactical Watch',
-      items: []
+      items: [],
+      rows: []
     }
   ]
 });

@@ -378,3 +378,47 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 64px;
 }
+
+/* Interactive Resize Gutter & Container Query Utilities */
+.cq-panel {
+  container-type: inline-size;
+}
+
+@container (min-width: 420px) {
+  .cq-bento-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  .cq-bento-grid > div {
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 4px !important;
+  }
+  .cq-expanded-content {
+    display: block !important;
+  }
+  .cq-multi-col {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+@container (min-width: 720px) {
+  .cq-bento-grid {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important;
+  }
+  .cq-multi-col {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+.resize-gutter-glow {
+  transition: all 0.15s ease-out;
+}
+.resize-gutter-glow:hover,
+.resize-gutter-glow.active {
+  background: #38BDF8 !important;
+  box-shadow: 0 0 12px #38BDF8 !important;
+}

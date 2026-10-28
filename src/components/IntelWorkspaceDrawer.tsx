@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   X,
   ChevronLeft,
@@ -15,15 +15,29 @@ import {
   Shield,
   Crosshair,
   Trash2,
-  Radio
+  Radio,
+  GripVertical,
+  Columns,
+  Rows,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  MoveHorizontal,
+  MoveVertical
 } from 'lucide-react';
-import { WorkspaceDrawerTab, WorkspaceDrawerItem, ThemeMode } from '../types';
+import {
+  WorkspaceDrawerTab,
+  WorkspaceDrawerItem,
+  WorkspaceRow,
+  WorkspaceColumn,
+  ThemeMode
+} from '../types';
 import { getYouTubeEmbedUrl } from '../utils/youtubeResolver';
 
 interface IntelWorkspaceDrawerProps {
   isOpen: boolean;
   isMinimized: boolean;
-  width: number; // 440 or 640
+  width: number;
   tabs: WorkspaceDrawerTab[];
   activeTabId: string;
   theme: ThemeMode;
@@ -37,6 +51,10 @@ interface IntelWorkspaceDrawerProps {
   onRemoveItem: (tabId: string, itemId: string) => void;
   onDropItem: (tabId: string, item: WorkspaceDrawerItem) => void;
   onCenterMap: (coords: [number, number]) => void;
+  onResizeWidth?: (newWidth: number) => void;
+  onUpdateRows?: (tabId: string, rows: WorkspaceRow[]) => void;
+  isDraggingResizer?: boolean;
+  onSetDraggingResizer?: (dragging: boolean) => void;
 }
 
 export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
@@ -55,20 +73,298 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   onRenameTab,
   onRemoveItem,
   onDropItem,
-  onCenterMap
+  onCenterMap,
+  onResizeWidth,
+  onUpdateRows,
+  isDraggingResizer = false,
+  onSetDraggingResizer
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
-
-  if (!isOpen) return null;
+  const [isResizingDrawer, setIsResizingDrawer] = useState(false);
+  const [dropTargetRowId, setDropTargetRowId] = useState<string | null>(null);
+  const [dropSideBySideColId, setDropSideBySideColId] = useState<string | null>(null);
 
   const isDark = theme === 'dark';
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
-  const items = activeTab ? activeTab.items : [];
-  const videoCount = items.filter((i) => i.type === 'video').length;
 
-  // Handle Drag & Drop
+  // Derive and normalize rows for the 2D Notion-style block canvas
+  const getNormalizedRows = useCallback((tab?: WorkspaceDrawerTab): WorkspaceRow[] => {
+    if (!tab) return [];
+    if (tab.rows && tab.rows.length > 0) return tab.rows;
+    if (!tab.items || tab.items.length === 0) return [];
+
+    return tab.items.map((item, idx) => ({
+      rowId: `row_${item.id}_${idx}`,
+      columns: [
+        {
+          id: `col_${item.id}_${idx}`,
+          item,
+          widthFlex: 1,
+          customHeight: item.type === 'video' ? 240 : undefined
+        }
+      ]
+    }));
+  }, []);
+
+  const [localRows, setLocalRows] = useState<WorkspaceRow[]>(() => getNormalizedRows(activeTab));
+
+  useEffect(() => {
+    setLocalRows(getNormalizedRows(activeTab));
+  }, [activeTab, getNormalizedRows]);
+
+  const updateRows = (newRows: WorkspaceRow[]) => {
+    setLocalRows(newRows);
+    if (onUpdateRows) {
+      onUpdateRows(activeTabId, newRows);
+    }
+  };
+
+  // Flattened items for badges & counts
+  const allItems = localRows.flatMap((r) => r.columns.map((c) => c.item));
+  const videoCount = allItems.filter((i) => i.type === 'video').length;
+
+  // -------------------------------------------------------------
+  // 1. Interactive Drawer Edge Drag-Resize (Width: 300px to 65vw)
+  // -------------------------------------------------------------
+  const handleStartDrawerResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizingDrawer(true);
+    if (onSetDraggingResizer) onSetDraggingResizer(true);
+
+    const startX = e.clientX;
+    const initialWidth = width;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      // Dragging left increases width
+      const deltaX = startX - moveEvent.clientX;
+      const maxW = Math.min(window.innerWidth * 0.65, 1200);
+      const newWidth = Math.max(300, Math.min(maxW, initialWidth + deltaX));
+      if (onResizeWidth) {
+        onResizeWidth(Math.round(newWidth));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingDrawer(false);
+      if (onSetDraggingResizer) onSetDraggingResizer(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // -------------------------------------------------------------
+  // 2. Canva-Style Card Height Resizer (Vertical Drag)
+  // -------------------------------------------------------------
+  const handleStartCardHeightResize = (
+    rowId: string,
+    colId: string,
+    currentHeight: number | undefined,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startY = e.clientY;
+    const initialHeight = currentHeight || 240;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(130, Math.min(700, initialHeight + deltaY));
+
+      setLocalRows((prevRows) =>
+        prevRows.map((row) =>
+          row.rowId === rowId
+            ? {
+                ...row,
+                columns: row.columns.map((col) =>
+                  col.id === colId ? { ...col, customHeight: Math.round(newHeight) } : col
+                )
+              }
+            : row
+        )
+      );
+    };
+
+    const handleMouseUp = () => {
+      if (onUpdateRows) {
+        setLocalRows((latest) => {
+          onUpdateRows(activeTabId, latest);
+          return latest;
+        });
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // -------------------------------------------------------------
+  // 3. Column Splitter Resizer (Adjust widthFlex within Row)
+  // -------------------------------------------------------------
+  const handleStartColumnSplitterResize = (
+    rowId: string,
+    colIdx: number,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const targetRow = localRows.find((r) => r.rowId === rowId);
+    if (!targetRow || targetRow.columns.length < 2) return;
+
+    const initialFlexA = targetRow.columns[colIdx]?.widthFlex || 1;
+    const initialFlexB = targetRow.columns[colIdx + 1]?.widthFlex || 1;
+    const totalFlex = initialFlexA + initialFlexB;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      // Convert pixel delta to proportional flex shift
+      const flexShift = deltaX / 120;
+      const newFlexA = Math.max(0.4, Math.min(totalFlex - 0.4, initialFlexA + flexShift));
+      const newFlexB = totalFlex - newFlexA;
+
+      setLocalRows((prevRows) =>
+        prevRows.map((row) => {
+          if (row.rowId !== rowId) return row;
+          const nextCols = [...row.columns];
+          nextCols[colIdx] = { ...nextCols[colIdx], widthFlex: Number(newFlexA.toFixed(2)) };
+          nextCols[colIdx + 1] = { ...nextCols[colIdx + 1], widthFlex: Number(newFlexB.toFixed(2)) };
+          return { ...row, columns: nextCols };
+        })
+      );
+    };
+
+    const handleMouseUp = () => {
+      if (onUpdateRows) {
+        setLocalRows((latest) => {
+          onUpdateRows(activeTabId, latest);
+          return latest;
+        });
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // -------------------------------------------------------------
+  // 4. Notion-Style Block Reordering & Splitting
+  // -------------------------------------------------------------
+  const moveRow = (rowIdx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? rowIdx - 1 : rowIdx + 1;
+    if (targetIdx < 0 || targetIdx >= localRows.length) return;
+    const nextRows = [...localRows];
+    const [moved] = nextRows.splice(rowIdx, 1);
+    nextRows.splice(targetIdx, 0, moved);
+    updateRows(nextRows);
+  };
+
+  const moveColumnWithinRow = (rowId: string, colIdx: number, direction: 'left' | 'right') => {
+    const targetRow = localRows.find((r) => r.rowId === rowId);
+    if (!targetRow) return;
+    const targetIdx = direction === 'left' ? colIdx - 1 : colIdx + 1;
+    if (targetIdx < 0 || targetIdx >= targetRow.columns.length) return;
+
+    const nextRows = localRows.map((row) => {
+      if (row.rowId !== rowId) return row;
+      const nextCols = [...row.columns];
+      const [moved] = nextCols.splice(colIdx, 1);
+      nextCols.splice(targetIdx, 0, moved);
+      return { ...row, columns: nextCols };
+    });
+    updateRows(nextRows);
+  };
+
+  // Split into own standalone row
+  const splitColumnToOwnRow = (rowId: string, colId: string) => {
+    const nextRows: WorkspaceRow[] = [];
+    localRows.forEach((r) => {
+      if (r.rowId === rowId) {
+        const extractedCol = r.columns.find((c) => c.id === colId);
+        const remainingCols = r.columns.filter((c) => c.id !== colId);
+        if (remainingCols.length > 0) {
+          nextRows.push({
+            rowId: r.rowId,
+            columns: remainingCols.map((c) => ({ ...c, widthFlex: 1 }))
+          });
+        }
+        if (extractedCol) {
+          nextRows.push({
+            rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            columns: [{ ...extractedCol, widthFlex: 1 }]
+          });
+        }
+      } else {
+        nextRows.push(r);
+      }
+    });
+    updateRows(nextRows);
+  };
+
+  // Combine row with adjacent row into side-by-side columns
+  const combineWithAdjacentRow = (rowIdx: number, direction: 'next' | 'prev') => {
+    const targetIdx = direction === 'next' ? rowIdx + 1 : rowIdx - 1;
+    if (targetIdx < 0 || targetIdx >= localRows.length) return;
+    const currentRow = localRows[rowIdx];
+    const targetRow = localRows[targetIdx];
+    if (currentRow.columns.length + targetRow.columns.length > 3) return; // max 3 columns per row
+
+    const combinedColumns = [...currentRow.columns, ...targetRow.columns].map((c) => ({
+      ...c,
+      widthFlex: 1
+    }));
+    const nextRows = localRows.filter((_, idx) => idx !== rowIdx && idx !== targetIdx);
+    const insertIdx = Math.min(rowIdx, targetIdx);
+    nextRows.splice(insertIdx, 0, {
+      rowId: `row_merged_${Date.now()}`,
+      columns: combinedColumns
+    });
+    updateRows(nextRows);
+  };
+
+  // Remove column / card
+  const handleRemoveCard = (rowId: string, colId: string, itemId: string) => {
+    const nextRows = localRows
+      .map((row) => {
+        if (row.rowId !== rowId) return row;
+        const nextCols = row.columns.filter((c) => c.id !== colId);
+        return { ...row, columns: nextCols };
+      })
+      .filter((row) => row.columns.length > 0);
+
+    updateRows(nextRows);
+    onRemoveItem(activeTabId, itemId);
+  };
+
+  // Set preset height
+  const handleSetPresetHeight = (rowId: string, colId: string, height: number | undefined) => {
+    const nextRows = localRows.map((row) =>
+      row.rowId === rowId
+        ? {
+            ...row,
+            columns: row.columns.map((col) =>
+              col.id === colId ? { ...col, customHeight: height } : col
+            )
+          }
+        : row
+    );
+    updateRows(nextRows);
+  };
+
+  // -------------------------------------------------------------
+  // Drag & Drop Ingestion
+  // -------------------------------------------------------------
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -77,18 +373,68 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
   const handleDragLeave = () => {
     setIsDragOver(false);
+    setDropTargetRowId(null);
+    setDropSideBySideColId(null);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent, targetRowId?: string, targetColId?: string) => {
     e.preventDefault();
     setIsDragOver(false);
+    setDropTargetRowId(null);
+    setDropSideBySideColId(null);
 
     try {
       const rawData = e.dataTransfer.getData('application/json');
       if (rawData) {
         const parsed = JSON.parse(rawData);
         if (parsed && parsed.item) {
-          onDropItem(activeTabId, parsed.item);
+          const item: WorkspaceDrawerItem = parsed.item;
+          const newCol: WorkspaceColumn = {
+            id: `col_${item.id}_${Date.now()}`,
+            item,
+            widthFlex: 1,
+            customHeight: item.type === 'video' ? 240 : undefined
+          };
+
+          // If dropped beside an existing column
+          if (targetColId && targetRowId) {
+            const nextRows = localRows.map((row) => {
+              if (row.rowId !== targetRowId) return row;
+              if (row.columns.length >= 3) return row; // Max 3 cols
+              return {
+                ...row,
+                columns: [...row.columns, newCol].map((c) => ({ ...c, widthFlex: 1 }))
+              };
+            });
+            updateRows(nextRows);
+            onDropItem(activeTabId, item);
+            return;
+          }
+
+          // If dropped on a specific row
+          if (targetRowId) {
+            const nextRows: WorkspaceRow[] = [];
+            localRows.forEach((r) => {
+              if (r.rowId === targetRowId) {
+                nextRows.push({
+                  rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                  columns: [newCol]
+                });
+              }
+              nextRows.push(r);
+            });
+            updateRows(nextRows);
+            onDropItem(activeTabId, item);
+            return;
+          }
+
+          // Default: Append as a new bottom row
+          const newRow: WorkspaceRow = {
+            rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            columns: [newCol]
+          };
+          updateRows([...localRows, newRow]);
+          onDropItem(activeTabId, item);
         }
       }
     } catch (err) {
@@ -103,40 +449,36 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   };
 
   const handleSaveRename = (tabId: string) => {
-    const trimmed = editingTitle.trim();
-    if (trimmed) {
-      onRenameTab(tabId, trimmed);
+    if (editingTitle.trim()) {
+      onRenameTab(tabId, editingTitle.trim());
     }
     setEditingTabId(null);
   };
 
-  // Render Minimized Edge Rail
+  if (!isOpen) return null;
+
+  // Minimized Slim Vertical Rail
   if (isMinimized) {
     return (
       <div
         onClick={onToggleMinimize}
-        className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col items-center justify-between py-4 cursor-pointer transition-all duration-200 shadow-2xl select-none"
+        className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col items-center py-4 gap-4 cursor-pointer transition-all border-l shadow-2xl select-none"
         style={{
           width: '36px',
-          background: isDark ? '#080C14' : '#F1F5F9',
-          borderLeft: '1px solid rgba(56, 189, 248, 0.4)'
+          background: isDark ? 'rgba(7, 10, 18, 0.96)' : '#F1F5F9',
+          borderColor: isDark ? 'rgba(56, 189, 248, 0.25)' : '#CBD5E1'
         }}
-        title="Expand Intel Workspace Drawer"
+        title="Expand Intel Workspace (<<)"
       >
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-sky-500/15 border border-sky-500/40 text-sky-400 flex items-center justify-center">
-            <Radio size={11} className="animate-pulse" />
-          </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+        <div className="w-5 h-5 rounded-[3px] bg-sky-500/15 border border-sky-500/40 text-sky-400 flex items-center justify-center">
+          <Radio size={12} className="animate-pulse" />
         </div>
-
         <div
-          className="text-[10px] font-mono font-bold tracking-widest text-sky-400 uppercase py-2 whitespace-nowrap"
+          className="font-mono text-[10px] font-bold tracking-wider text-slate-300 uppercase select-none"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
-          INTEL WORKSPACE ({items.length})
+          INTEL WORKSPACE ({allItems.length})
         </div>
-
         <button
           type="button"
           className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 transition-colors"
@@ -152,16 +494,46 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
     <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col transition-all duration-300 shadow-2xl select-none"
+      onDrop={(e) => handleDrop(e)}
+      className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col shadow-2xl select-none cq-panel"
       style={{
         width: `${width}px`,
         maxWidth: '100vw',
         background: isDark ? 'var(--bg-surface)' : '#FFFFFF',
         borderLeft: '1px solid var(--border-medium)',
-        boxShadow: '-16px 0 32px rgba(0, 0, 0, 0.65)'
+        boxShadow: '-16px 0 32px rgba(0, 0, 0, 0.65)',
+        transition: isDraggingResizer || isResizingDrawer ? 'none' : 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
+      {/* ------------------------------------------------------------- */}
+      {/* Interactive Left-Edge Drag-Resize Gutter (300px to 65vw)       */}
+      {/* ------------------------------------------------------------- */}
+      <div
+        onMouseDown={handleStartDrawerResize}
+        className="absolute left-0 top-0 bottom-0 w-[6px] -translate-x-[3px] z-50 cursor-ew-resize group select-none flex items-center justify-center"
+        title="Drag left/right to resize Intel Workspace (300px - 65vw)"
+      >
+        {/* Glowing Highlight line */}
+        <div
+          className={`w-[2px] h-full transition-all ${
+            isResizingDrawer || isDraggingResizer
+              ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
+              : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
+          }`}
+        />
+
+        {/* Centered Pill Grip Icon */}
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
+            isResizingDrawer || isDraggingResizer
+              ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
+              : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
+          }`}
+        >
+          <GripVertical size={11} />
+        </div>
+      </div>
+
       {/* 1. Header Toolbar */}
       <div
         className="h-10 px-3 flex items-center justify-between shrink-0 border-b select-none font-mono text-xs"
@@ -179,20 +551,23 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             INTEL WORKSPACE
           </span>
           <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-            {items.length} {items.length === 1 ? 'ITEM' : 'ITEMS'}
+            {allItems.length} {allItems.length === 1 ? 'ITEM' : 'ITEMS'}
+          </span>
+          <span className="hidden sm:inline-block text-[9.5px] text-slate-500 font-mono">
+            {width}px
           </span>
         </div>
 
         {/* Right: Expand/Collapse Width + Minimize + Close */}
         <div className="flex items-center gap-1.5">
-          {/* Toggle Width (440px <-> 640px) */}
+          {/* Toggle Preset Width */}
           <button
             type="button"
             onClick={onToggleWidth}
             className="p-1 rounded text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
-            title={width === 440 ? 'Expand to 640px Multi-Grid' : 'Shrink to 440px Standard'}
+            title={width >= 600 ? 'Shrink to 440px Compact' : 'Expand to 680px Wide Canvas'}
           >
-            {width === 440 ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
+            {width >= 600 ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
           </button>
 
           {/* Minimize to Slim Vertical Rail */}
@@ -230,7 +605,8 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;
           const isEditing = editingTabId === tab.id;
-          const vCount = tab.items.filter((i) => i.type === 'video').length;
+          const rowsForTab = getNormalizedRows(tab);
+          const tabItemCount = rowsForTab.flatMap((r) => r.columns).length;
 
           return (
             <div
@@ -248,53 +624,68 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                 minWidth: '90px',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                borderRadius: '4px 4px 0 0',
-                borderTop: isActive ? '1.5px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.08)',
-                borderLeft: isActive ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
-                borderRight: isActive ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
-                borderBottom: isActive ? (isDark ? '1px solid #0B0F17' : '1px solid #FFFFFF') : 'none',
+                borderTopLeftRadius: '4px',
+                borderTopRightRadius: '4px',
                 background: isActive
-                  ? 'linear-gradient(180deg, rgba(14, 165, 233, 0.16) 0%, rgba(11, 15, 23, 0.98) 100%)'
-                  : 'rgba(15, 23, 42, 0.45)',
-                color: isActive ? '#38BDF8' : 'var(--text-muted)'
+                  ? isDark
+                    ? 'var(--bg-surface)'
+                    : '#FFFFFF'
+                  : 'transparent',
+                color: isActive
+                  ? '#38bdf8'
+                  : isDark
+                  ? '#94A3B8'
+                  : '#64748B',
+                border: isActive
+                  ? isDark
+                    ? '1px solid rgba(56, 189, 248, 0.35)'
+                    : '1px solid #CBD5E1'
+                  : '1px solid transparent',
+                borderBottom: isActive
+                  ? isDark
+                    ? '1px solid var(--bg-surface)'
+                    : '1px solid #FFFFFF'
+                  : 'none'
               }}
-              title={`${tab.title} (${tab.items.length} items) - Double click to rename`}
             >
-              <div className="flex items-center gap-1.5 truncate">
-                {vCount > 0 ? <Tv size={11} className="shrink-0 text-sky-400" /> : <FileText size={11} className="shrink-0 text-slate-400" />}
-
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onBlur={() => handleSaveRename(tab.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveRename(tab.id);
-                      if (e.key === 'Escape') setEditingTabId(null);
-                    }}
-                    autoFocus
-                    className="font-mono text-[10.5px] bg-transparent outline-none w-full border-b border-sky-400 px-0.5 text-white"
-                  />
-                ) : (
-                  <span className="truncate text-[10.5px] font-semibold">
-                    {tab.title} {tab.items.length > 0 && `(${tab.items.length})`}
-                  </span>
-                )}
-              </div>
-
-              {tabs.length > 1 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCloseTab(tab.id);
+              {isEditing ? (
+                <input
+                  type="text"
+                  autoFocus
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  onBlur={() => handleSaveRename(tab.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveRename(tab.id);
+                    if (e.key === 'Escape') setEditingTabId(null);
                   }}
-                  className="shrink-0 text-slate-500 hover:text-rose-400 transition-colors"
-                  title="Close Tab"
-                >
-                  <X size={10} />
-                </button>
+                  className="w-full bg-transparent text-[11px] font-mono outline-none text-sky-400"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <>
+                  <span className="truncate font-semibold tracking-wide text-[10.5px]">
+                    {tab.title}
+                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[9px] px-1 py-0.1 rounded bg-white/5 text-slate-400">
+                      {tabItemCount}
+                    </span>
+                    {tabs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCloseTab(tab.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-rose-400 transition-opacity"
+                        title="Close Tab"
+                      >
+                        <X size={10} />
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           );
@@ -304,197 +695,392 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         <button
           type="button"
           onClick={onNewTab}
-          className="shrink-0 mb-1 ml-1 w-5 h-5 rounded-[3px] border border-dashed border-white/20 hover:border-sky-400 text-slate-400 hover:text-sky-400 flex items-center justify-center transition-colors cursor-pointer"
-          title="Open New Workspace Tab"
+          className="h-[24px] px-1.5 rounded hover:bg-white/[0.06] text-slate-400 hover:text-sky-400 flex items-center justify-center transition-colors shrink-0 mb-0.5"
+          title="Create New Intel Watch Tab (+)"
         >
-          <Plus size={11} />
+          <Plus size={12} />
         </button>
       </div>
 
-      {/* 3. Drop Zone Visual Cue (When Dragging Over) */}
+      {/* 3. Drop Indicator Glow (When dragging item over drawer) */}
       {isDragOver && (
-        <div
-          className="p-3 m-3 rounded-[4px] border-2 border-dashed border-sky-400 bg-sky-500/10 text-sky-400 font-mono text-center text-xs animate-pulse"
-        >
-          + DROP INTEL TO ADD TO &quot;{activeTab ? activeTab.title : 'WORKSPACE'}&quot;
+        <div className="px-3 py-1.5 bg-sky-500/10 border-b border-sky-500/30 text-sky-300 text-[10.5px] font-mono flex items-center justify-between animate-pulse">
+          <span>+ DROP ANYWHERE TO MOUNT AS NEW ROW</span>
+          <span className="text-[9px] text-slate-400">Drag to card edge to place side-by-side</span>
         </div>
       )}
 
-      {/* 4. Scrollable Multi-Item Workspace Canvas */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 feed-scrollbar">
-        {items.length === 0 ? (
+      {/* ------------------------------------------------------------- */}
+      {/* 4. Notion + Canva 2D Block Canvas (Rows with 1 to 3 Columns)  */}
+      {/* ------------------------------------------------------------- */}
+      <div className="flex-1 overflow-y-auto feed-scrollbar p-3 space-y-3">
+        {localRows.length === 0 ? (
           <div
-            className="h-64 border-2 border-dashed rounded-[4px] flex flex-col items-center justify-center text-center p-6 font-mono text-xs select-none transition-colors"
-            style={{
-              borderColor: isDark ? 'rgba(56, 189, 248, 0.2)' : '#CBD5E1',
-              background: isDark ? 'rgba(14, 165, 233, 0.03)' : '#F8FAFC'
-            }}
+            onDrop={(e) => handleDrop(e)}
+            className="h-full min-h-[320px] flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-slate-700/60 rounded-xl bg-slate-900/30 transition-all hover:border-sky-500/50"
           >
-            <Radio size={24} className="text-sky-400 mb-2 opacity-70 animate-pulse" />
-            <h4 className="font-bold text-slate-200 mb-1">CANVAS EMPTY</h4>
-            <p className="text-[11px] text-[var(--text-muted)] max-w-xs mb-3">
-              Drag any card or video dispatch from the Intelligence Desk, or click on intel reports to mount them here.
+            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center text-sky-400 mb-3 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+              <Radio size={22} className="animate-pulse" />
+            </div>
+            <div className="font-mono text-xs font-bold text-slate-200 tracking-wider uppercase mb-1">
+              WORKSPACE CANVAS IS EMPTY
+            </div>
+            <p className="text-[11.5px] text-slate-400 max-w-[280px] leading-relaxed mb-4">
+              Drag feeds, YouTube analysts, or flashpoints from the Intelligence Desk and drop them here.
             </p>
-            <div className="px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400 font-bold">
-              CANVA-STYLE DRAG & DROP ENABLED
+            <div className="flex items-center gap-2 text-[10px] font-mono text-sky-400/80 bg-sky-500/5 border border-sky-500/20 px-2.5 py-1 rounded">
+              <Sparkles size={11} />
+              <span>Supports 2D side-by-side columns & Canva vertical resizing</span>
             </div>
           </div>
         ) : (
-          <div className={width === 640 && videoCount > 1 ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
-            {items.map((item) => {
-              const isVideo = item.type === 'video';
+          localRows.map((row, rowIdx) => {
+            const colCount = row.columns.length;
 
-              return (
-                <div
-                  key={item.id}
-                  className="rounded-[4px] border overflow-hidden shadow-lg transition-all"
-                  style={{
-                    background: isDark ? 'var(--bg-surface-elevated)' : '#FFFFFF',
-                    borderColor: 'var(--border-subtle)'
-                  }}
-                >
-                  {/* Item Header */}
-                  <div
-                    className="px-2.5 py-1.5 flex items-center justify-between gap-2 border-b select-none font-mono text-xs"
-                    style={{
-                      background: isDark ? 'rgba(255, 255, 255, 0.02)' : '#F1F5F9',
-                      borderColor: 'var(--border-subtle)'
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {isVideo ? (
-                        <Tv size={12} className="text-sky-400 shrink-0" />
-                      ) : item.type === 'hotspot' ? (
-                        <Flame size={12} className="text-rose-400 shrink-0" />
-                      ) : item.type === 'conflict' ? (
-                        <Swords size={12} className="text-amber-400 shrink-0" />
-                      ) : (
-                        <FileText size={12} className="text-slate-400 shrink-0" />
-                      )}
-
-                      <span className="font-bold truncate text-[11px] text-[var(--text-primary)]">
-                        {item.title}
-                      </span>
-
-                      {item.countryCode && (
-                        <span className="text-[9.5px] text-sky-400/80 font-bold shrink-0">
-                          [{item.countryCode}]
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* Map Focus */}
-                      {item.coordinates && (
-                        <button
-                          type="button"
-                          onClick={() => onCenterMap(item.coordinates!)}
-                          className="px-1.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[10px] font-mono font-semibold flex items-center gap-0.5 cursor-pointer"
-                          title="Center Coordinates on Map"
-                        >
-                          <Crosshair size={10} />
-                          <span>Map</span>
-                        </button>
-                      )}
-
-                      {/* External Link */}
-                      {(item.externalUrl || item.link) && (
-                        <a
-                          href={item.externalUrl || item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 text-[var(--text-muted)] hover:text-sky-400 transition-colors"
-                          title="Open External Source"
-                        >
-                          <ExternalLink size={11} />
-                        </a>
-                      )}
-
-                      {/* Remove Item */}
-                      <button
-                        type="button"
-                        onClick={() => onRemoveItem(activeTabId, item.id)}
-                        className="p-1 text-[var(--text-muted)] hover:text-rose-400 transition-colors cursor-pointer"
-                        title="Remove from Workspace"
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
+            return (
+              <div
+                key={row.rowId}
+                className="relative group/row rounded-lg border border-slate-800/90 bg-[#090d16]/70 p-1.5 transition-all hover:border-slate-700 shadow-md"
+              >
+                {/* Row Controls Bar (Notion Style Block Actions) */}
+                <div className="flex items-center justify-between px-1.5 py-1 mb-1 text-[10px] font-mono text-slate-500 border-b border-white/[0.04]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                      ROW {rowIdx + 1}
+                    </span>
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-white/5 text-slate-400">
+                      {colCount} {colCount === 1 ? 'COL' : 'COLS'}
+                    </span>
                   </div>
 
-                  {/* Item Content Body */}
-                  <div className="p-2.5">
-                    {/* VIDEO PLAYER */}
-                    {isVideo && (item.youtubeId || item.channelId || item.uploadsPlaylistId) ? (
-                      <div>
-                        <div
-                          className="relative aspect-video w-full overflow-hidden rounded-[3px] shadow-inner mb-2"
-                          style={{
-                            background: '#05080F',
-                            border: '1px solid rgba(56, 189, 248, 0.25)'
-                          }}
-                        >
-                          <iframe
-                            src={getYouTubeEmbedUrl({
-                              youtubeId: item.youtubeId,
-                              channelId: item.channelId,
-                              uploadsPlaylistId: item.uploadsPlaylistId,
-                              isLive: item.isLive
-                            })}
-                            title={item.title}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                        <div className="flex items-center justify-between text-[10.5px] font-mono text-[var(--text-muted)]">
-                          <span>{item.channel || 'Broadcast Wire'}</span>
-                          {item.tags && item.tags.length > 0 && (
-                            <span className="truncate max-w-[60%]">{item.tags.join(' • ')}</span>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      /* INTEL DOSSIER / REPORT / HOTSPOT */
-                      <div className="space-y-1.5 font-sans">
-                        {item.summary && (
-                          <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed font-sans">
-                            {item.summary}
-                          </p>
-                        )}
+                  <div className="flex items-center gap-1 opacity-60 group-hover/row:opacity-100 transition-opacity">
+                    {/* Move Row Up */}
+                    <button
+                      type="button"
+                      disabled={rowIdx === 0}
+                      onClick={() => moveRow(rowIdx, 'up')}
+                      className="p-0.5 hover:text-sky-400 disabled:opacity-20 cursor-pointer"
+                      title="Move Row Up"
+                    >
+                      <ArrowUp size={11} />
+                    </button>
 
-                        {item.description && (
-                          <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed font-sans">
-                            {item.description}
-                          </p>
-                        )}
+                    {/* Move Row Down */}
+                    <button
+                      type="button"
+                      disabled={rowIdx === localRows.length - 1}
+                      onClick={() => moveRow(rowIdx, 'down')}
+                      className="p-0.5 hover:text-sky-400 disabled:opacity-20 cursor-pointer"
+                      title="Move Row Down"
+                    >
+                      <ArrowDown size={11} />
+                    </button>
 
-                        {item.parties && item.parties.length > 0 && (
-                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                            <span className="text-[10px] font-mono text-[var(--text-muted)] font-bold">BELLIGERENTS:</span>
-                            {item.parties.map((p, idx) => (
-                              <span
-                                key={idx}
-                                className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/25"
-                              >
-                                {p}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] border-t border-[var(--border-subtle)] mt-2">
-                          <span>{item.source || item.subtitle || 'Tactical Feed'}</span>
-                          <span>{item.timestamp || 'Real-time telemetry'}</span>
-                        </div>
-                      </div>
+                    {/* Combine with Next Row as side-by-side columns */}
+                    {rowIdx < localRows.length - 1 && colCount + localRows[rowIdx + 1].columns.length <= 3 && (
+                      <button
+                        type="button"
+                        onClick={() => combineWithAdjacentRow(rowIdx, 'next')}
+                        className="px-1 py-0.5 rounded bg-white/5 hover:bg-sky-500/20 hover:text-sky-300 text-[9px] flex items-center gap-0.5 cursor-pointer ml-1"
+                        title="Merge with Row Below Side-by-Side"
+                      >
+                        <Columns size={10} />
+                        <span>Merge ◫</span>
+                      </button>
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Columns Flex Layout Container */}
+                <div className="flex items-stretch gap-2 relative">
+                  {row.columns.map((col, colIdx) => {
+                    const item = col.item;
+                    const isVideo = item.type === 'video';
+                    const customHeight = col.customHeight;
+
+                    return (
+                      <React.Fragment key={col.id}>
+                        {/* Interactive Column Splitter Handle (Between Columns) */}
+                        {colIdx > 0 && (
+                          <div
+                            onMouseDown={(e) => handleStartColumnSplitterResize(row.rowId, colIdx - 1, e)}
+                            className="w-1.5 hover:w-2 hover:bg-sky-400 cursor-ew-resize transition-all rounded-full select-none flex items-center justify-center -mx-1 z-30 group/split shrink-0 self-stretch"
+                            title="Drag to adjust column width split"
+                          >
+                            <div className="w-[1.5px] h-10 bg-slate-700 group-hover/split:bg-sky-300 rounded-full" />
+                          </div>
+                        )}
+
+                        {/* Card Container */}
+                        <div
+                          style={{
+                            flex: col.widthFlex || 1,
+                            minWidth: '220px'
+                          }}
+                          className="flex flex-col rounded-md border border-slate-800 bg-[#0c121e] shadow-lg overflow-hidden group/card transition-all hover:border-slate-700"
+                        >
+                          {/* Card Header Bar */}
+                          <div
+                            className="px-2.5 py-1.5 flex items-center justify-between gap-1.5 border-b border-slate-800 bg-[#090e17] text-xs font-mono select-none"
+                          >
+                            {/* Left: Drag Grip + Icon + Title */}
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                              <span className="text-slate-500 hover:text-sky-400 cursor-grab shrink-0" title="Block handle">
+                                <GripVertical size={11} />
+                              </span>
+
+                              {isVideo ? (
+                                <Tv size={12} className="text-sky-400 shrink-0" />
+                              ) : item.type === 'hotspot' ? (
+                                <Flame size={12} className="text-rose-400 shrink-0" />
+                              ) : item.type === 'conflict' ? (
+                                <Swords size={12} className="text-amber-400 shrink-0" />
+                              ) : (
+                                <FileText size={12} className="text-slate-400 shrink-0" />
+                              )}
+
+                              <span className="font-bold truncate text-[11px] text-slate-100">
+                                {item.title}
+                              </span>
+
+                              {item.countryCode && (
+                                <span className="text-[9px] text-sky-400/90 font-bold shrink-0">
+                                  [{item.countryCode}]
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Right: Card Actions */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {/* Move Left / Right inside row */}
+                              {colCount > 1 && (
+                                <>
+                                  {colIdx > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => moveColumnWithinRow(row.rowId, colIdx, 'left')}
+                                      className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                      title="Move Column Left"
+                                    >
+                                      <ChevronLeft size={11} />
+                                    </button>
+                                  )}
+                                  {colIdx < colCount - 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => moveColumnWithinRow(row.rowId, colIdx, 'right')}
+                                      className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                      title="Move Column Right"
+                                    >
+                                      <ChevronRight size={11} />
+                                    </button>
+                                  )}
+                                  {/* Split to own row */}
+                                  <button
+                                    type="button"
+                                    onClick={() => splitColumnToOwnRow(row.rowId, col.id)}
+                                    className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                    title="Extract to Standalone Row"
+                                  >
+                                    <Rows size={11} />
+                                  </button>
+                                </>
+                              )}
+
+                              {/* Center on Map */}
+                              {item.coordinates && (
+                                <button
+                                  type="button"
+                                  onClick={() => onCenterMap(item.coordinates!)}
+                                  className="px-1.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[9.5px] font-mono font-semibold flex items-center gap-0.5 cursor-pointer"
+                                  title="Center on Map"
+                                >
+                                  <Crosshair size={10} />
+                                  <span className="hidden sm:inline">Map</span>
+                                </button>
+                              )}
+
+                              {/* External Link */}
+                              {(item.externalUrl || item.link) && (
+                                <a
+                                  href={item.externalUrl || item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 text-slate-400 hover:text-sky-400 transition-colors"
+                                  title="Open External URL"
+                                >
+                                  <ExternalLink size={11} />
+                                </a>
+                              )}
+
+                              {/* Remove Card */}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCard(row.rowId, col.id, item.id)}
+                                className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                                title="Remove from Workspace"
+                              >
+                                <Trash2 size={11} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Card Body with Canva-style custom height */}
+                          <div
+                            className="p-2.5 flex-1 flex flex-col justify-between overflow-y-auto feed-scrollbar"
+                            style={{
+                              height: customHeight ? `${customHeight}px` : undefined,
+                              minHeight: isVideo ? '200px' : '110px'
+                            }}
+                          >
+                            {/* VIDEO PLAYER ITEM */}
+                            {isVideo && (item.youtubeId || item.channelId || item.uploadsPlaylistId) ? (
+                              <div className="flex-1 flex flex-col">
+                                <div
+                                  className="relative w-full flex-1 overflow-hidden rounded-[3px] shadow-inner mb-2 min-h-[140px]"
+                                  style={{
+                                    background: '#05080F',
+                                    border: '1px solid rgba(56, 189, 248, 0.25)'
+                                  }}
+                                >
+                                  <iframe
+                                    src={getYouTubeEmbedUrl({
+                                      youtubeId: item.youtubeId,
+                                      channelId: item.channelId,
+                                      uploadsPlaylistId: item.uploadsPlaylistId,
+                                      isLive: item.isLive
+                                    })}
+                                    title={item.title}
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                </div>
+                                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                                  <span className="truncate">{item.channel || 'Live Broadcast'}</span>
+                                  <span className="text-emerald-400 font-bold">● ACTIVE STREAM</span>
+                                </div>
+                              </div>
+                            ) : (
+                              /* INTEL / REPORT ITEM */
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {item.severity && (
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded text-[8.5px] font-mono font-bold uppercase ${
+                                        item.severity === 'critical'
+                                          ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                          : item.severity === 'high'
+                                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                          : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                                      }`}
+                                    >
+                                      {item.severity}
+                                    </span>
+                                  )}
+
+                                  {item.source && (
+                                    <span className="px-1.5 py-0.2 rounded text-[8.5px] font-mono font-bold bg-white/5 text-slate-300 border border-white/10">
+                                      {item.source}
+                                    </span>
+                                  )}
+
+                                  {item.timestamp && (
+                                    <span className="text-[9.5px] font-mono text-slate-400 ml-auto">
+                                      {item.timestamp}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="text-[11.5px] text-slate-300 leading-relaxed font-sans">
+                                  {item.summary || item.description || item.subtitle || 'No detailed brief available.'}
+                                </p>
+
+                                {item.parties && item.parties.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap pt-1 text-[9.5px] font-mono text-slate-400">
+                                    <span className="text-slate-500">PARTIES:</span>
+                                    {item.parties.map((p, pIdx) => (
+                                      <span key={pIdx} className="px-1 rounded bg-slate-800 text-slate-200">
+                                        {p}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Card Footer Quick Presets */}
+                            <div className="mt-2 pt-1.5 border-t border-white/[0.04] flex items-center justify-between text-[9px] font-mono text-slate-500">
+                              <span className="text-[8.5px] uppercase text-slate-400">
+                                {customHeight ? `${customHeight}px` : 'AUTO'}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPresetHeight(row.rowId, col.id, 140)}
+                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                >
+                                  SM
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPresetHeight(row.rowId, col.id, 240)}
+                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                >
+                                  MD
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPresetHeight(row.rowId, col.id, 380)}
+                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                >
+                                  LG
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPresetHeight(row.rowId, col.id, undefined)}
+                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                >
+                                  RESET
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Canva-Style Bottom Height Drag Handle (↕) */}
+                          <div
+                            onMouseDown={(e) =>
+                              handleStartCardHeightResize(row.rowId, col.id, customHeight, e)
+                            }
+                            className="h-2 w-full hover:h-2.5 bg-slate-900 hover:bg-sky-500/20 border-t border-slate-800/80 cursor-ns-resize flex items-center justify-center group/resize select-none transition-all py-0.5 shrink-0"
+                            title="Drag down/up to resize card height"
+                          >
+                            <div className="w-10 h-0.5 bg-slate-600 group-hover/resize:bg-sky-400 group-hover/resize:w-14 rounded-full transition-all" />
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
         )}
+      </div>
+
+      {/* 5. Footer Information */}
+      <div
+        className="h-7 px-3 flex items-center justify-between shrink-0 border-t text-[9px] font-mono text-slate-500"
+        style={{
+          background: isDark ? 'rgba(6, 9, 15, 0.95)' : '#F1F5F9',
+          borderColor: 'var(--border-subtle)'
+        }}
+      >
+        <div className="flex items-center gap-2 text-sky-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>NOTION 2D BLOCK ENGINE</span>
+        </div>
+        <span>DRAG EDGES (↔ ↕) TO RESIZE</span>
       </div>
     </div>
   );
