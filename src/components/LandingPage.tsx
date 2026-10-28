@@ -461,10 +461,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Actual Dashboard Screenshot */}
+          {/* Actual Dashboard Screenshot (Screenshot 3 from MV Logo) */}
           <div className="relative w-full rounded-b-[4px] overflow-hidden bg-slate-950">
             <img
-              src="/screenshot.png"
+              src="/screenshot-3.png"
               alt="Manekshaw.Vision Live Tactical Dashboard"
               className="w-full h-auto object-cover rounded-b-[4px] transition-transform duration-500 group-hover:scale-[1.01]"
             />
