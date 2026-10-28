@@ -270,9 +270,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
 
       {/* 3. HERO SECTION */}
       <section id="platform" className="relative pt-16 sm:pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center max-w-4xl mx-auto space-y-6">
+        <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
           {/* Sovereign Live Status Pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[2px] bg-white/[0.04] border border-white/10 text-xs font-mono text-[#94A3B8] shadow-inner">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-[2px] bg-white/[0.04] border border-white/10 text-xs font-mono text-[#94A3B8] shadow-inner"
+            style={{ marginBottom: '16px' }}
+          >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
             <span className="text-slate-200 font-semibold tracking-wider uppercase text-[10.5px]">
               SOVEREIGN GEOSPATIAL INTELLIGENCE PLATFORM
@@ -282,17 +285,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
+          <h1
+            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white"
+            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+          >
             Real-Time Defense Intelligence & Global Situational Awareness
           </h1>
 
-          {/* Subheading with refined spacing, concrete copy, and alignment */}
-          <p className="text-base sm:text-lg text-[#94A3B8] max-w-3xl mx-auto leading-relaxed font-sans font-normal mt-4 sm:mt-5 text-center">
+          {/* Subheading with balanced wrapping and clear vertical gap */}
+          <p
+            className="text-base sm:text-lg font-sans font-normal text-center mx-auto"
+            style={{
+              marginTop: 0,
+              marginBottom: '32px',
+              lineHeight: 1.6,
+              color: '#94A3B8',
+              maxWidth: '680px',
+              textWrap: 'balance'
+            }}
+          >
             An open-source geospatial intelligence monitor mapping active frontlines, military installations, ADIZ perimeters, GNSS interference zones, and critical maritime chokepoints in real time.
           </p>
 
           {/* Dual Action Buttons */}
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={onLaunchDashboard}
               className="w-full sm:w-auto px-8 py-4 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-sm tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(56,189,248,0.45)] hover:shadow-[0_0_40px_rgba(56,189,248,0.6)] flex items-center justify-center gap-2.5 cursor-pointer group"
@@ -312,7 +328,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           </div>
 
           {/* Telemetry Metric Badges */}
-          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto w-full">
             <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
               <div className="text-lg sm:text-xl font-bold text-sky-400">16</div>
               <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
@@ -387,16 +403,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
 
       {/* 4. THEATER INTELLIGENCE EXPLORER (WorldMonitor Style) */}
       <section id="theaters" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
-        <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+        <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase"
+            style={{ marginBottom: '16px' }}
+          >
             <Compass size={13} />
             <span>OPERATIONAL THEATERS</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+          <h2
+            className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+          >
             Multi-Theater Surveillance Matrix
           </h2>
-          <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
-            Pre-configured regional viewports tracking border demarcations, naval corridors, and active kinetic flashpoints.
+          <p
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            style={{
+              marginTop: 0,
+              marginBottom: '36px',
+              lineHeight: 1.6,
+              color: '#94A3B8',
+              maxWidth: '780px',
+              textWrap: 'balance'
+            }}
+          >
+            Pre-configured regional viewports tracking border demarcations, naval corridors, and kinetic flashpoints.
           </p>
         </div>
 
@@ -447,11 +479,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
                 </div>
               </div>
 
-              <div className="pt-6 space-y-4">
-                <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans">{t.description}</p>
+              <div className="pt-6">
+                <p
+                  className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans"
+                  style={{ marginBottom: '24px' }}
+                >
+                  {t.description}
+                </p>
 
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block mb-2 font-semibold">
+                  <span
+                    className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block font-semibold"
+                    style={{ marginBottom: '12px' }}
+                  >
                     ACTIVE SENSOR OVERLAYS FOR THIS SECTOR:
                   </span>
                   <div className="flex flex-wrap gap-2">
@@ -472,15 +512,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
 
       {/* 5. CAPABILITIES GRID (WorldMonitor Feature Set) */}
       <section id="capabilities" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
-        <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+        <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase"
+            style={{ marginBottom: '16px' }}
+          >
             <Layers size={13} />
             <span>CORE CAPABILITIES</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+          <h2
+            className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+          >
             Six Dimensions of Global Telemetry
           </h2>
-          <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
+          <p
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            style={{
+              marginTop: 0,
+              marginBottom: '36px',
+              lineHeight: 1.6,
+              color: '#94A3B8',
+              maxWidth: '820px',
+              textWrap: 'balance'
+            }}
+          >
             Six integrated data pipelines combining static defense infrastructure with live hazard and conflict feeds.
           </p>
         </div>
@@ -546,15 +602,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       <section id="dedication" className="relative py-20 bg-gradient-to-b from-[#06090e] via-[#0A0E17] to-[#06090e] border-y border-white/[0.08]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header with refined spacing and alignment */}
-          <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+          <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold tracking-wider uppercase"
+              style={{ marginBottom: '16px' }}
+            >
               <Award size={13} className="text-amber-400" />
               <span>A NOBLE DEDICATION</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+            <h2
+              className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+              style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+            >
               In Eternal Reverence to Field Marshal Sam Manekshaw
             </h2>
-            <p className="text-sm sm:text-base text-amber-200/80 font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
+            <p
+              className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+              style={{
+                marginTop: 0,
+                marginBottom: '36px',
+                lineHeight: 1.6,
+                color: '#FDE68A',
+                maxWidth: '780px',
+                textWrap: 'balance'
+              }}
+            >
               Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)
             </p>
           </div>
@@ -632,15 +704,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       <section id="team" className="py-20 bg-[#070B12] border-t border-white/[0.08] relative">
         <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+          <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase"
+              style={{ marginBottom: '16px' }}
+            >
               <Cpu size={13} />
               <span>ENGINEERING ORIGINS</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+            <h2
+              className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+              style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+            >
               Team Astra Dynamics (ADYN)
             </h2>
-            <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
+            <p
+              className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+              style={{
+                marginTop: 0,
+                marginBottom: '36px',
+                lineHeight: 1.6,
+                color: '#94A3B8',
+                maxWidth: '780px',
+                textWrap: 'balance'
+              }}
+            >
               The high school engineering team and sovereign intelligence project behind Manekshaw.Vision.
             </p>
           </div>
@@ -659,25 +747,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             <span className="bracket-br" />
 
             <div className="flex flex-col md:flex-row items-stretch">
-              {/* Left Column (30% width) - Vertical Identity & Spec Block */}
-              <div className="md:w-[32%] shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-slate-950/40">
-                <div className="relative w-28 h-28 rounded-[4px] p-3 bg-slate-950 border border-sky-500/30 shadow-[0_0_20px_rgba(56,189,248,0.2)] flex items-center justify-center mb-4 group">
-                  <img
-                    src="/adyn-logo.png"
-                    alt="Team Astra Dynamics (ADYN) Monogram"
-                    className="max-w-full max-h-full object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
+              {/* Left Column (30% width) - Left-Aligned Identity & Spec Block */}
+              <div className="md:w-[32%] shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] p-6 sm:p-8 flex flex-col items-start text-left bg-slate-950/40">
+                {/* Unconstrained Prominent ADYN Logo Image */}
+                <img
+                  src="/adyn-logo.png"
+                  alt="Team Astra Dynamics (ADYN) Monogram"
+                  className="w-[150px] h-auto object-contain rounded-[6px] transition-transform duration-300 hover:scale-[1.02]"
+                  style={{
+                    boxShadow: '0 10px 30px -5px rgba(245, 158, 11, 0.2)',
+                    marginBottom: '18px'
+                  }}
+                />
 
-                <span className="font-mono font-bold text-sm tracking-wider text-white">
+                <span className="font-mono font-bold text-base tracking-wider text-white text-left">
                   ASTRA DYNAMICS
                 </span>
-                <span className="text-[10px] font-mono text-sky-400 uppercase tracking-widest font-semibold mt-0.5 mb-6">
+                <span className="text-[10px] font-mono text-sky-400 uppercase tracking-widest font-semibold mt-1 mb-5 text-left">
                   STUDENT AI & GEOINT COLLECTIVE
                 </span>
 
-                {/* Clean Vertical Spec Stack */}
-                <div className="w-full space-y-3 text-left font-mono text-[11px] border-t border-white/[0.08] pt-4">
+                <div className="w-full h-px bg-white/[0.08] mb-5" />
+
+                {/* Clean Vertical Spec Stack (Left-Aligned) */}
+                <div className="w-full space-y-3.5 text-left font-mono text-[11px]">
                   <div className="flex flex-col">
                     <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">TEAM:</span>
                     <span className="text-slate-200 font-medium">4 High School Developers</span>
@@ -694,7 +787,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               </div>
 
               {/* Right Column (70% width) - Editorial Typography & Authentic Engineering Copy */}
-              <div className="flex-1 p-6 sm:p-10 flex flex-col justify-center space-y-5">
+              <div className="flex-1 p-6 sm:p-10 flex flex-col justify-center">
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono uppercase tracking-widest text-sky-400 font-bold">
                     LAB BRIEFING // MISSION
@@ -704,18 +797,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
                   </h3>
                 </div>
 
-                <div className="w-full h-px bg-white/[0.08]" />
+                {/* Clear divider spacing */}
+                <div className="w-full h-px bg-white/[0.08]" style={{ marginTop: '16px', marginBottom: '20px' }} />
 
-                <div className="space-y-4 text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans">
-                  <p>
+                {/* Distinct Paragraphs with guaranteed 18px vertical gap */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  <p style={{ margin: 0, lineHeight: 1.6, fontSize: '13.5px', color: '#94A3B8' }} className="font-sans">
                     Manekshaw.Vision (ManVis) was architected and built by <strong className="text-white">Team Astra Dynamics (ADYN)</strong>—a four-member high school engineering team exploring what happens when modern AI workflows, live open-source intelligence (OSINT) feeds, and WebGL cartography are combined into a single browser-native interface.
                   </p>
-                  <p>
+                  <p style={{ margin: 0, lineHeight: 1.6, fontSize: '13.5px', color: '#94A3B8' }} className="font-sans">
                     What began as an experimental school AI project evolved into a full-scale geospatial monitor. We built ManVis to prove that clean, sovereign situational awareness doesn't require enterprise bloat—and dedicated the platform to the enduring legacy of India's First Field Marshal, Sam Manekshaw.
                   </p>
                 </div>
 
-                <div className="pt-2 flex flex-wrap items-center gap-3 font-mono text-[10px] text-[#64748B] border-t border-white/[0.04]">
+                <div className="w-full h-px bg-white/[0.04]" style={{ marginTop: '20px', marginBottom: '14px' }} />
+
+                <div className="flex flex-wrap items-center gap-3 font-mono text-[10px] text-[#64748B]">
                   <span>STATUS: ACTIVE RESEARCH</span>
                   <span>•</span>
                   <span>LOCATION: NEW DELHI, INDIA</span>
@@ -730,16 +827,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
 
       {/* 9. INTERACTIVE FAQ ACCORDION (WorldMonitor Style) */}
       <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.08]">
-        <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+        <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase"
+            style={{ marginBottom: '16px' }}
+          >
             <HelpCircle size={13} />
             <span>FREQUENTLY ASKED QUESTIONS</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+          <h2
+            className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+          >
             Understanding the Platform
           </h2>
-          <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
-            Key operational details regarding data integrity, telemetry latency, and architecture.
+          <p
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            style={{
+              marginTop: 0,
+              marginBottom: '36px',
+              lineHeight: 1.6,
+              color: '#94A3B8',
+              maxWidth: '820px',
+              textWrap: 'balance'
+            }}
+          >
+            Key operational details on cartographic compliance, OSINT feed latency, and platform architecture.
           </p>
         </div>
 
@@ -780,11 +893,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           <span className="bracket-bl" />
           <span className="bracket-br" />
 
-          <h3 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+          <h3
+            className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
+            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+          >
             Enter the Sovereign Command Center
           </h3>
-          <p className="text-sm sm:text-base text-[#94A3B8] max-w-lg mx-auto font-sans leading-relaxed text-center mt-4 sm:mt-5 mb-8">
-            Free, real-time, and fully operational directly in your browser. No sign-up wall, zero tracking.
+          <p
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            style={{
+              marginTop: 0,
+              marginBottom: '28px',
+              lineHeight: 1.6,
+              color: '#94A3B8',
+              maxWidth: '780px',
+              textWrap: 'balance'
+            }}
+          >
+            Free, real-time, and fully operational in your browser—no sign-up wall, zero tracking.
           </p>
 
           <button
