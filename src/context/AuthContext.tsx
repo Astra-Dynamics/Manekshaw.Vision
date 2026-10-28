@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured) {
-      return { error: new Error('Supabase is not configured yet. Please add your credentials to .env.local') };
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string) => {
     if (!isSupabaseConfigured) {
-      return { error: new Error('Supabase is not configured yet. Please add your credentials to .env.local'), user: null };
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.'), user: null };
     }
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     if (!isSupabaseConfigured) {
-      return { error: new Error('Supabase is not configured yet. Please add your credentials to .env.local') };
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login`
