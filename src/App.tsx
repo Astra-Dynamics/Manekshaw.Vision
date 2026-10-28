@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import LZString from 'lz-string';
 import { Radio, GripVertical } from 'lucide-react';
 import { Header } from './components/Header';
 import { AlertTicker } from './components/AlertTicker';
@@ -162,8 +163,28 @@ const AppContent: React.FC = () => {
 
   const [isWorkspaceSaved, setIsWorkspaceSaved] = useState<boolean>(() => Boolean(initialSavedConfig));
 
-  // Parse URL Parameters (Supporting both micro bitmask and legacy format)
+  // Parse URL Parameters (Supporting micro coordinates and deep workspace configs)
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
+
+  // Decompress shared full workspace configuration from ?cfg=...
+  const sharedConfig = useMemo(() => {
+    const cfgParam = urlParams.get('cfg');
+    if (!cfgParam) return null;
+    try {
+      const decompressed = LZString.decompressFromEncodedURIComponent(cfgParam);
+      if (decompressed) {
+        return JSON.parse(decompressed) as {
+          tabs?: WorkspaceTab[];
+          activeTabId?: string;
+          deskWidth?: number;
+          isRightPanelOpen?: boolean;
+        };
+      }
+    } catch (err) {
+      console.warn('Failed to decompress shared configuration from URL:', err);
+    }
+    return null;
+  }, [urlParams]);
 
   // Micro coordinates format: ?c=25.06,86.35,3.5
   const cParam = urlParams.get('c');
@@ -245,6 +266,9 @@ const AppContent: React.FC = () => {
   // Multi-Tab Tactical Workspace State
   // -------------------------------------------------------------
   const [tabs, setTabs] = useState<WorkspaceTab[]>(() => {
+    if (sharedConfig?.tabs && Array.isArray(sharedConfig.tabs) && sharedConfig.tabs.length > 0) {
+      return sharedConfig.tabs;
+    }
     if (initialSavedConfig?.tabs && initialSavedConfig.tabs.length > 0) {
       return initialSavedConfig.tabs;
     }
@@ -267,6 +291,7 @@ const AppContent: React.FC = () => {
   });
 
   const [activeTabId, setActiveTabId] = useState<string>(() => {
+    if (sharedConfig?.activeTabId) return sharedConfig.activeTabId;
     if (initialSavedConfig?.activeTabId) return initialSavedConfig.activeTabId;
     return 'tab_main';
   });
@@ -425,7 +450,10 @@ const AppContent: React.FC = () => {
   }, []);
 
   // UI Panels
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState<boolean>(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState<boolean>(() => {
+    if (sharedConfig?.isRightPanelOpen !== undefined) return sharedConfig.isRightPanelOpen;
+    return true;
+  });
   const [isLayerDockOpen, setIsLayerDockOpen] = useState<boolean>(true);
   const [selectedFeature, setSelectedFeature] = useState<StrategicFeature | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryIntelDetails | null>(null);
@@ -723,7 +751,10 @@ const AppContent: React.FC = () => {
   }, [activeTabId]);
 
   // Interactive Panel Drag-Resizing States
-  const [deskWidth, setDeskWidth] = useState<number>(380);
+  const [deskWidth, setDeskWidth] = useState<number>(() => {
+    if (sharedConfig?.deskWidth) return sharedConfig.deskWidth;
+    return 380;
+  });
   const [isDraggingAnyResizer, setIsDraggingAnyResizer] = useState<boolean>(false);
 
   const handleStartDeskResize = (e: React.MouseEvent) => {
@@ -1177,7 +1208,7 @@ const AppContent: React.FC = () => {
     }
   }, [isDashboard]);
 
-  // Generate Sharable Deep Link with Telemetry on demand (accessible via SHARE button)
+  // Generate Sharable Deep Link with Full Configuration (Landmark + All Tabs + Intel Desk + Intel Workspace + Video Feeds)
   const getSharableUrl = useCallback(() => {
     const params = new URLSearchParams();
 
@@ -1203,9 +1234,44 @@ const AppContent: React.FC = () => {
       params.set('l', layerHex);
     }
 
+    // 5. Selected landmark feature or country
+    if (selectedFeature) {
+      params.set('sf', selectedFeature.id);
+    }
+    if (selectedCountry) {
+      params.set('sc', selectedCountry.code);
+    }
+
+    // 6. Full Workspace Configuration (All tabs, Intel Desk, Intel Workspace, video feeds, block rows)
+    try {
+      const fullConfigPayload = {
+        tabs,
+        activeTabId,
+        deskWidth,
+        isRightPanelOpen
+      };
+      const jsonStr = JSON.stringify(fullConfigPayload);
+      const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+      params.set('cfg', compressed);
+    } catch (err) {
+      console.warn('Failed to compress workspace config for share link:', err);
+    }
+
     const origin = window.location.origin;
     return `${origin}/Dashboard?${params.toString()}`;
-  }, [mapCenter, mapZoom, currentView, timeRange, activeLayers]);
+  }, [
+    mapCenter,
+    mapZoom,
+    currentView,
+    timeRange,
+    activeLayers,
+    selectedFeature,
+    selectedCountry,
+    tabs,
+    activeTabId,
+    deskWidth,
+    isRightPanelOpen
+  ]);
 
   // Combined feature items
   const allFeatures = useMemo(() => {
@@ -1225,6 +1291,20 @@ const AppContent: React.FC = () => {
       ...liveWeather
     ];
   }, [liveEarthquakes, liveEonet, liveWeather]);
+
+  // Restore selected landmark feature or country from shared link (?sf=... or ?sc=...)
+  useEffect(() => {
+    const sfId = urlParams.get('sf');
+    if (sfId) {
+      const match = allFeatures.find((f) => f.id === sfId);
+      if (match) setSelectedFeature(match);
+    }
+    const scCode = urlParams.get('sc');
+    if (scCode) {
+      const details = getCountryIntel(scCode);
+      if (details) setSelectedCountry(details);
+    }
+  }, [allFeatures, urlParams]);
 
   // Counts per layer
   const layerCounts = useMemo((): Record<LayerKey, number> => {
