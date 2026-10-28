@@ -416,7 +416,11 @@ export const App: React.FC = () => {
   }, [selectedCountry, allFeatures]);
 
   if (!isDashboard) {
-    return <LandingPage onLaunchDashboard={handleLaunchDashboard} />;
+    return (
+      <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
+        <LandingPage onLaunchDashboard={handleLaunchDashboard} />
+      </div>
+    );
   }
 
   return (

@@ -109,10 +109,19 @@ body, h1, h2, h3, h4, h5, h6, p, ul, ol {
   padding: 0;
 }
 
-html, body {
+html {
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
+  overflow-y: auto !important;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto !important;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
