@@ -59,44 +59,63 @@ const ALL_LAYER_KEYS: LayerKey[] = [
   'fortifiedBorders'
 ];
 
+// Bitmask encoding: 16 layers fit into 16 bits -> 4 hex characters
+const DEFAULT_LAYER_MASK = (1 << ALL_LAYER_KEYS.length) - 1; // 65535 (0xffff)
+
+export const encodeLayersToHex = (layers: Record<LayerKey, boolean>): string => {
+  let mask = 0;
+  ALL_LAYER_KEYS.forEach((key, idx) => {
+    if (layers[key]) {
+      mask |= (1 << idx);
+    }
+  });
+  return mask.toString(16);
+};
+
+export const decodeLayersFromHex = (hex: string): Record<LayerKey, boolean> => {
+  const mask = parseInt(hex, 16);
+  const obj = {} as Record<LayerKey, boolean>;
+  ALL_LAYER_KEYS.forEach((key, idx) => {
+    obj[key] = isNaN(mask) ? true : Boolean((mask >> idx) & 1);
+  });
+  return obj;
+};
+
 export const App: React.FC = () => {
-  // Parse URL Parameters
+  // Parse URL Parameters (Supporting both micro bitmask and legacy format)
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
 
-  const initialLat = parseFloat(urlParams.get('lat') || '22.4589');
-  const initialLon = parseFloat(urlParams.get('lon') || '82.7533');
-  const initialZoom = parseFloat(urlParams.get('zoom') || '3.25');
-  const initialView = (urlParams.get('view') as TheaterView) || 'global';
-  const initialTimeRange = urlParams.get('timeRange') || '7d';
-  const initialLayersParam = urlParams.get('layers');
+  // Micro coordinates format: ?c=22.46,82.75,3.25
+  const cParam = urlParams.get('c');
+  const [cLat, cLon, cZoom] = cParam ? cParam.split(',') : [null, null, null];
+
+  const initialLat = cLat ? parseFloat(cLat) : parseFloat(urlParams.get('lat') || '22.4589');
+  const initialLon = cLon ? parseFloat(cLon) : parseFloat(urlParams.get('lon') || '82.7533');
+  const initialZoom = cZoom ? parseFloat(cZoom) : parseFloat(urlParams.get('zoom') || urlParams.get('z') || '3.25');
+  const initialView = (urlParams.get('v') || urlParams.get('view') || 'global') as TheaterView;
+  const initialTimeRange = urlParams.get('t') || urlParams.get('timeRange') || '7d';
+
+  const initialLayersHex = urlParams.get('l');
+  const initialLegacyLayers = urlParams.get('layers');
 
   const initialActiveLayers = useMemo((): Record<LayerKey, boolean> => {
-    const obj: Record<LayerKey, boolean> = {
-      iranAttacks: true,
-      hotspots: true,
-      conflicts: true,
-      bases: true,
-      nuclear: true,
-      military: true,
-      weather: true,
-      canadaAlerts: true,
-      outages: true,
-      natural: true,
-      waterways: true,
-      economic: true,
-      sanctions: true,
-      gpsJamming: true,
-      adizZones: true,
-      fortifiedBorders: true
-    };
-    if (initialLayersParam) {
-      const activeList = initialLayersParam.split(',');
+    if (initialLayersHex) {
+      return decodeLayersFromHex(initialLayersHex);
+    }
+    if (initialLegacyLayers) {
+      const activeList = initialLegacyLayers.split(',');
+      const obj = {} as Record<LayerKey, boolean>;
       ALL_LAYER_KEYS.forEach((k) => {
         obj[k] = activeList.includes(k);
       });
+      return obj;
     }
+    const obj = {} as Record<LayerKey, boolean>;
+    ALL_LAYER_KEYS.forEach((k) => {
+      obj[k] = true;
+    });
     return obj;
-  }, [initialLayersParam]);
+  }, [initialLayersHex, initialLegacyLayers]);
 
   // State
   const [mapCenter, setMapCenter] = useState<[number, number]>([initialLon, initialLat]);
@@ -175,22 +194,35 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Update URL Query Parameters on State Change
+  // Update URL Query Parameters on State Change with Compact Micro-Encoding
   useEffect(() => {
-    const activeKeys = Object.entries(activeLayers)
-      .filter(([_, v]) => v)
-      .map(([k]) => k)
-      .join(',');
-
     const params = new URLSearchParams();
-    params.set('lat', mapCenter[1].toFixed(4));
-    params.set('lon', mapCenter[0].toFixed(4));
-    params.set('zoom', mapZoom.toFixed(2));
-    params.set('view', currentView);
-    params.set('timeRange', timeRange);
-    params.set('layers', activeKeys);
 
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    // 1. Compact coordinates: c=lat,lon,zoom (e.g. c=25.58,89.88,4.2)
+    const latStr = mapCenter[1].toFixed(2);
+    const lonStr = mapCenter[0].toFixed(2);
+    const zoomStr = mapZoom.toFixed(1);
+    params.set('c', `${latStr},${lonStr},${zoomStr}`);
+
+    // 2. Only include theater view if not default 'global'
+    if (currentView && currentView !== 'global') {
+      params.set('v', currentView);
+    }
+
+    // 3. Only include time range if not default '7d'
+    if (timeRange && timeRange !== '7d') {
+      params.set('t', timeRange);
+    }
+
+    // 4. Compact 4-character hex layer bitmask (e.g. l=fffe)
+    const layerHex = encodeLayersToHex(activeLayers);
+    // If not all 16 layers are active, include 'l'
+    if (layerHex !== DEFAULT_LAYER_MASK.toString(16)) {
+      params.set('l', layerHex);
+    }
+
+    const query = params.toString();
+    const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
     window.history.replaceState({}, '', newUrl);
   }, [mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
