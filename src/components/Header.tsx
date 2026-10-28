@@ -97,7 +97,7 @@ export const HoverExpandButton: React.FC<HoverExpandButtonProps> = ({
       <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
         {icon}
       </span>
-      <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium">
+      <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out delay-0 group-hover:delay-200 group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium">
         {label}
       </span>
     </button>
@@ -471,7 +471,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* On Hover: Smoothly expand horizontally to reveal all 5 range buttons */}
-          <div className="max-w-0 opacity-0 group-hover/timerange:max-w-[200px] group-hover/timerange:opacity-100 transition-all duration-250 ease-out overflow-hidden flex items-center gap-[2px] pr-1.5">
+          <div className="max-w-0 opacity-0 group-hover/timerange:delay-200 group-hover/timerange:max-w-[200px] group-hover/timerange:opacity-100 transition-all duration-250 ease-out delay-0 overflow-hidden flex items-center gap-[2px] pr-1.5">
             <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-80" />
             {timeRanges.map((tr) => {
               const isActive = timeRange.toLowerCase() === tr.toLowerCase();
@@ -568,7 +568,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`overflow-hidden transition-all duration-250 ease-out flex items-center whitespace-nowrap ${
               isEditingCoords
                 ? 'max-w-[220px] opacity-100 pr-2 pl-0.5'
-                : 'max-w-0 opacity-0 group-hover/coords:max-w-[220px] group-hover/coords:opacity-100 group-hover/coords:pr-2 group-hover/coords:pl-0.5'
+                : 'max-w-0 opacity-0 delay-0 group-hover/coords:delay-200 group-hover/coords:max-w-[220px] group-hover/coords:opacity-100 group-hover/coords:pr-2 group-hover/coords:pl-0.5'
             }`}
           >
             {isEditingCoords ? (
@@ -623,7 +623,7 @@ export const Header: React.FC<HeaderProps> = ({
               className={`overflow-hidden transition-all duration-250 ease-out flex items-center gap-1 text-[var(--text-secondary)] group-hover/clock:text-[var(--text-primary)] ${
                 isClockOpen
                   ? 'max-w-[200px] opacity-100 pr-2 pl-0.5'
-                  : 'max-w-0 opacity-0 group-hover/clock:max-w-[200px] group-hover/clock:opacity-100 group-hover/clock:pr-2 group-hover/clock:pl-0.5'
+                  : 'max-w-0 opacity-0 delay-0 group-hover/clock:delay-200 group-hover/clock:max-w-[200px] group-hover/clock:opacity-100 group-hover/clock:pr-2 group-hover/clock:pl-0.5'
               }`}
             >
               <span className="text-[10px] truncate">{selectedCity.city} ({selectedCity.offsetLabel})</span>

@@ -51,7 +51,7 @@ export const UserNav: React.FC<UserNavProps> = ({
         <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
           <Shield size={13} className="text-amber-400" />
         </span>
-        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium text-amber-300">
+        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out delay-0 group-hover:delay-200 group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium text-amber-300">
           Sign In / Sign Up
         </span>
       </button>
@@ -80,7 +80,7 @@ export const UserNav: React.FC<UserNavProps> = ({
         <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
           <ShieldCheck size={14} className={isAdmin ? 'text-amber-400' : 'text-sky-400'} />
         </span>
-        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium truncate">
+        <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out delay-0 group-hover:delay-200 group-hover:max-w-[180px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium truncate">
           {displayName} // {roleLabel}
         </span>
       </button>

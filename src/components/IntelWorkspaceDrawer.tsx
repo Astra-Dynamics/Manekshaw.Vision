@@ -73,6 +73,46 @@ export type ActiveWorkspaceDropTarget =
       targetRowIndex: number;
     };
 
+interface WorkspaceHeaderButtonProps {
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  active?: boolean;
+  activeClassName?: string;
+  onClick?: (e: React.MouseEvent) => void;
+  title?: string;
+  className?: string;
+}
+
+const WorkspaceHeaderButton: React.FC<WorkspaceHeaderButtonProps> = ({
+  icon,
+  label,
+  active = false,
+  activeClassName = 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]',
+  onClick,
+  title,
+  className = ''
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`group relative inline-flex items-center h-[26px] px-2 rounded transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10px] shrink-0 border border-transparent ${
+        active
+          ? activeClassName
+          : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.06] hover:border-white/10'
+      } ${className}`}
+    >
+      <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+        {icon}
+      </span>
+      <span className="max-w-0 opacity-0 ml-0 overflow-hidden transition-[max-width,opacity,margin] duration-250 ease-out delay-0 group-hover:delay-200 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-1.5 flex items-center gap-1 font-medium">
+        {label}
+      </span>
+    </button>
+  );
+};
+
 export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   isOpen,
   isMinimized,
@@ -1084,80 +1124,59 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           </span>
         </div>
 
-        {/* Right: Whole Page Toggle + Expand/Collapse Width + Minimize + Close */}
-        <div className="flex items-center gap-1.5">
-          {/* Whole Page Extension Toggle Button */}
-          <button
-            type="button"
+        {/* Right: Individual Hover-Expandable Micro-Pill Dock (Whole Page, Close All, Width, Minimize, Close) */}
+        <div className="flex items-center gap-1 p-0.5 rounded border border-white/10 bg-black/20">
+          {/* 1. Whole Page Extension Button (Hover Expandable with 0.2s delay) */}
+          <WorkspaceHeaderButton
+            icon={isWholePage ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
+            label={isWholePage ? 'DRAWER VIEW' : 'WHOLE PAGE'}
+            active={isWholePage}
             onClick={toggleWholePage}
-            className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer ${
-              isWholePage
-                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(56,189,248,0.4)]'
-                : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.06] border border-white/10'
-            }`}
             title={isWholePage ? 'Restore Drawer Mode (⤡)' : 'Expand Workspace to Whole Page (⤢)'}
-          >
-            {isWholePage ? (
-              <>
-                <Minimize2 size={11} />
-                <span className="hidden sm:inline">DRAWER VIEW</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 size={11} />
-                <span className="hidden sm:inline">WHOLE PAGE</span>
-              </>
-            )}
-          </button>
+          />
 
-          {/* Close All Button for Whole Intel Workspace (Clears & Closes Workspace) */}
-          <button
-            type="button"
-            onClick={handleCloseAllWorkspace}
-            className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer ${
+          {/* 2. Close All Button for Whole Intel Workspace (Hover Expandable with 0.2s delay) */}
+          <WorkspaceHeaderButton
+            icon={<Trash2 size={11} className={isConfirmingCloseAll ? 'text-white' : ''} />}
+            label={isConfirmingCloseAll ? 'CONFIRM CLOSE ALL?' : 'CLOSE ALL'}
+            active={isConfirmingCloseAll}
+            activeClassName="bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)] border-rose-500"
+            className={
               isConfirmingCloseAll
-                ? 'bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)]'
-                : isDark
-                ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30'
-                : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-300 hover:border-rose-300'
-            }`}
+                ? ''
+                : 'hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30'
+            }
+            onClick={handleCloseAllWorkspace}
             title="Close all tabs and clear entire Intel Workspace"
-          >
-            <Trash2 size={11} className={isConfirmingCloseAll ? 'text-white' : ''} />
-            <span className="hidden sm:inline">{isConfirmingCloseAll ? 'CONFIRM CLOSE ALL?' : 'CLOSE ALL'}</span>
-          </button>
+          />
 
-          {/* Toggle Preset Width (Only visible when in Drawer mode) */}
+          {/* 3. Toggle Preset Width (Only visible in Drawer mode) */}
           {!isWholePage && (
-            <button
-              type="button"
+            <WorkspaceHeaderButton
+              icon={width >= 600 ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+              label={width >= 600 ? 'COMPACT (440px)' : 'EXPAND (680px)'}
               onClick={onToggleWidth}
-              className="p-1 rounded text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
               title={width >= 600 ? 'Shrink to 440px Compact' : 'Expand to 680px Wide Canvas'}
-            >
-              {width >= 600 ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
-            </button>
+            />
           )}
 
-          {/* Minimize to Slim Vertical Rail */}
-          <button
-            type="button"
+          {/* 4. Minimize to Slim Vertical Rail */}
+          <WorkspaceHeaderButton
+            icon={<ChevronRight size={13} />}
+            label="MINIMIZE"
             onClick={onToggleMinimize}
-            className="p-1 rounded text-[var(--text-muted)] hover:text-amber-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
+            className="hover:text-amber-400"
             title="Minimize to Edge Rail (>>)"
-          >
-            <ChevronRight size={14} />
-          </button>
+          />
 
-          {/* Close Drawer */}
-          <button
-            type="button"
+          {/* 5. Close Drawer */}
+          <WorkspaceHeaderButton
+            icon={<X size={13} />}
+            label="CLOSE"
             onClick={onClose}
-            className="p-1 rounded text-[var(--text-muted)] hover:text-rose-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
+            className="hover:text-rose-400"
             title="Close Workspace (×)"
-          >
-            <X size={14} />
-          </button>
+          />
         </div>
       </div>
 
