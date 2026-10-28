@@ -789,9 +789,9 @@ const AppContent: React.FC = () => {
 
   const handleDropDrawerItem = useCallback(
     (tabId: string, item: WorkspaceDrawerItem) => {
-      handleOpenInWorkspace(item);
+      updateActiveTabRightDrawer({ isOpen: true, isMinimized: false });
     },
-    [handleOpenInWorkspace]
+    [updateActiveTabRightDrawer]
   );
 
   // Live dynamic feeds

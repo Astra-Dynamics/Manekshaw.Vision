@@ -83,8 +83,13 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [isResizingDrawer, setIsResizingDrawer] = useState(false);
-  const [dropTargetRowId, setDropTargetRowId] = useState<string | null>(null);
-  const [dropSideBySideColId, setDropSideBySideColId] = useState<string | null>(null);
+  
+  // Notion-style 4-directional active drop target state
+  const [activeDropTarget, setActiveDropTarget] = useState<{
+    rowId: string;
+    colId: string;
+    direction: 'top' | 'bottom' | 'left' | 'right';
+  } | null>(null);
 
   const isDark = theme === 'dark';
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
@@ -363,8 +368,330 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   };
 
   // -------------------------------------------------------------
-  // Drag & Drop Ingestion
+  // Canva-Style Drag Ghost Token
   // -------------------------------------------------------------
+  const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
+    const ghost = document.createElement('div');
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-1000px';
+    ghost.style.left = '-1000px';
+    ghost.style.width = '140px';
+    ghost.style.height = '36px';
+    ghost.style.background = '#0EA5E9';
+    ghost.style.color = '#080C14';
+    ghost.style.border = '1px solid #F8FAFC';
+    ghost.style.borderRadius = '4px';
+    ghost.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.7)';
+    ghost.style.fontFamily = 'monospace';
+    ghost.style.fontSize = '11px';
+    ghost.style.fontWeight = '700';
+    ghost.style.display = 'flex';
+    ghost.style.alignItems = 'center';
+    ghost.style.gap = '6px';
+    ghost.style.padding = '0 10px';
+    ghost.style.zIndex = '99999';
+    ghost.style.pointerEvents = 'none';
+    ghost.innerHTML = `<span style="background:rgba(0,0,0,0.25);padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 70, 18);
+    setTimeout(() => {
+      if (document.body.contains(ghost)) {
+        document.body.removeChild(ghost);
+      }
+    }, 0);
+  };
+
+  // -------------------------------------------------------------
+  // 2D Row/Column Placement Engine
+  // -------------------------------------------------------------
+  const insertColumnAtTarget = (
+    rows: WorkspaceRow[],
+    targetRowId: string,
+    targetColId: string,
+    colToInsert: WorkspaceColumn,
+    direction: 'top' | 'bottom' | 'left' | 'right'
+  ): WorkspaceRow[] => {
+    const targetRowIndex = rows.findIndex((r) => r.rowId === targetRowId);
+    if (targetRowIndex === -1) {
+      return [
+        ...rows,
+        {
+          rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          columns: [colToInsert]
+        }
+      ];
+    }
+
+    const targetRow = rows[targetRowIndex];
+    const targetColIndex = targetRow.columns.findIndex((c) => c.id === targetColId);
+
+    if (direction === 'top') {
+      // Insert as new standalone row immediately ABOVE target row
+      const newRow: WorkspaceRow = {
+        rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        columns: [{ ...colToInsert, widthFlex: 1 }]
+      };
+      const nextRows = [...rows];
+      nextRows.splice(targetRowIndex, 0, newRow);
+      return nextRows;
+    }
+
+    if (direction === 'bottom') {
+      // Insert as new standalone row immediately BELOW target row
+      const newRow: WorkspaceRow = {
+        rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        columns: [{ ...colToInsert, widthFlex: 1 }]
+      };
+      const nextRows = [...rows];
+      nextRows.splice(targetRowIndex + 1, 0, newRow);
+      return nextRows;
+    }
+
+    // Side-by-side insertion ('left' or 'right')
+    if (targetRow.columns.length >= 3) {
+      // Max 3 columns per row reached: fallback gracefully to inserting as row above or below
+      const fallbackDirection = direction === 'left' ? 'top' : 'bottom';
+      return insertColumnAtTarget(rows, targetRowId, targetColId, colToInsert, fallbackDirection);
+    }
+
+    const nextCols = [...targetRow.columns];
+    const insertIndex = direction === 'left' ? Math.max(0, targetColIndex) : targetColIndex + 1;
+    nextCols.splice(insertIndex, 0, { ...colToInsert, widthFlex: 1 });
+
+    const balancedCols = nextCols.map((c) => ({ ...c, widthFlex: 1 }));
+    const nextRows = [...rows];
+    nextRows[targetRowIndex] = {
+      ...targetRow,
+      columns: balancedCols
+    };
+    return nextRows;
+  };
+
+  // -------------------------------------------------------------
+  // Drag Source: Existing Card Pick-Up (Six-Dot Handle ⋮⋮)
+  // -------------------------------------------------------------
+  const handleDragStartExistingCard = (
+    e: React.DragEvent,
+    sourceRowId: string,
+    sourceColId: string,
+    item: WorkspaceDrawerItem
+  ) => {
+    e.stopPropagation();
+    const tokenType = item.type === 'video' ? '▶ VID' : item.type === 'hotspot' ? '🔥 HOT' : '📄 INTEL';
+    createCanvaDragGhost(e, tokenType, item.title);
+
+    const payload = {
+      source: 'INTEL_WORKSPACE',
+      sourceRowId,
+      sourceColId,
+      item
+    };
+    e.dataTransfer.setData('application/json', JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // -------------------------------------------------------------
+  // Drag Target: Directional Hover Detection (Top, Bottom, Left, Right)
+  // -------------------------------------------------------------
+  const handleCardDragOver = (e: React.DragEvent, targetRowId: string, targetColId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const w = rect.width;
+    const h = rect.height;
+
+    const relX = Math.max(0, Math.min(1, x / w));
+    const relY = Math.max(0, Math.min(1, y / h));
+
+    let direction: 'top' | 'bottom' | 'left' | 'right';
+
+    if (relY <= 0.25) {
+      // Top 25%: Insert as new row above
+      direction = 'top';
+    } else if (relY >= 0.75) {
+      // Bottom 25%: Insert as new row below
+      direction = 'bottom';
+    } else if (relX <= 0.25) {
+      // Left 25%: Place side-by-side to the LEFT
+      direction = 'left';
+    } else if (relX >= 0.75) {
+      // Right 25%: Place side-by-side to the RIGHT
+      direction = 'right';
+    } else {
+      // Central 50%: calculate closest edge
+      const distTop = relY;
+      const distBottom = 1 - relY;
+      const distLeft = relX;
+      const distRight = 1 - relX;
+      const minDist = Math.min(distTop, distBottom, distLeft, distRight);
+
+      if (minDist === distTop) direction = 'top';
+      else if (minDist === distBottom) direction = 'bottom';
+      else if (minDist === distLeft) direction = 'left';
+      else direction = 'right';
+    }
+
+    setActiveDropTarget({
+      rowId: targetRowId,
+      colId: targetColId,
+      direction
+    });
+  };
+
+  const handleCardDragLeave = (e: React.DragEvent) => {
+    const nextNode = e.relatedTarget as Node | null;
+    if (!e.currentTarget.contains(nextNode)) {
+      setActiveDropTarget(null);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // Card Drop: Directional Placement + Auto-Expand Width
+  // -------------------------------------------------------------
+  const handleCardDrop = (e: React.DragEvent, targetRowId: string, targetColId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const direction = activeDropTarget?.direction || 'bottom';
+    setActiveDropTarget(null);
+    setIsDragOver(false);
+
+    try {
+      const rawData = e.dataTransfer.getData('application/json');
+      if (!rawData) return;
+      const parsed = JSON.parse(rawData);
+      const item: WorkspaceDrawerItem = parsed.item;
+      if (!item) return;
+
+      // Auto-expand workspace width to >= 560px for side-by-side placement
+      if ((direction === 'left' || direction === 'right') && width < 560 && onResizeWidth) {
+        onResizeWidth(560);
+      }
+
+      const isInternalMove = parsed.source === 'INTEL_WORKSPACE' && parsed.sourceRowId && parsed.sourceColId;
+
+      if (isInternalMove) {
+        const { sourceRowId, sourceColId } = parsed;
+        // If dropped on the exact same card in the same spot, do nothing
+        if (sourceRowId === targetRowId && sourceColId === targetColId) {
+          return;
+        }
+
+        // Step 1: Extract card from original position
+        let movingCol: WorkspaceColumn | null = null;
+        const rowsAfterExtraction = localRows
+          .map((row) => {
+            if (row.rowId !== sourceRowId) return row;
+            const found = row.columns.find((c) => c.id === sourceColId);
+            if (found) movingCol = found;
+            const remaining = row.columns.filter((c) => c.id !== sourceColId);
+            return { ...row, columns: remaining };
+          })
+          .filter((row) => row.columns.length > 0);
+
+        if (!movingCol) {
+          movingCol = {
+            id: `col_${item.id}_${Date.now()}`,
+            item,
+            widthFlex: 1,
+            customHeight: item.type === 'video' ? 240 : undefined
+          };
+        }
+
+        // Step 2: Insert into rowsAfterExtraction at target position
+        const updatedRows = insertColumnAtTarget(
+          rowsAfterExtraction,
+          targetRowId,
+          targetColId,
+          movingCol,
+          direction
+        );
+        updateRows(updatedRows);
+      } else {
+        // Dropped from external Intelligence Desk
+        const newCol: WorkspaceColumn = {
+          id: `col_${item.id}_${Date.now()}`,
+          item,
+          widthFlex: 1,
+          customHeight: item.type === 'video' ? 240 : undefined
+        };
+
+        const updatedRows = insertColumnAtTarget(
+          localRows,
+          targetRowId,
+          targetColId,
+          newCol,
+          direction
+        );
+        updateRows(updatedRows);
+        onDropItem(activeTabId, item);
+      }
+    } catch (err) {
+      console.warn('handleCardDrop error:', err);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // Canvas Drop: Append to End of Canvas
+  // -------------------------------------------------------------
+  const handleCanvasDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    setActiveDropTarget(null);
+
+    try {
+      const rawData = e.dataTransfer.getData('application/json');
+      if (!rawData) return;
+      const parsed = JSON.parse(rawData);
+      const item: WorkspaceDrawerItem = parsed.item;
+      if (!item) return;
+
+      const isInternalMove = parsed.source === 'INTEL_WORKSPACE' && parsed.sourceRowId && parsed.sourceColId;
+
+      if (isInternalMove) {
+        const { sourceRowId, sourceColId } = parsed;
+        let movingCol: WorkspaceColumn | null = null;
+        const rowsAfterExtraction = localRows
+          .map((row) => {
+            if (row.rowId !== sourceRowId) return row;
+            const found = row.columns.find((c) => c.id === sourceColId);
+            if (found) movingCol = found;
+            const remaining = row.columns.filter((c) => c.id !== sourceColId);
+            return { ...row, columns: remaining };
+          })
+          .filter((row) => row.columns.length > 0);
+
+        if (movingCol) {
+          const validCol: WorkspaceColumn = movingCol;
+          const newRow: WorkspaceRow = {
+            rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            columns: [{ ...validCol, widthFlex: 1 }]
+          };
+          updateRows([...rowsAfterExtraction, newRow]);
+        }
+      } else {
+        const newCol: WorkspaceColumn = {
+          id: `col_${item.id}_${Date.now()}`,
+          item,
+          widthFlex: 1,
+          customHeight: item.type === 'video' ? 240 : undefined
+        };
+        const newRow: WorkspaceRow = {
+          rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          columns: [newCol]
+        };
+        updateRows([...localRows, newRow]);
+        onDropItem(activeTabId, item);
+      }
+    } catch (err) {
+      console.warn('handleCanvasDrop error:', err);
+    }
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -373,73 +700,6 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
   const handleDragLeave = () => {
     setIsDragOver(false);
-    setDropTargetRowId(null);
-    setDropSideBySideColId(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetRowId?: string, targetColId?: string) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    setDropTargetRowId(null);
-    setDropSideBySideColId(null);
-
-    try {
-      const rawData = e.dataTransfer.getData('application/json');
-      if (rawData) {
-        const parsed = JSON.parse(rawData);
-        if (parsed && parsed.item) {
-          const item: WorkspaceDrawerItem = parsed.item;
-          const newCol: WorkspaceColumn = {
-            id: `col_${item.id}_${Date.now()}`,
-            item,
-            widthFlex: 1,
-            customHeight: item.type === 'video' ? 240 : undefined
-          };
-
-          // If dropped beside an existing column
-          if (targetColId && targetRowId) {
-            const nextRows = localRows.map((row) => {
-              if (row.rowId !== targetRowId) return row;
-              if (row.columns.length >= 3) return row; // Max 3 cols
-              return {
-                ...row,
-                columns: [...row.columns, newCol].map((c) => ({ ...c, widthFlex: 1 }))
-              };
-            });
-            updateRows(nextRows);
-            onDropItem(activeTabId, item);
-            return;
-          }
-
-          // If dropped on a specific row
-          if (targetRowId) {
-            const nextRows: WorkspaceRow[] = [];
-            localRows.forEach((r) => {
-              if (r.rowId === targetRowId) {
-                nextRows.push({
-                  rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-                  columns: [newCol]
-                });
-              }
-              nextRows.push(r);
-            });
-            updateRows(nextRows);
-            onDropItem(activeTabId, item);
-            return;
-          }
-
-          // Default: Append as a new bottom row
-          const newRow: WorkspaceRow = {
-            rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            columns: [newCol]
-          };
-          updateRows([...localRows, newRow]);
-          onDropItem(activeTabId, item);
-        }
-      }
-    } catch (err) {
-      console.warn('Failed to parse dropped intel item:', err);
-    }
   };
 
   const handleStartRename = (e: React.MouseEvent, tab: WorkspaceDrawerTab) => {
@@ -494,7 +754,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
     <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e)}
+      onDrop={(e) => handleCanvasDrop(e)}
       className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col shadow-2xl select-none cq-panel"
       style={{
         width: `${width}px`,
@@ -716,7 +976,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       <div className="flex-1 overflow-y-auto feed-scrollbar p-3 space-y-3">
         {localRows.length === 0 ? (
           <div
-            onDrop={(e) => handleDrop(e)}
+            onDrop={(e) => handleCanvasDrop(e)}
             className="h-full min-h-[320px] flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-slate-700/60 rounded-xl bg-slate-900/30 transition-all hover:border-sky-500/50"
           >
             <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center text-sky-400 mb-3 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
@@ -811,23 +1071,73 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           </div>
                         )}
 
-                        {/* Card Container */}
+                        {/* Card Container with Notion 4-Directional Drop Zones */}
                         <div
+                          onDragOver={(e) => handleCardDragOver(e, row.rowId, col.id)}
+                          onDragLeave={handleCardDragLeave}
+                          onDrop={(e) => handleCardDrop(e, row.rowId, col.id)}
                           style={{
                             flex: col.widthFlex || 1,
                             minWidth: '220px'
                           }}
-                          className="flex flex-col rounded-md border border-slate-800 bg-[#0c121e] shadow-lg overflow-hidden group/card transition-all hover:border-slate-700"
+                          className={`relative flex flex-col rounded-md border ${
+                            activeDropTarget?.rowId === row.rowId && activeDropTarget?.colId === col.id
+                              ? 'border-sky-400 ring-1 ring-sky-400/40 shadow-[0_0_18px_rgba(56,189,248,0.25)]'
+                              : 'border-slate-800 hover:border-slate-700'
+                          } bg-[#0c121e] shadow-lg group/card transition-all`}
                         >
+                          {/* 4-Directional Glowing Drop Indicators */}
+                          {activeDropTarget?.rowId === row.rowId && activeDropTarget?.colId === col.id && (
+                            <>
+                              {activeDropTarget.direction === 'top' && (
+                                <div className="absolute -top-[3px] left-0 right-0 z-50 pointer-events-none flex items-center justify-center">
+                                  <div className="w-full h-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
+                                  <span className="absolute -top-5 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap">
+                                    ↑ INSERT NEW ROW ABOVE
+                                  </span>
+                                </div>
+                              )}
+                              {activeDropTarget.direction === 'bottom' && (
+                                <div className="absolute -bottom-[3px] left-0 right-0 z-50 pointer-events-none flex items-center justify-center">
+                                  <div className="w-full h-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
+                                  <span className="absolute -bottom-5 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap">
+                                    ↓ INSERT NEW ROW BELOW
+                                  </span>
+                                </div>
+                              )}
+                              {activeDropTarget.direction === 'left' && (
+                                <div className="absolute top-0 bottom-0 -left-[3px] z-50 pointer-events-none flex items-center justify-center">
+                                  <div className="h-full w-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
+                                  <span className="absolute -left-2 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50">
+                                    ← PLACE SIDE-BY-SIDE (LEFT)
+                                  </span>
+                                </div>
+                              )}
+                              {activeDropTarget.direction === 'right' && (
+                                <div className="absolute top-0 bottom-0 -right-[3px] z-50 pointer-events-none flex items-center justify-center">
+                                  <div className="h-full w-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
+                                  <span className="absolute -right-2 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50">
+                                    → PLACE SIDE-BY-SIDE (RIGHT)
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+
                           {/* Card Header Bar */}
                           <div
                             className="px-2.5 py-1.5 flex items-center justify-between gap-1.5 border-b border-slate-800 bg-[#090e17] text-xs font-mono select-none"
                           >
-                            {/* Left: Drag Grip + Icon + Title */}
+                            {/* Left: Notion Six-Dot Drag Handle (⋮⋮) + Icon + Title */}
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                              <span className="text-slate-500 hover:text-sky-400 cursor-grab shrink-0" title="Block handle">
-                                <GripVertical size={11} />
-                              </span>
+                              <div
+                                draggable="true"
+                                onDragStart={(e) => handleDragStartExistingCard(e, row.rowId, col.id, item)}
+                                className="px-1 py-0.5 -ml-1 text-slate-500 hover:text-sky-300 hover:bg-white/10 rounded cursor-grab active:cursor-grabbing shrink-0 transition-all flex items-center justify-center select-none"
+                                title="Drag card to move anywhere (Notion 4-directional grip)"
+                              >
+                                <span className="font-mono text-[13px] leading-none select-none tracking-[-2px] font-bold">⋮⋮</span>
+                              </div>
 
                               {isVideo ? (
                                 <Tv size={12} className="text-sky-400 shrink-0" />
@@ -1065,6 +1375,29 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
               </div>
             );
           })
+        )}
+
+        {/* Empty Bottom Canvas Drop Zone (when rows exist) */}
+        {localRows.length > 0 && (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.dataTransfer.dropEffect = 'copy';
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => handleCanvasDrop(e)}
+            className="min-h-[85px] rounded-lg border border-dashed border-slate-800/80 hover:border-sky-500/50 bg-[#090d16]/30 hover:bg-sky-500/[0.04] transition-all flex flex-col items-center justify-center p-3 text-center cursor-default group/canvas"
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 group-hover/canvas:text-sky-300 transition-colors">
+              <Plus size={11} className="text-sky-400" />
+              <span className="font-semibold uppercase tracking-wider">DROP HERE TO APPEND AS NEW ROW</span>
+            </div>
+            <span className="text-[9px] text-slate-600 mt-0.5 font-mono">
+              Hover card edges for 4-directional placement (↑ Top, ↓ Bottom, ← Left, → Right)
+            </span>
+          </div>
         )}
       </div>
 
