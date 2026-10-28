@@ -1102,20 +1102,13 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         {localRows.length === 0 ? (
           <div
             onDrop={(e) => handleCanvasDrop(e)}
-            className="h-full min-h-[320px] flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-slate-700/60 rounded-xl bg-slate-900/30 transition-all hover:border-sky-500/50"
+            className="h-full min-h-[220px] flex flex-col items-center justify-center p-6 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/20 transition-all hover:border-sky-500/40"
           >
-            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center text-sky-400 mb-3 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
-              <Radio size={22} className="animate-pulse" />
+            <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-2">
+              <Radio size={18} className="animate-pulse" />
             </div>
-            <div className="font-mono text-xs font-bold text-slate-200 tracking-wider uppercase mb-1">
+            <div className="font-mono text-xs font-bold text-slate-300 tracking-wider uppercase">
               WORKSPACE CANVAS IS EMPTY
-            </div>
-            <p className="text-[11.5px] text-slate-400 max-w-[280px] leading-relaxed mb-4">
-              Drag feeds, YouTube analysts, or flashpoints from the Intelligence Desk and drop them here.
-            </p>
-            <div className="flex items-center gap-2 text-[10px] font-mono text-sky-400/80 bg-sky-500/5 border border-sky-500/20 px-2.5 py-1 rounded">
-              <Sparkles size={11} />
-              <span>Supports 2D side-by-side columns & Canva vertical resizing</span>
             </div>
           </div>
         ) : (

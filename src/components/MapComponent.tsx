@@ -157,7 +157,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   const handleFocusIndia = () => {
-    mapRef.current?.flyTo({ center: [80.0, 23.5], zoom: 4.5, essential: true });
+    mapRef.current?.flyTo({ center: [86.35, 25.06], zoom: 3.5, essential: true });
+    onViewChange([86.35, 25.06], 3.5);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('c', '25.06,86.35,3.5');
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
   };
 
   // Update GeoJSON Sources and Layers
@@ -872,10 +878,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         <button
           onClick={handleFocusIndia}
-          className="w-7 h-7 rounded-md flex items-center justify-center text-xs hover:scale-115 transition-transform"
-          title="Center Sovereign India (SOI)"
+          className="w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-[11px] text-orange-400 hover:text-sky-300 hover:bg-[var(--bg-surface-hover)] hover:scale-110 transition-all cursor-pointer"
+          title="Center Sovereign India (SOI) [IN] - 25.06°N, 86.35°E, Z3.5"
         >
-          🇮🇳
+          IN
         </button>
       </div>
     </div>

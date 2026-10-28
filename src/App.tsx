@@ -10,7 +10,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { LandingPage } from './components/LandingPage';
 import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthModal } from './components/AuthModal';
 import { AuthPage } from './components/AuthPage';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
@@ -98,16 +98,19 @@ export const decodeLayersFromHex = (hex: string): Record<LayerKey, boolean> => {
 };
 
 const AppContent: React.FC = () => {
+  const { user } = useAuth();
+  const [isWorkspaceSaved, setIsWorkspaceSaved] = useState<boolean>(false);
+
   // Parse URL Parameters (Supporting both micro bitmask and legacy format)
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
 
-  // Micro coordinates format: ?c=22.46,82.75,3.25
+  // Micro coordinates format: ?c=25.06,86.35,3.5
   const cParam = urlParams.get('c');
   const [cLat, cLon, cZoom] = cParam ? cParam.split(',') : [null, null, null];
 
-  const initialLat = cLat ? parseFloat(cLat) : parseFloat(urlParams.get('lat') || '22.4589');
-  const initialLon = cLon ? parseFloat(cLon) : parseFloat(urlParams.get('lon') || '82.7533');
-  const initialZoom = cZoom ? parseFloat(cZoom) : parseFloat(urlParams.get('zoom') || urlParams.get('z') || '3.25');
+  const initialLat = cLat ? parseFloat(cLat) : parseFloat(urlParams.get('lat') || '25.06');
+  const initialLon = cLon ? parseFloat(cLon) : parseFloat(urlParams.get('lon') || '86.35');
+  const initialZoom = cZoom ? parseFloat(cZoom) : parseFloat(urlParams.get('zoom') || urlParams.get('z') || '3.5');
   const initialView = (urlParams.get('v') || urlParams.get('view') || 'global') as TheaterView;
   const initialTimeRange = urlParams.get('t') || urlParams.get('timeRange') || '7d';
 
@@ -148,8 +151,14 @@ const AppContent: React.FC = () => {
   const isAuthPage = ['/login', '/signin', '/signup', '/auth'].includes(currentPath.toLowerCase());
 
   const handleLaunchDashboard = () => {
-    window.history.pushState({}, '', '/Dashboard');
+    const hasSaved = user?.id && localStorage.getItem(`manvis_saved_workspace_${user.id}`);
+    const targetUrl = hasSaved ? '/Dashboard' : '/Dashboard?c=25.06%2C86.35%2C3.5';
+    window.history.pushState({}, '', targetUrl);
     setCurrentPath('/Dashboard');
+    if (!hasSaved) {
+      setMapCenter([86.35, 25.06]);
+      setMapZoom(3.5);
+    }
   };
 
   const handleNavigateHome = () => {
@@ -794,6 +803,72 @@ const AppContent: React.FC = () => {
     [updateActiveTabRightDrawer]
   );
 
+  // -------------------------------------------------------------
+  // YouTube-Style Workspace Bookmark & Save Engine
+  // -------------------------------------------------------------
+  // 1. Check if user has saved layout and auto-restore on login
+  useEffect(() => {
+    if (user?.id) {
+      const savedKey = `manvis_saved_workspace_${user.id}`;
+      const savedRaw = localStorage.getItem(savedKey);
+      if (savedRaw) {
+        setIsWorkspaceSaved(true);
+        try {
+          const parsed = JSON.parse(savedRaw);
+          if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
+            setTabs(parsed.tabs);
+            if (parsed.activeTabId) setActiveTabId(parsed.activeTabId);
+            if (parsed.currentView) setCurrentView(parsed.currentView);
+            if (parsed.timeRange) setTimeRange(parsed.timeRange);
+            if (parsed.mapCenter) setMapCenter(parsed.mapCenter);
+            if (parsed.mapZoom) setMapZoom(parsed.mapZoom);
+            if (parsed.activeLayers) setActiveLayers(parsed.activeLayers);
+            if (parsed.isRightPanelOpen !== undefined) setIsRightPanelOpen(parsed.isRightPanelOpen);
+            if (parsed.deskWidth) setDeskWidth(parsed.deskWidth);
+          }
+        } catch (e) {
+          console.warn('Failed to parse saved user workspace layout:', e);
+        }
+      } else {
+        setIsWorkspaceSaved(false);
+      }
+    } else {
+      setIsWorkspaceSaved(false);
+    }
+  }, [user?.id]);
+
+  // 2. Toggle Save / Bookmark Workspace Layout
+  const handleToggleSaveWorkspace = useCallback(() => {
+    if (!user?.id) {
+      handleOpenAuth('signin');
+      return;
+    }
+
+    const savedKey = `manvis_saved_workspace_${user.id}`;
+
+    if (isWorkspaceSaved) {
+      // Unsave layout - next time user enters, starts with default
+      localStorage.removeItem(savedKey);
+      setIsWorkspaceSaved(false);
+    } else {
+      // Save current layout
+      const payload = {
+        savedAt: Date.now(),
+        tabs,
+        activeTabId,
+        currentView,
+        timeRange,
+        mapCenter,
+        mapZoom,
+        activeLayers,
+        isRightPanelOpen,
+        deskWidth
+      };
+      localStorage.setItem(savedKey, JSON.stringify(payload));
+      setIsWorkspaceSaved(true);
+    }
+  }, [user?.id, isWorkspaceSaved, tabs, activeTabId, currentView, timeRange, mapCenter, mapZoom, activeLayers, isRightPanelOpen, deskWidth]);
+
   // Live dynamic feeds
   const [liveEarthquakes, setLiveEarthquakes] = useState<MapFeatureItem[]>([]);
   const [liveEonet, setLiveEonet] = useState<MapFeatureItem[]>([]);
@@ -926,8 +1001,13 @@ const AppContent: React.FC = () => {
       setMapCenter([30.0, 25.0]);
       setMapZoom(2.8);
     } else if (view === 'india') {
-      setMapCenter([80.0, 23.5]);
-      setMapZoom(4.4);
+      setMapCenter([86.35, 25.06]);
+      setMapZoom(3.5);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('c', '25.06,86.35,3.5');
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {}
     } else if (view === 'americas') {
       setMapCenter([-98.0, 39.0]);
       setMapZoom(3.6);
@@ -1117,6 +1197,8 @@ const AppContent: React.FC = () => {
         onSelectAlert={handleSelectAlert}
         onOpenAuthModal={() => handleOpenAuth('signin')}
         onNavigateLogin={() => handleNavigateLogin('signin')}
+        isWorkspaceSaved={isWorkspaceSaved}
+        onToggleSaveWorkspace={handleToggleSaveWorkspace}
       />
 
       {/* 2.5 Multi-Tab Tactical Workspace Bar (Below Header, height: 32px, z-30) */}

@@ -13,7 +13,8 @@ import {
   Search,
   ChevronRight,
   Share2,
-  Check
+  Check,
+  Bookmark
 } from 'lucide-react';
 import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
 import { UserNav } from './UserNav';
@@ -36,6 +37,8 @@ interface HeaderProps {
   onSelectAlert?: (alert: IntelNewsItem) => void;
   onOpenAuthModal?: () => void;
   onNavigateLogin?: () => void;
+  isWorkspaceSaved?: boolean;
+  onToggleSaveWorkspace?: () => void;
 }
 
 interface CityTimeZone {
@@ -67,12 +70,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCommandPalette,
   onNavigateHome,
   getShareUrl,
-  coordinates = [82.75, 22.46],
-  zoom = 3.25,
+  coordinates = [86.35, 25.06],
+  zoom = 3.5,
   alerts = [],
   onSelectAlert,
   onOpenAuthModal,
-  onNavigateLogin
+  onNavigateLogin,
+  isWorkspaceSaved = false,
+  onToggleSaveWorkspace
 }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
   const [formattedTime, setFormattedTime] = useState<string>('');
@@ -420,6 +425,31 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline-block text-[10px] font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">SHARE</span>
             </>
           )}
+        </button>
+
+        {/* Bookmark / Save Workspace Layout (YouTube Style) */}
+        <button
+          onClick={onToggleSaveWorkspace}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-mono transition-all shadow-xs group cursor-pointer ${
+            isWorkspaceSaved
+              ? 'bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
+              : 'bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border-[var(--hud-border)] hover:border-sky-500/40 text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+          }`}
+          title={
+            isWorkspaceSaved
+              ? 'Workspace Saved: Layout will restore on your next login (Click to unsave)'
+              : 'Save Workspace: Click to save tabs, Intel Desk & Workspace layout for your next login'
+          }
+        >
+          <Bookmark
+            size={12}
+            className={`transition-all group-hover:scale-110 ${
+              isWorkspaceSaved ? 'fill-sky-400 text-sky-400' : 'text-sky-400'
+            }`}
+          />
+          <span className="hidden xl:inline-block text-[10px] font-semibold tracking-wider">
+            {isWorkspaceSaved ? 'SAVED' : 'SAVE'}
+          </span>
         </button>
 
         {/* Operator Profile / Auth */}
