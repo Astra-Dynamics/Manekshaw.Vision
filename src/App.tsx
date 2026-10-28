@@ -97,9 +97,70 @@ export const decodeLayersFromHex = (hex: string): Record<LayerKey, boolean> => {
   return obj;
 };
 
+// YouTube-Style Saved Workspace Config Helpers
+export const DEFAULT_MAP_CENTER: [number, number] = [86.35, 25.06];
+export const DEFAULT_MAP_ZOOM = 3.5;
+
+export const createBrandNewDefaultWorkspace = (view: TheaterView = 'global') => {
+  const defaultLayers = ALL_LAYER_KEYS.reduce((acc, k) => {
+    acc[k] = true;
+    return acc;
+  }, {} as Record<LayerKey, boolean>);
+
+  const defaultTab: WorkspaceTab = {
+    id: 'tab_main',
+    title: view !== 'global' ? `${view.charAt(0).toUpperCase() + view.slice(1)} Ops` : 'Main',
+    lat: 25.06,
+    lon: 86.35,
+    zoom: 3.5,
+    view: view,
+    timeRange: '7d',
+    activeLayers: defaultLayers,
+    intelDesk: createDefaultIntelDeskState(view),
+    rightDrawer: createDefaultRightDrawerState()
+  };
+
+  return {
+    tabs: [defaultTab],
+    activeTabId: 'tab_main',
+    mapCenter: DEFAULT_MAP_CENTER,
+    mapZoom: DEFAULT_MAP_ZOOM,
+    currentView: view,
+    timeRange: '7d',
+    activeLayers: defaultLayers,
+    isRightPanelOpen: true,
+    deskWidth: 380
+  };
+};
+
+export const getSavedWorkspaceConfig = (userId?: string) => {
+  const key = userId ? `manvis_saved_workspace_${userId}` : 'manvis_saved_workspace_guest';
+  try {
+    let raw = localStorage.getItem(key);
+    if (!raw && userId) {
+      raw = localStorage.getItem('manvis_saved_workspace_guest');
+    }
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to parse saved workspace config:', e);
+  }
+  return null;
+};
+
 const AppContent: React.FC = () => {
   const { user } = useAuth();
-  const [isWorkspaceSaved, setIsWorkspaceSaved] = useState<boolean>(false);
+  const savedWorkspaceKey = user?.id ? `manvis_saved_workspace_${user.id}` : 'manvis_saved_workspace_guest';
+
+  // Check initial saved configuration
+  const initialSavedConfig = useMemo(() => {
+    return getSavedWorkspaceConfig(user?.id);
+  }, [user?.id]);
+
+  const [isWorkspaceSaved, setIsWorkspaceSaved] = useState<boolean>(() => Boolean(initialSavedConfig));
 
   // Parse URL Parameters (Supporting both micro bitmask and legacy format)
   const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -151,10 +212,10 @@ const AppContent: React.FC = () => {
   const isAuthPage = ['/login', '/signin', '/signup', '/auth'].includes(currentPath.toLowerCase());
 
   const handleLaunchDashboard = () => {
-    const hasSaved = user?.id && localStorage.getItem(`manvis_saved_workspace_${user.id}`);
+    const saved = getSavedWorkspaceConfig(user?.id);
     window.history.pushState({}, '', '/Dashboard');
     setCurrentPath('/Dashboard');
-    if (!hasSaved) {
+    if (!saved) {
       setMapCenter([86.35, 25.06]);
       setMapZoom(3.5);
     }
@@ -184,6 +245,9 @@ const AppContent: React.FC = () => {
   // Multi-Tab Tactical Workspace State
   // -------------------------------------------------------------
   const [tabs, setTabs] = useState<WorkspaceTab[]>(() => {
+    if (initialSavedConfig?.tabs && initialSavedConfig.tabs.length > 0) {
+      return initialSavedConfig.tabs;
+    }
     const defaultTab: WorkspaceTab = {
       id: 'tab_main',
       title:
@@ -199,130 +263,44 @@ const AppContent: React.FC = () => {
       intelDesk: createDefaultIntelDeskState(initialView),
       rightDrawer: createDefaultRightDrawerState()
     };
-
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (hasExplicitUrlParams) {
-      return [defaultTab];
-    }
-
-    try {
-      const saved = sessionStorage.getItem('manvis_workspace_tabs');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((t) => ({
-            ...t,
-            intelDesk: t.intelDesk || createDefaultIntelDeskState(t.view),
-            rightDrawer: t.rightDrawer || createDefaultRightDrawerState()
-          }));
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to parse saved workspace tabs:', e);
-    }
     return [defaultTab];
   });
 
   const [activeTabId, setActiveTabId] = useState<string>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (hasExplicitUrlParams) {
-      return 'tab_main';
-    }
-
-    try {
-      const savedId = sessionStorage.getItem('manvis_active_tab_id');
-      if (savedId) {
-        return savedId;
-      }
-    } catch (e) {}
+    if (initialSavedConfig?.activeTabId) return initialSavedConfig.activeTabId;
     return 'tab_main';
   });
 
   // State
   const [mapCenter, setMapCenter] = useState<[number, number]>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (!hasExplicitUrlParams) {
-      try {
-        const saved = sessionStorage.getItem('manvis_workspace_tabs');
-        const savedId = sessionStorage.getItem('manvis_active_tab_id');
-        if (saved && savedId) {
-          const parsed: WorkspaceTab[] = JSON.parse(saved);
-          const found = parsed.find((t) => t.id === savedId);
-          if (found) return [found.lon, found.lat];
-        }
-      } catch (e) {}
-    }
+    if (initialSavedConfig?.mapCenter) return initialSavedConfig.mapCenter;
     return [initialLon, initialLat];
   });
 
   const [mapZoom, setMapZoom] = useState<number>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (!hasExplicitUrlParams) {
-      try {
-        const saved = sessionStorage.getItem('manvis_workspace_tabs');
-        const savedId = sessionStorage.getItem('manvis_active_tab_id');
-        if (saved && savedId) {
-          const parsed: WorkspaceTab[] = JSON.parse(saved);
-          const found = parsed.find((t) => t.id === savedId);
-          if (found) return found.zoom;
-        }
-      } catch (e) {}
-    }
+    if (initialSavedConfig?.mapZoom) return initialSavedConfig.mapZoom;
     return initialZoom;
   });
 
   const [currentView, setCurrentView] = useState<TheaterView>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (!hasExplicitUrlParams) {
-      try {
-        const saved = sessionStorage.getItem('manvis_workspace_tabs');
-        const savedId = sessionStorage.getItem('manvis_active_tab_id');
-        if (saved && savedId) {
-          const parsed: WorkspaceTab[] = JSON.parse(saved);
-          const found = parsed.find((t) => t.id === savedId);
-          if (found) return found.view;
-        }
-      } catch (e) {}
-    }
+    if (initialSavedConfig?.currentView) return initialSavedConfig.currentView;
     return initialView;
   });
 
   const [timeRange, setTimeRange] = useState<string>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (!hasExplicitUrlParams) {
-      try {
-        const saved = sessionStorage.getItem('manvis_workspace_tabs');
-        const savedId = sessionStorage.getItem('manvis_active_tab_id');
-        if (saved && savedId) {
-          const parsed: WorkspaceTab[] = JSON.parse(saved);
-          const found = parsed.find((t) => t.id === savedId);
-          if (found) return found.timeRange;
-        }
-      } catch (e) {}
-    }
+    if (initialSavedConfig?.timeRange) return initialSavedConfig.timeRange;
     return initialTimeRange;
   });
 
   const [activeLayers, setActiveLayers] = useState<Record<LayerKey, boolean>>(() => {
-    const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
-    if (!hasExplicitUrlParams) {
-      try {
-        const saved = sessionStorage.getItem('manvis_workspace_tabs');
-        const savedId = sessionStorage.getItem('manvis_active_tab_id');
-        if (saved && savedId) {
-          const parsed: WorkspaceTab[] = JSON.parse(saved);
-          const found = parsed.find((t) => t.id === savedId);
-          if (found && found.activeLayers) return found.activeLayers;
-        }
-      } catch (e) {}
-    }
+    if (initialSavedConfig?.activeLayers) return initialSavedConfig.activeLayers;
     return initialActiveLayers;
   });
 
   // Synchronize active tab snapshot whenever state changes
   useEffect(() => {
     setTabs((prevTabs) => {
-      const updated = prevTabs.map((t) =>
+      return prevTabs.map((t) =>
         t.id === activeTabId
           ? {
               ...t,
@@ -335,11 +313,6 @@ const AppContent: React.FC = () => {
             }
           : t
       );
-      try {
-        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(updated));
-        sessionStorage.setItem('manvis_active_tab_id', activeTabId);
-      } catch (e) {}
-      return updated;
     });
   }, [activeTabId, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
@@ -357,10 +330,6 @@ const AppContent: React.FC = () => {
       setCurrentView(targetTab.view);
       setTimeRange(targetTab.timeRange);
       setActiveLayers(targetTab.activeLayers);
-
-      try {
-        sessionStorage.setItem('manvis_active_tab_id', targetTabId);
-      } catch (e) {}
     },
     [activeTabId, tabs]
   );
@@ -384,11 +353,6 @@ const AppContent: React.FC = () => {
     const nextTabs = [...tabs, newTab];
     setTabs(nextTabs);
     setActiveTabId(newTabId);
-
-    try {
-      sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-      sessionStorage.setItem('manvis_active_tab_id', newTabId);
-    } catch (e) {}
   }, [tabs, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
   const handleCloseTab = useCallback(
@@ -410,27 +374,16 @@ const AppContent: React.FC = () => {
         setCurrentView(nextTab.view);
         setTimeRange(nextTab.timeRange);
         setActiveLayers(nextTab.activeLayers);
-
-        try {
-          sessionStorage.setItem('manvis_active_tab_id', nextTab.id);
-        } catch (e) {}
       }
 
       setTabs(remainingTabs);
-      try {
-        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(remainingTabs));
-      } catch (e) {}
     },
     [tabs, activeTabId]
   );
 
   const handleRenameTab = useCallback((tabId: string, newTitle: string) => {
     setTabs((prevTabs) => {
-      const nextTabs = prevTabs.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t));
-      try {
-        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-      } catch (e) {}
-      return nextTabs;
+      return prevTabs.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t));
     });
   }, []);
 
@@ -499,7 +452,7 @@ const AppContent: React.FC = () => {
   const updateActiveTabIntelDesk = useCallback(
     (updates: Partial<WorkspaceTabIntelDeskState>) => {
       setTabs((prevTabs) => {
-        const nextTabs = prevTabs.map((t) =>
+        return prevTabs.map((t) =>
           t.id === activeTabId
             ? {
                 ...t,
@@ -510,10 +463,6 @@ const AppContent: React.FC = () => {
               }
             : t
         );
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
       });
     },
     [activeTabId]
@@ -522,7 +471,7 @@ const AppContent: React.FC = () => {
   const updateActiveTabRightDrawer = useCallback(
     (updates: Partial<WorkspaceTabRightDrawerState>) => {
       setTabs((prevTabs) => {
-        const nextTabs = prevTabs.map((t) =>
+        return prevTabs.map((t) =>
           t.id === activeTabId
             ? {
                 ...t,
@@ -533,10 +482,6 @@ const AppContent: React.FC = () => {
               }
             : t
         );
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
       });
     },
     [activeTabId]
@@ -615,10 +560,6 @@ const AppContent: React.FC = () => {
               }
             : t
         );
-
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
         return nextTabs;
       });
     },
@@ -642,11 +583,7 @@ const AppContent: React.FC = () => {
         activeDrawerTabId: newTabId,
         drawerTabs: [...currentDrawer.drawerTabs, newDrawerTab]
       };
-      const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
-      try {
-        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-      } catch (e) {}
-      return nextTabs;
+      return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
     });
   }, [activeTabId]);
 
@@ -661,11 +598,7 @@ const AppContent: React.FC = () => {
             ...currentDrawer,
             drawerTabs: [{ id: currentDrawer.drawerTabs[0].id, title: 'Tactical Watch', items: [] }]
           };
-          const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: resetDrawer } : t));
-          try {
-            sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-          } catch (e) {}
-          return nextTabs;
+          return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: resetDrawer } : t));
         }
 
         const remaining = currentDrawer.drawerTabs.filter((t) => t.id !== tabId);
@@ -679,11 +612,7 @@ const AppContent: React.FC = () => {
           activeDrawerTabId: nextActiveId,
           drawerTabs: remaining
         };
-        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
+        return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
       });
     },
     [activeTabId]
@@ -699,11 +628,7 @@ const AppContent: React.FC = () => {
           ...currentDrawer,
           drawerTabs: currentDrawer.drawerTabs.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t))
         };
-        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
+        return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
       });
     },
     [activeTabId]
@@ -733,11 +658,7 @@ const AppContent: React.FC = () => {
             };
           })
         };
-        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
+        return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
       });
     },
     [activeTabId]
@@ -756,11 +677,7 @@ const AppContent: React.FC = () => {
             t.id === tabId ? { ...t, rows, items: flattenedItems } : t
           )
         };
-        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
-        try {
-          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
-        } catch (e) {}
-        return nextTabs;
+        return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
       });
     },
     [activeTabId]
@@ -805,50 +722,77 @@ const AppContent: React.FC = () => {
   // -------------------------------------------------------------
   // YouTube-Style Workspace Bookmark & Save Engine
   // -------------------------------------------------------------
-  // 1. Check if user has saved layout and auto-restore on login
+  // 1. Check if user has saved layout and auto-restore on login or user change
   useEffect(() => {
-    if (user?.id) {
-      const savedKey = `manvis_saved_workspace_${user.id}`;
-      const savedRaw = localStorage.getItem(savedKey);
-      if (savedRaw) {
-        setIsWorkspaceSaved(true);
-        try {
-          const parsed = JSON.parse(savedRaw);
-          if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
-            setTabs(parsed.tabs);
-            if (parsed.activeTabId) setActiveTabId(parsed.activeTabId);
-            if (parsed.currentView) setCurrentView(parsed.currentView);
-            if (parsed.timeRange) setTimeRange(parsed.timeRange);
-            if (parsed.mapCenter) setMapCenter(parsed.mapCenter);
-            if (parsed.mapZoom) setMapZoom(parsed.mapZoom);
-            if (parsed.activeLayers) setActiveLayers(parsed.activeLayers);
-            if (parsed.isRightPanelOpen !== undefined) setIsRightPanelOpen(parsed.isRightPanelOpen);
-            if (parsed.deskWidth) setDeskWidth(parsed.deskWidth);
-          }
-        } catch (e) {
-          console.warn('Failed to parse saved user workspace layout:', e);
-        }
-      } else {
-        setIsWorkspaceSaved(false);
+    const saved = getSavedWorkspaceConfig(user?.id);
+    if (saved) {
+      setIsWorkspaceSaved(true);
+      if (Array.isArray(saved.tabs) && saved.tabs.length > 0) {
+        setTabs(saved.tabs);
+        if (saved.activeTabId) setActiveTabId(saved.activeTabId);
+        if (saved.currentView) setCurrentView(saved.currentView);
+        if (saved.timeRange) setTimeRange(saved.timeRange);
+        if (saved.mapCenter) setMapCenter(saved.mapCenter);
+        if (saved.mapZoom) setMapZoom(saved.mapZoom);
+        if (saved.activeLayers) setActiveLayers(saved.activeLayers);
+        if (saved.isRightPanelOpen !== undefined) setIsRightPanelOpen(saved.isRightPanelOpen);
+        if (saved.deskWidth) setDeskWidth(saved.deskWidth);
       }
     } else {
       setIsWorkspaceSaved(false);
     }
   }, [user?.id]);
 
-  // 2. Toggle Save / Bookmark Workspace Layout
-  const handleToggleSaveWorkspace = useCallback(() => {
-    if (!user?.id) {
-      handleOpenAuth('signin');
-      return;
+  // 2. Keep saved configuration in sync with ongoing edits when bookmarked/saved
+  useEffect(() => {
+    if (!isWorkspaceSaved) return;
+
+    const payload = {
+      savedAt: Date.now(),
+      tabs,
+      activeTabId,
+      currentView,
+      timeRange,
+      mapCenter,
+      mapZoom,
+      activeLayers,
+      isRightPanelOpen,
+      deskWidth
+    };
+    try {
+      localStorage.setItem(savedWorkspaceKey, JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Failed to update saved workspace:', e);
     }
+  }, [isWorkspaceSaved, savedWorkspaceKey, tabs, activeTabId, currentView, timeRange, mapCenter, mapZoom, activeLayers, isRightPanelOpen, deskWidth]);
 
-    const savedKey = `manvis_saved_workspace_${user.id}`;
-
+  // 3. Toggle Save / Bookmark Workspace Layout
+  const handleToggleSaveWorkspace = useCallback(() => {
     if (isWorkspaceSaved) {
-      // Unsave layout - next time user enters, starts with default
-      localStorage.removeItem(savedKey);
+      // Unsave layout: erase stored configuration and immediately start from brand new
+      localStorage.removeItem(savedWorkspaceKey);
+      localStorage.removeItem('manvis_saved_workspace_guest');
+      if (user?.id) {
+        localStorage.removeItem(`manvis_saved_workspace_${user.id}`);
+      }
+      try {
+        sessionStorage.removeItem('manvis_workspace_tabs');
+        sessionStorage.removeItem('manvis_active_tab_id');
+      } catch (e) {}
+
       setIsWorkspaceSaved(false);
+
+      // Start fresh from brand new defaults
+      const brandNew = createBrandNewDefaultWorkspace();
+      setTabs(brandNew.tabs);
+      setActiveTabId(brandNew.activeTabId);
+      setMapCenter(brandNew.mapCenter);
+      setMapZoom(brandNew.mapZoom);
+      setCurrentView(brandNew.currentView);
+      setTimeRange(brandNew.timeRange);
+      setActiveLayers(brandNew.activeLayers);
+      setIsRightPanelOpen(brandNew.isRightPanelOpen);
+      setDeskWidth(brandNew.deskWidth);
     } else {
       // Save current layout
       const payload = {
@@ -863,10 +807,18 @@ const AppContent: React.FC = () => {
         isRightPanelOpen,
         deskWidth
       };
-      localStorage.setItem(savedKey, JSON.stringify(payload));
-      setIsWorkspaceSaved(true);
+      try {
+        localStorage.setItem(savedWorkspaceKey, JSON.stringify(payload));
+        setIsWorkspaceSaved(true);
+      } catch (e) {
+        console.warn('Failed to save workspace:', e);
+      }
+
+      if (!user?.id) {
+        handleOpenAuth('signin');
+      }
     }
-  }, [user?.id, isWorkspaceSaved, tabs, activeTabId, currentView, timeRange, mapCenter, mapZoom, activeLayers, isRightPanelOpen, deskWidth]);
+  }, [user?.id, isWorkspaceSaved, savedWorkspaceKey, tabs, activeTabId, currentView, timeRange, mapCenter, mapZoom, activeLayers, isRightPanelOpen, deskWidth]);
 
   // Live dynamic feeds
   const [liveEarthquakes, setLiveEarthquakes] = useState<MapFeatureItem[]>([]);
