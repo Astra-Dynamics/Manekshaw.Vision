@@ -275,7 +275,7 @@ body {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee-flow var(--marquee-duration, 150s) linear infinite;
+  animation: marquee-flow var(--marquee-duration, 190s) linear infinite;
   will-change: transform;
 }
 .animate-marquee:hover {

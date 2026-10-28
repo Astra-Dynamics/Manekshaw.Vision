@@ -320,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <div
             className="animate-marquee flex items-center gap-8 whitespace-nowrap font-mono text-[11px]"
-            style={{ animationDuration: '150s' }}
+            style={{ animationDuration: '190s' }}
           >
             {alerts && alerts.length > 0 ? (
               alerts.concat(alerts).map((item, idx) => (
