@@ -152,8 +152,7 @@ const AppContent: React.FC = () => {
 
   const handleLaunchDashboard = () => {
     const hasSaved = user?.id && localStorage.getItem(`manvis_saved_workspace_${user.id}`);
-    const targetUrl = hasSaved ? '/Dashboard' : '/Dashboard?c=25.06%2C86.35%2C3.5';
-    window.history.pushState({}, '', targetUrl);
+    window.history.pushState({}, '', '/Dashboard');
     setCurrentPath('/Dashboard');
     if (!hasSaved) {
       setMapCenter([86.35, 25.06]);
@@ -1003,11 +1002,6 @@ const AppContent: React.FC = () => {
     } else if (view === 'india') {
       setMapCenter([86.35, 25.06]);
       setMapZoom(3.5);
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.set('c', '25.06,86.35,3.5');
-        window.history.replaceState({}, '', url.toString());
-      } catch (e) {}
     } else if (view === 'americas') {
       setMapCenter([-98.0, 39.0]);
       setMapZoom(3.6);

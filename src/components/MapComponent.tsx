@@ -159,11 +159,6 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   const handleFocusIndia = () => {
     mapRef.current?.flyTo({ center: [86.35, 25.06], zoom: 3.5, essential: true });
     onViewChange([86.35, 25.06], 3.5);
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('c', '25.06,86.35,3.5');
-      window.history.replaceState({}, '', url.toString());
-    } catch (e) {}
   };
 
   // Update GeoJSON Sources and Layers
