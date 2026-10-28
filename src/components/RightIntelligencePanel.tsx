@@ -59,10 +59,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   const [copiedCoords, setCopiedCoords] = useState(false);
 
   // Videos Tab Specific State
-  const [selectedVideoId, setSelectedVideoId] = useState<string>('perun');
+  const [selectedVideoId, setSelectedVideoId] = useState<string>('dw_news_live');
   const [isPlayerMinimized, setIsPlayerMinimized] = useState<boolean>(false);
   const [selectedVideoRegion, setSelectedVideoRegion] = useState<string>('all');
   const [selectedVideoCategory, setSelectedVideoCategory] = useState<string>('ALL');
+  const [videoPlayerMode, setVideoPlayerMode] = useState<'embed' | 'briefing'>('embed');
 
   // Switch to dossier tab automatically when an item is selected
   useEffect(() => {
@@ -514,7 +515,41 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Mode Switcher */}
+                  <div className="flex items-center bg-black/30 border border-white/10 rounded-[2px] p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVideoPlayerMode('embed');
+                        setIsPlayerMinimized(false);
+                      }}
+                      className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
+                        videoPlayerMode === 'embed' && !isPlayerMinimized
+                          ? 'bg-sky-500 text-slate-950 font-bold'
+                          : 'text-[var(--text-muted)] hover:text-white'
+                      }`}
+                      title="Embedded Player View"
+                    >
+                      Stream
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVideoPlayerMode('briefing');
+                        setIsPlayerMinimized(false);
+                      }}
+                      className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
+                        videoPlayerMode === 'briefing' && !isPlayerMinimized
+                          ? 'bg-sky-500 text-slate-950 font-bold'
+                          : 'text-[var(--text-muted)] hover:text-white'
+                      }`}
+                      title="Tactical Briefing Card View"
+                    >
+                      Card
+                    </button>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
@@ -524,12 +559,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     {isPlayerMinimized ? (
                       <>
                         <Maximize2 size={11} />
-                        <span>[ Expand + ]</span>
+                        <span className="hidden sm:inline">[ Expand + ]</span>
                       </>
                     ) : (
                       <>
                         <Minimize2 size={11} />
-                        <span>[ Minimize – ]</span>
+                        <span className="hidden sm:inline">[ Minimize – ]</span>
                       </>
                     )}
                   </button>
@@ -541,29 +576,89 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     className="text-[10px] font-mono text-sky-400 hover:text-sky-300 font-bold flex items-center gap-0.5 group"
                     title="Open on Source Platform"
                   >
-                    <span>Open Source</span>
+                    <span>YouTube</span>
                     <ExternalLink size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </a>
                 </div>
               </div>
 
-              {/* Player 16:9 Frame OR Minimized 32px Status Strip */}
+              {/* Player 16:9 Frame OR Tactical Briefing Card OR Minimized 32px Status Strip */}
               {!isPlayerMinimized ? (
-                <div
-                  className="relative aspect-video w-full overflow-hidden rounded-[4px] shadow-lg"
-                  style={{
-                    background: '#05080F',
-                    border: '1px solid rgba(56, 189, 248, 0.3)'
-                  }}
-                >
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=0&rel=0&modestbranding=1`}
-                    title={activeVideo.title}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+                videoPlayerMode === 'embed' ? (
+                  <div>
+                    <div
+                      className="relative aspect-video w-full overflow-hidden rounded-[4px] shadow-lg"
+                      style={{
+                        background: '#05080F',
+                        border: '1px solid rgba(56, 189, 248, 0.3)'
+                      }}
+                    >
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=0&rel=0&modestbranding=1`}
+                        title={activeVideo.title}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+
+                    {/* Helpful Fallback Strip */}
+                    <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-[var(--text-muted)] bg-black/40 border border-white/[0.08] rounded px-2.5 py-1.5">
+                      <span className="truncate">Embedding blocked? Some channels restrict iframe playback:</span>
+                      <a
+                        href={activeVideo.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sky-400 hover:text-sky-300 font-bold underline shrink-0 ml-2 flex items-center gap-1"
+                      >
+                        <span>Watch on YouTube</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  /* Tactical Briefing Card Mode */
+                  <div
+                    className="relative aspect-video w-full p-4 rounded-[4px] flex flex-col justify-between overflow-hidden shadow-lg font-sans"
+                    style={{
+                      background: 'radial-gradient(circle at 70% 30%, rgba(14, 165, 233, 0.15) 0%, rgba(5, 8, 15, 0.98) 100%)',
+                      border: '1px solid rgba(56, 189, 248, 0.35)'
+                    }}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold">
+                          TACTICAL DISPATCH
+                        </span>
+                        <span className="text-[10.5px] font-mono text-slate-400">
+                          [{activeVideo.region}]
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-bold text-white leading-tight mb-1">
+                        {activeVideo.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                        {activeVideo.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
+                      <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 truncate max-w-[55%]">
+                        {activeVideo.tags.slice(0, 3).join(' • ')}
+                      </div>
+                      <a
+                        href={activeVideo.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-[11px] tracking-wider transition-all shadow-[0_0_12px_rgba(56,189,248,0.4)] shrink-0"
+                      >
+                        <Play size={10} className="fill-current" />
+                        <span>OPEN ON YOUTUBE</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div
                   onClick={() => setIsPlayerMinimized(false)}
