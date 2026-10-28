@@ -37,6 +37,8 @@ import { getYouTubeEmbedUrl } from '../utils/youtubeResolver';
 interface IntelWorkspaceDrawerProps {
   isOpen: boolean;
   isMinimized: boolean;
+  isWholePage?: boolean;
+  onToggleWholePage?: () => void;
   width: number;
   tabs: WorkspaceDrawerTab[];
   activeTabId: string;
@@ -57,9 +59,23 @@ interface IntelWorkspaceDrawerProps {
   onSetDraggingResizer?: (dragging: boolean) => void;
 }
 
+export type ActiveWorkspaceDropTarget =
+  | {
+      type: 'card';
+      rowId: string;
+      colId: string;
+      direction: 'top' | 'bottom' | 'left' | 'right';
+    }
+  | {
+      type: 'row_slot';
+      targetRowIndex: number;
+    };
+
 export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   isOpen,
   isMinimized,
+  isWholePage: isWholePageProp = false,
+  onToggleWholePage,
   width,
   tabs,
   activeTabId,
@@ -79,17 +95,23 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   isDraggingResizer = false,
   onSetDraggingResizer
 }) => {
+  const [internalWholePage, setInternalWholePage] = useState(false);
+  const isWholePage = isWholePageProp || internalWholePage;
+  const toggleWholePage = () => {
+    if (onToggleWholePage) {
+      onToggleWholePage();
+    } else {
+      setInternalWholePage((prev) => !prev);
+    }
+  };
+
   const [isDragOver, setIsDragOver] = useState(false);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [isResizingDrawer, setIsResizingDrawer] = useState(false);
   
-  // Notion-style 4-directional active drop target state
-  const [activeDropTarget, setActiveDropTarget] = useState<{
-    rowId: string;
-    colId: string;
-    direction: 'top' | 'bottom' | 'left' | 'right';
-  } | null>(null);
+  // Notion-style 4-directional card and inter-row drop target state
+  const [activeDropTarget, setActiveDropTarget] = useState<ActiveWorkspaceDropTarget | null>(null);
 
   const isDark = theme === 'dark';
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
@@ -621,7 +643,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   const handleCardDragOver = (e: React.DragEvent, targetRowId: string, targetColId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = 'copy';
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -634,18 +656,15 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
     let direction: 'top' | 'bottom' | 'left' | 'right';
 
-    if (relY <= 0.25) {
-      // Top 25%: Insert as new row above
-      direction = 'top';
-    } else if (relY >= 0.75) {
-      // Bottom 25%: Insert as new row below
-      direction = 'bottom';
-    } else if (relX <= 0.25) {
-      // Left 25%: Place side-by-side to the LEFT
+    // Prioritize horizontal side-by-side splitting near edges (<= 22% or >= 78%)
+    if (relX <= 0.22) {
       direction = 'left';
-    } else if (relX >= 0.75) {
-      // Right 25%: Place side-by-side to the RIGHT
+    } else if (relX >= 0.78) {
       direction = 'right';
+    } else if (relY <= 0.28) {
+      direction = 'top';
+    } else if (relY >= 0.72) {
+      direction = 'bottom';
     } else {
       // Central 50%: calculate closest edge
       const distTop = relY;
@@ -654,23 +673,34 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       const distRight = 1 - relX;
       const minDist = Math.min(distTop, distBottom, distLeft, distRight);
 
-      if (minDist === distTop) direction = 'top';
-      else if (minDist === distBottom) direction = 'bottom';
-      else if (minDist === distLeft) direction = 'left';
-      else direction = 'right';
+      if (minDist === distLeft) direction = 'left';
+      else if (minDist === distRight) direction = 'right';
+      else if (minDist === distTop) direction = 'top';
+      else direction = 'bottom';
     }
 
-    setActiveDropTarget({
-      rowId: targetRowId,
-      colId: targetColId,
-      direction
-    });
+    // Debounced state update: only update if target or direction actually changed
+    if (
+      activeDropTarget?.type !== 'card' ||
+      activeDropTarget.rowId !== targetRowId ||
+      activeDropTarget.colId !== targetColId ||
+      activeDropTarget.direction !== direction
+    ) {
+      setActiveDropTarget({
+        type: 'card',
+        rowId: targetRowId,
+        colId: targetColId,
+        direction
+      });
+    }
   };
 
   const handleCardDragLeave = (e: React.DragEvent) => {
     const nextNode = e.relatedTarget as Node | null;
     if (!e.currentTarget.contains(nextNode)) {
-      setActiveDropTarget(null);
+      if (activeDropTarget?.type === 'card') {
+        setActiveDropTarget(null);
+      }
     }
   };
 
@@ -681,7 +711,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    const direction = activeDropTarget?.direction || 'bottom';
+    const direction =
+      activeDropTarget?.type === 'card' && activeDropTarget.direction
+        ? activeDropTarget.direction
+        : 'bottom';
+
     setActiveDropTarget(null);
     setIsDragOver(false);
 
@@ -692,8 +726,8 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       const item: WorkspaceDrawerItem = parsed.item;
       if (!item) return;
 
-      // Auto-expand workspace width to >= 560px for side-by-side placement
-      if ((direction === 'left' || direction === 'right') && width < 560 && onResizeWidth) {
+      // Auto-expand workspace width to >= 560px for side-by-side placement (when in drawer mode)
+      if ((direction === 'left' || direction === 'right') && !isWholePage && width < 560 && onResizeWidth) {
         onResizeWidth(560);
       }
 
@@ -761,12 +795,13 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   };
 
   // -------------------------------------------------------------
-  // Canvas Drop: Append to End of Canvas
+  // Row Slot Drop: Precision Inter-Row & Top Placement (Zero Flicker)
   // -------------------------------------------------------------
-  const handleCanvasDrop = (e: React.DragEvent) => {
+  const handleRowSlotDrop = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
-    setIsDragOver(false);
+    e.stopPropagation();
     setActiveDropTarget(null);
+    setIsDragOver(false);
 
     try {
       const rawData = e.dataTransfer.getData('application/json');
@@ -780,6 +815,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       if (isInternalMove) {
         const { sourceRowId, sourceColId } = parsed;
         let movingCol: WorkspaceColumn | null = null;
+
         const rowsAfterExtraction = localRows
           .map((row) => {
             if (row.rowId !== sourceRowId) return row;
@@ -790,14 +826,25 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           })
           .filter((row) => row.columns.length > 0);
 
-        if (movingCol) {
-          const validCol: WorkspaceColumn = movingCol;
-          const newRow: WorkspaceRow = {
-            rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            columns: [{ ...validCol, widthFlex: 1 }]
+        if (!movingCol) {
+          movingCol = {
+            id: `col_${item.id}_${Date.now()}`,
+            item,
+            widthFlex: 1,
+            customHeight: item.type === 'video' ? 240 : undefined
           };
-          updateRows([...rowsAfterExtraction, newRow]);
         }
+
+        const validCol: WorkspaceColumn = movingCol;
+        const newRow: WorkspaceRow = {
+          rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          columns: [{ ...validCol, widthFlex: 1 }]
+        };
+
+        const clampedIndex = Math.max(0, Math.min(targetIndex, rowsAfterExtraction.length));
+        const updated = [...rowsAfterExtraction];
+        updated.splice(clampedIndex, 0, newRow);
+        updateRows(updated);
       } else {
         const newCol: WorkspaceColumn = {
           id: `col_${item.id}_${Date.now()}`,
@@ -809,22 +856,32 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           columns: [newCol]
         };
-        updateRows([...localRows, newRow]);
+
+        const clampedIndex = Math.max(0, Math.min(targetIndex, localRows.length));
+        const updated = [...localRows];
+        updated.splice(clampedIndex, 0, newRow);
+        updateRows(updated);
         onDropItem(activeTabId, item);
       }
     } catch (err) {
-      console.warn('handleCanvasDrop error:', err);
+      console.warn('handleRowSlotDrop error:', err);
     }
+  };
+
+  // -------------------------------------------------------------
+  // Canvas Drop: Append to End of Canvas
+  // -------------------------------------------------------------
+  const handleCanvasDrop = (e: React.DragEvent) => {
+    handleRowSlotDrop(e, localRows.length);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
-    setIsDragOver(true);
   };
 
   const handleDragLeave = () => {
-    setIsDragOver(false);
+    // No-op to avoid flickering
   };
 
   const handleStartRename = (e: React.MouseEvent, tab: WorkspaceDrawerTab) => {
@@ -880,44 +937,49 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={(e) => handleCanvasDrop(e)}
-      className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col shadow-2xl select-none cq-panel"
+      className="absolute top-[76px] bottom-0 right-0 flex flex-col shadow-2xl select-none cq-panel"
       style={{
-        width: `${width}px`,
+        left: isWholePage ? 0 : undefined,
+        right: 0,
+        width: isWholePage ? '100vw' : `${width}px`,
         maxWidth: '100vw',
+        zIndex: isWholePage ? 45 : 35,
         background: isDark ? 'var(--bg-surface)' : '#FFFFFF',
-        borderLeft: '1px solid var(--border-medium)',
-        boxShadow: '-16px 0 32px rgba(0, 0, 0, 0.65)',
-        transition: isDraggingResizer || isResizingDrawer ? 'none' : 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+        borderLeft: isWholePage ? 'none' : '1px solid var(--border-medium)',
+        boxShadow: isWholePage ? 'none' : '-16px 0 32px rgba(0, 0, 0, 0.65)',
+        transition: isDraggingResizer || isResizingDrawer ? 'none' : 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
       {/* ------------------------------------------------------------- */}
-      {/* Interactive Left-Edge Drag-Resize Gutter (300px to 65vw)       */}
+      {/* Interactive Left-Edge Drag-Resize Gutter (Hidden in Whole Page Mode) */}
       {/* ------------------------------------------------------------- */}
-      <div
-        onMouseDown={handleStartDrawerResize}
-        className="absolute left-0 top-0 bottom-0 w-[6px] -translate-x-[3px] z-50 cursor-ew-resize group select-none flex items-center justify-center"
-        title="Drag left/right to resize Intel Workspace (300px - 65vw)"
-      >
-        {/* Glowing Highlight line */}
+      {!isWholePage && (
         <div
-          className={`w-[2px] h-full transition-all ${
-            isResizingDrawer || isDraggingResizer
-              ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
-              : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
-          }`}
-        />
-
-        {/* Centered Pill Grip Icon */}
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
-            isResizingDrawer || isDraggingResizer
-              ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
-              : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
-          }`}
+          onMouseDown={handleStartDrawerResize}
+          className="absolute left-0 top-0 bottom-0 w-[6px] -translate-x-[3px] z-50 cursor-ew-resize group select-none flex items-center justify-center"
+          title="Drag left/right to resize Intel Workspace (300px - 65vw)"
         >
-          <GripVertical size={11} />
+          {/* Glowing Highlight line */}
+          <div
+            className={`w-[2px] h-full transition-all ${
+              isResizingDrawer || isDraggingResizer
+                ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
+                : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
+            }`}
+          />
+
+          {/* Centered Pill Grip Icon */}
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
+              isResizingDrawer || isDraggingResizer
+                ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
+                : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
+            }`}
+          >
+            <GripVertical size={11} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 1. Header Toolbar */}
       <div
@@ -939,21 +1001,47 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             {allItems.length} {allItems.length === 1 ? 'ITEM' : 'ITEMS'}
           </span>
           <span className="hidden sm:inline-block text-[9.5px] text-slate-500 font-mono">
-            {width}px
+            {isWholePage ? 'WHOLE PAGE (100vw)' : `${width}px`}
           </span>
         </div>
 
-        {/* Right: Expand/Collapse Width + Minimize + Close */}
+        {/* Right: Whole Page Toggle + Expand/Collapse Width + Minimize + Close */}
         <div className="flex items-center gap-1.5">
-          {/* Toggle Preset Width */}
+          {/* Whole Page Extension Toggle Button */}
           <button
             type="button"
-            onClick={onToggleWidth}
-            className="p-1 rounded text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
-            title={width >= 600 ? 'Shrink to 440px Compact' : 'Expand to 680px Wide Canvas'}
+            onClick={toggleWholePage}
+            className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer ${
+              isWholePage
+                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(56,189,248,0.4)]'
+                : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.06] border border-white/10'
+            }`}
+            title={isWholePage ? 'Restore Drawer Mode (⤡)' : 'Expand Workspace to Whole Page (⤢)'}
           >
-            {width >= 600 ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+            {isWholePage ? (
+              <>
+                <Minimize2 size={11} />
+                <span className="hidden sm:inline">DRAWER VIEW</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 size={11} />
+                <span className="hidden sm:inline">WHOLE PAGE</span>
+              </>
+            )}
           </button>
+
+          {/* Toggle Preset Width (Only visible when in Drawer mode) */}
+          {!isWholePage && (
+            <button
+              type="button"
+              onClick={onToggleWidth}
+              className="p-1 rounded text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
+              title={width >= 600 ? 'Shrink to 440px Compact' : 'Expand to 680px Wide Canvas'}
+            >
+              {width >= 600 ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+            </button>
+          )}
 
           {/* Minimize to Slim Vertical Rail */}
           <button
@@ -970,7 +1058,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             type="button"
             onClick={onClose}
             className="p-1 rounded text-[var(--text-muted)] hover:text-rose-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
-            title="Close Workspace Drawer (×)"
+            title="Close Workspace (×)"
           >
             <X size={14} />
           </button>
@@ -1087,39 +1175,88 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         </button>
       </div>
 
-      {/* 3. Drop Indicator Glow (When dragging item over drawer) */}
-      {isDragOver && (
-        <div className="px-3 py-1.5 bg-sky-500/10 border-b border-sky-500/30 text-sky-300 text-[10.5px] font-mono flex items-center justify-between animate-pulse">
-          <span>+ DROP ANYWHERE TO MOUNT AS NEW ROW</span>
-          <span className="text-[9px] text-slate-400">Drag to card edge to place side-by-side</span>
-        </div>
-      )}
-
       {/* ------------------------------------------------------------- */}
       {/* 4. Notion + Canva 2D Block Canvas (Rows with 1 to 3 Columns)  */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex-1 overflow-y-auto feed-scrollbar p-3 space-y-3">
+      <div
+        className={`flex-1 overflow-y-auto feed-scrollbar ${
+          isWholePage ? 'px-6 sm:px-12 py-6 max-w-[1600px] mx-auto w-full' : 'p-3'
+        }`}
+      >
         {localRows.length === 0 ? (
           <div
-            onDrop={(e) => handleCanvasDrop(e)}
-            className="h-full min-h-[220px] flex flex-col items-center justify-center p-6 text-center border border-dashed border-slate-800 rounded-xl bg-slate-900/20 transition-all hover:border-sky-500/40"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.dataTransfer.dropEffect = 'copy';
+              if (activeDropTarget?.type !== 'row_slot' || activeDropTarget.targetRowIndex !== 0) {
+                setActiveDropTarget({ type: 'row_slot', targetRowIndex: 0 });
+              }
+            }}
+            onDragLeave={() => setActiveDropTarget(null)}
+            onDrop={(e) => handleRowSlotDrop(e, 0)}
+            className={`h-full min-h-[260px] flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl transition-all ${
+              activeDropTarget?.type === 'row_slot'
+                ? 'border-sky-400 bg-sky-500/10 text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.25)]'
+                : 'border-slate-800 bg-slate-900/20 text-slate-400 hover:border-slate-700'
+            }`}
           >
-            <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-2">
-              <Radio size={18} className="animate-pulse" />
+            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-3">
+              <Radio size={20} className="animate-pulse" />
             </div>
-            <div className="font-mono text-xs font-bold text-slate-300 tracking-wider uppercase">
+            <div className="font-mono text-xs font-bold text-slate-200 tracking-wider uppercase mb-1">
               WORKSPACE CANVAS IS EMPTY
             </div>
+            <p className="font-sans text-[11px] text-slate-500 max-w-[320px]">
+              Drag and drop any intelligence item or video broadcast here to mount your first 2D block.
+            </p>
           </div>
         ) : (
-          localRows.map((row, rowIdx) => {
-            const colCount = row.columns.length;
-
-            return (
+          <div className="flex flex-col">
+            {/* Top Drop Slot (Before Row 0) */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+                if (activeDropTarget?.type !== 'row_slot' || activeDropTarget.targetRowIndex !== 0) {
+                  setActiveDropTarget({ type: 'row_slot', targetRowIndex: 0 });
+                }
+              }}
+              onDragLeave={(e) => {
+                const nextNode = e.relatedTarget as Node | null;
+                if (!e.currentTarget.contains(nextNode)) {
+                  if (activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0) {
+                    setActiveDropTarget(null);
+                  }
+                }
+              }}
+              onDrop={(e) => handleRowSlotDrop(e, 0)}
+              className="relative py-2.5 -mt-1.5 mb-1 z-30 cursor-pointer group"
+            >
               <div
-                key={row.rowId}
-                className="relative group/row rounded-lg border border-slate-800/90 bg-[#090d16]/70 p-1.5 transition-all hover:border-slate-700 shadow-md"
+                className={`h-[3px] rounded-full transition-all flex items-center justify-center relative ${
+                  activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0
+                    ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
+                    : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                }`}
               >
+                {activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0 && (
+                  <span className="absolute -top-3.5 px-3 py-0.5 rounded-full bg-[#0284C7] text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap">
+                    <ArrowUp size={10} /> INSERT NEW ROW AT TOP
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {localRows.map((row, rowIdx) => {
+              const colCount = row.columns.length;
+
+              return (
+                <React.Fragment key={row.rowId}>
+                  <div
+                    className="relative group/row rounded-lg border border-slate-800/90 bg-[#090d16]/70 p-1.5 transition-all hover:border-slate-700 shadow-md"
+                  >
                 {/* Row Controls Bar (Notion Style Block Actions) */}
                 <div className="flex items-center justify-between px-1.5 py-1 mb-1 text-[10px] font-mono text-slate-500 border-b border-white/[0.04]">
                   <div className="flex items-center gap-2">
@@ -1205,13 +1342,17 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                             minWidth: '220px'
                           }}
                           className={`relative flex flex-col rounded-md border ${
-                            activeDropTarget?.rowId === row.rowId && activeDropTarget?.colId === col.id
+                            activeDropTarget?.type === 'card' &&
+                            activeDropTarget.rowId === row.rowId &&
+                            activeDropTarget.colId === col.id
                               ? 'border-sky-400 ring-1 ring-sky-400/40 shadow-[0_0_18px_rgba(56,189,248,0.25)]'
                               : 'border-slate-800 hover:border-slate-700'
                           } bg-[#0c121e] shadow-lg group/card transition-all`}
                         >
                           {/* 4-Directional Glowing Drop Indicators */}
-                          {activeDropTarget?.rowId === row.rowId && activeDropTarget?.colId === col.id && (
+                          {activeDropTarget?.type === 'card' &&
+                            activeDropTarget.rowId === row.rowId &&
+                            activeDropTarget.colId === col.id && (
                             <>
                               {activeDropTarget.direction === 'top' && (
                                 <div className="absolute -top-[3px] left-0 right-0 z-50 pointer-events-none flex items-center justify-center">
@@ -1523,33 +1664,84 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                   })}
                 </div>
               </div>
-            );
-          })
-        )}
 
-        {/* Empty Bottom Canvas Drop Zone (when rows exist) */}
-        {localRows.length > 0 && (
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.dataTransfer.dropEffect = 'copy';
-              setIsDragOver(true);
-            }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={(e) => handleCanvasDrop(e)}
-            className="min-h-[85px] rounded-lg border border-dashed border-slate-800/80 hover:border-sky-500/50 bg-[#090d16]/30 hover:bg-sky-500/[0.04] transition-all flex flex-col items-center justify-center p-3 text-center cursor-default group/canvas"
-          >
-            <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 group-hover/canvas:text-sky-300 transition-colors">
-              <Plus size={11} className="text-sky-400" />
-              <span className="font-semibold uppercase tracking-wider">DROP HERE TO APPEND AS NEW ROW</span>
-            </div>
-            <span className="text-[9px] text-slate-600 mt-0.5 font-mono">
-              Hover card edges for 4-directional placement (↑ Top, ↓ Bottom, ← Left, → Right)
-            </span>
+              {/* Inter-Row Drop Slot (Between Row rowIdx and rowIdx + 1) */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.dataTransfer.dropEffect = 'copy';
+                  if (activeDropTarget?.type !== 'row_slot' || activeDropTarget.targetRowIndex !== rowIdx + 1) {
+                    setActiveDropTarget({ type: 'row_slot', targetRowIndex: rowIdx + 1 });
+                  }
+                }}
+                onDragLeave={(e) => {
+                  const nextNode = e.relatedTarget as Node | null;
+                  if (!e.currentTarget.contains(nextNode)) {
+                    if (activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1) {
+                      setActiveDropTarget(null);
+                    }
+                  }
+                }}
+                onDrop={(e) => handleRowSlotDrop(e, rowIdx + 1)}
+                className="relative py-2.5 -my-1 z-30 cursor-pointer group"
+              >
+                <div
+                  className={`h-[3px] rounded-full transition-all flex items-center justify-center relative ${
+                    activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1
+                      ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
+                      : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                  }`}
+                >
+                  {activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1 && (
+                    <span className="absolute -top-3.5 px-3 py-0.5 rounded-full bg-[#0284C7] text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap">
+                      + INSERT NEW ROW HERE (BETWEEN ROW {rowIdx + 1} & {rowIdx + 2})
+                    </span>
+                  )}
+                </div>
+              </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Bottom Canvas Append Drop Zone (when rows exist) */}
+      {localRows.length > 0 && (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'copy';
+            if (activeDropTarget?.type !== 'row_slot' || activeDropTarget.targetRowIndex !== localRows.length) {
+              setActiveDropTarget({ type: 'row_slot', targetRowIndex: localRows.length });
+            }
+          }}
+          onDragLeave={(e) => {
+            const nextNode = e.relatedTarget as Node | null;
+            if (!e.currentTarget.contains(nextNode)) {
+              if (activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length) {
+                setActiveDropTarget(null);
+              }
+            }
+          }}
+          onDrop={(e) => handleRowSlotDrop(e, localRows.length)}
+          className={`min-h-[72px] mt-2 mb-6 rounded-lg border-2 border-dashed transition-all flex flex-col items-center justify-center p-3 text-center cursor-pointer ${
+            activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length
+              ? 'border-[#38BDF8] bg-sky-500/10 text-sky-400 shadow-[0_0_16px_rgba(56,189,248,0.2)]'
+              : 'border-slate-800/80 hover:border-slate-700 bg-[#090d16]/30 text-slate-500 hover:text-slate-400'
+          }`}
+        >
+          <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider">
+            <Plus size={12} className={activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length ? 'text-[#38BDF8] animate-bounce' : 'text-sky-400'} />
+            <span>Drop here to append as new row at bottom</span>
           </div>
-        )}
-      </div>
+          <span className="text-[9px] text-slate-600 mt-0.5 font-mono">
+            Hover card edges for 4-directional placement (↑ Top, ↓ Bottom, ← Left, → Right)
+          </span>
+        </div>
+      )}
+    </div>
 
       {/* 5. Footer Information */}
       <div

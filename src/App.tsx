@@ -1196,6 +1196,8 @@ const AppContent: React.FC = () => {
             right: activeRightDrawer.isOpen
               ? activeRightDrawer.isMinimized
                 ? '36px'
+                : activeRightDrawer.isWholePage
+                ? '0px'
                 : `${activeRightDrawer.width}px`
               : '0px',
             bottom: 0,
@@ -1275,6 +1277,10 @@ const AppContent: React.FC = () => {
       <IntelWorkspaceDrawer
         isOpen={activeRightDrawer.isOpen}
         isMinimized={activeRightDrawer.isMinimized}
+        isWholePage={activeRightDrawer.isWholePage}
+        onToggleWholePage={() =>
+          updateActiveTabRightDrawer({ isWholePage: !activeRightDrawer.isWholePage })
+        }
         width={activeRightDrawer.width}
         tabs={activeRightDrawer.drawerTabs}
         activeTabId={activeRightDrawer.activeDrawerTabId}

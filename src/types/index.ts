@@ -225,6 +225,7 @@ export interface WorkspaceTabIntelDeskState {
 export interface WorkspaceTabRightDrawerState {
   isOpen: boolean;
   isMinimized: boolean;
+  isWholePage?: boolean;
   width: number; // Resizable between 300 and 65vw
   activeDrawerTabId: string;
   drawerTabs: WorkspaceDrawerTab[];
@@ -265,6 +266,7 @@ export const createDefaultIntelDeskState = (region?: string): WorkspaceTabIntelD
 export const createDefaultRightDrawerState = (): WorkspaceTabRightDrawerState => ({
   isOpen: false,
   isMinimized: false,
+  isWholePage: false,
   width: 460,
   activeDrawerTabId: 'drawer_tab_1',
   drawerTabs: [
