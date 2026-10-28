@@ -13,12 +13,17 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 interface UserNavProps {
-  onOpenAuthModal: () => void;
+  onOpenAuthModal?: () => void;
+  onNavigateLogin?: () => void;
   compact?: boolean;
 }
 
-export const UserNav: React.FC<UserNavProps> = ({ onOpenAuthModal, compact = false }) => {
-  const { user, profile, role, isAdmin, signOut, isConfigured } = useAuth();
+export const UserNav: React.FC<UserNavProps> = ({
+  onOpenAuthModal,
+  onNavigateLogin,
+  compact = false
+}) => {
+  const { user, profile, role, isAdmin, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -33,16 +38,24 @@ export const UserNav: React.FC<UserNavProps> = ({ onOpenAuthModal, compact = fal
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleLoginClick = () => {
+    if (onNavigateLogin) {
+      onNavigateLogin();
+    } else if (onOpenAuthModal) {
+      onOpenAuthModal();
+    }
+  };
+
   if (!user) {
     return (
       <button
-        onClick={onOpenAuthModal}
+        onClick={handleLoginClick}
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/50 text-[11px] font-mono text-sky-400 hover:text-sky-300 transition-all shadow-xs cursor-pointer active:scale-95 group"
-        title="Operator Authentication & Role Clearance"
+        title="Sign in to your account"
       >
         <Shield size={12} className="group-hover:scale-110 transition-transform text-sky-400" />
         <span className="font-semibold tracking-wider">
-          {compact ? 'LOGIN' : 'OPERATOR LOGIN'}
+          {compact ? 'SIGN IN' : 'SIGN IN'}
         </span>
       </button>
     );

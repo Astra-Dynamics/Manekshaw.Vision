@@ -11,6 +11,7 @@ interface AuthContextType {
   isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; user: User | null }>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   isConfigured: false,
   signIn: async () => ({ error: new Error('Auth not configured') }),
   signUp: async () => ({ error: new Error('Auth not configured'), user: null }),
+  resetPassword: async () => ({ error: new Error('Auth not configured') }),
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -136,6 +138,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error, user: data?.user ?? null };
   };
 
+  const resetPassword = async (email: string) => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Supabase is not configured yet. Please add your credentials to .env.local') };
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     if (!isSupabaseConfigured) return;
     await supabase.auth.signOut();
@@ -157,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isConfigured: isSupabaseConfigured,
         signIn,
         signUp,
+        resetPassword,
         signOut,
         refreshProfile
       }}

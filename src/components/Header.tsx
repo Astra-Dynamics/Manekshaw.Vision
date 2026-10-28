@@ -35,6 +35,7 @@ interface HeaderProps {
   alerts?: IntelNewsItem[];
   onSelectAlert?: (alert: IntelNewsItem) => void;
   onOpenAuthModal?: () => void;
+  onNavigateLogin?: () => void;
 }
 
 interface CityTimeZone {
@@ -70,7 +71,8 @@ export const Header: React.FC<HeaderProps> = ({
   zoom = 3.25,
   alerts = [],
   onSelectAlert,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onNavigateLogin
 }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
   const [formattedTime, setFormattedTime] = useState<string>('');
@@ -426,7 +428,10 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Operator Profile / Auth */}
-        <UserNav onOpenAuthModal={onOpenAuthModal || (() => {})} />
+        <UserNav
+          onOpenAuthModal={onOpenAuthModal || (() => {})}
+          onNavigateLogin={onNavigateLogin}
+        />
 
         {/* Theme Toggle */}
         <button

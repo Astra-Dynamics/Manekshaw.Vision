@@ -12,6 +12,7 @@ import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
 import { AuthProvider } from './context/AuthContext';
 import { AuthModal } from './components/AuthModal';
+import { AuthPage } from './components/AuthPage';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -143,6 +144,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   const isDashboard = currentPath.toLowerCase().startsWith('/dashboard');
+  const isAuthPage = ['/login', '/signin', '/signup', '/auth'].includes(currentPath.toLowerCase());
 
   const handleLaunchDashboard = () => {
     window.history.pushState({}, '', '/Dashboard');
@@ -154,7 +156,13 @@ const AppContent: React.FC = () => {
     setCurrentPath('/');
   };
 
-  // Auth Modal State
+  const handleNavigateLogin = (mode: 'signin' | 'signup' = 'signin') => {
+    const target = mode === 'signup' ? '/signup' : '/login';
+    window.history.pushState({}, '', target);
+    setCurrentPath(target);
+  };
+
+  // Auth Modal State (Fallback / Quick access)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
@@ -963,12 +971,23 @@ const AppContent: React.FC = () => {
     });
   }, [selectedCountry, allFeatures]);
 
+  if (isAuthPage) {
+    return (
+      <AuthPage
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
+        initialMode={currentPath.toLowerCase() === '/signup' ? 'signup' : 'signin'}
+      />
+    );
+  }
+
   if (!isDashboard) {
     return (
       <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
         <LandingPage
           onLaunchDashboard={handleLaunchDashboard}
           onOpenAuthModal={() => handleOpenAuth('signin')}
+          onNavigateLogin={() => handleNavigateLogin('signin')}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -1018,6 +1037,7 @@ const AppContent: React.FC = () => {
         alerts={newsFeed}
         onSelectAlert={handleSelectAlert}
         onOpenAuthModal={() => handleOpenAuth('signin')}
+        onNavigateLogin={() => handleNavigateLogin('signin')}
       />
 
       {/* 2.5 Multi-Tab Tactical Workspace Bar (Below Header, height: 32px, z-30) */}
