@@ -22,7 +22,11 @@ import {
   ThemeMode,
   WorkspaceTab,
   WorkspaceDrawerItem,
-  WorkspaceDrawerTab
+  WorkspaceDrawerTab,
+  WorkspaceTabIntelDeskState,
+  WorkspaceTabRightDrawerState,
+  createDefaultIntelDeskState,
+  createDefaultRightDrawerState
 } from './types';
 
 // Curated Datasets
@@ -162,7 +166,9 @@ export const App: React.FC = () => {
       zoom: initialZoom,
       view: initialView,
       timeRange: initialTimeRange,
-      activeLayers: initialActiveLayers
+      activeLayers: initialActiveLayers,
+      intelDesk: createDefaultIntelDeskState(initialView),
+      rightDrawer: createDefaultRightDrawerState()
     };
 
     const hasExplicitUrlParams = Boolean(cParam || urlParams.get('lat') || urlParams.get('v') || urlParams.get('l'));
@@ -175,7 +181,11 @@ export const App: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map((t) => ({
+            ...t,
+            intelDesk: t.intelDesk || createDefaultIntelDeskState(t.view),
+            rightDrawer: t.rightDrawer || createDefaultRightDrawerState()
+          }));
         }
       }
     } catch (e) {
@@ -337,7 +347,9 @@ export const App: React.FC = () => {
       zoom: mapZoom,
       view: currentView,
       timeRange: timeRange,
-      activeLayers: { ...activeLayers }
+      activeLayers: { ...activeLayers },
+      intelDesk: createDefaultIntelDeskState(currentView),
+      rightDrawer: createDefaultRightDrawerState()
     };
 
     const nextTabs = [...tabs, newTab];
@@ -437,44 +449,16 @@ export const App: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<CountryIntelDetails | null>(null);
 
   // -------------------------------------------------------------
-  // Rightmost Intel Workspace Drawer State & Multi-Tab Logic
+  // Rightmost Intel Workspace Drawer State & Multi-Tab Logic (Isolated Per-Tab)
   // -------------------------------------------------------------
-  const [isWorkspaceDrawerOpen, setIsWorkspaceDrawerOpen] = useState<boolean>(false);
-  const [isWorkspaceDrawerMinimized, setIsWorkspaceDrawerMinimized] = useState<boolean>(false);
-  const [workspaceDrawerWidth, setWorkspaceDrawerWidth] = useState<number>(440); // 440 or 640
+  const activeTab = useMemo(() => {
+    return tabs.find((t) => t.id === activeTabId) || tabs[0];
+  }, [tabs, activeTabId]);
+
+  const activeIntelDesk = activeTab.intelDesk || createDefaultIntelDeskState(activeTab.view);
+  const activeRightDrawer = activeTab.rightDrawer || createDefaultRightDrawerState();
+
   const [isDraggingIntel, setIsDraggingIntel] = useState<boolean>(false);
-
-  const [workspaceDrawerTabs, setWorkspaceDrawerTabs] = useState<WorkspaceDrawerTab[]>(() => {
-    try {
-      const saved = sessionStorage.getItem('manvis_intel_drawer_tabs');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {}
-    return [
-      {
-        id: 'drawer_tab_1',
-        title: 'Tactical Watch',
-        items: []
-      }
-    ];
-  });
-
-  const [activeWorkspaceDrawerTabId, setActiveWorkspaceDrawerTabId] = useState<string>(() => {
-    try {
-      const saved = sessionStorage.getItem('manvis_intel_drawer_active_tab');
-      if (saved) return saved;
-    } catch (e) {}
-    return 'drawer_tab_1';
-  });
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem('manvis_intel_drawer_tabs', JSON.stringify(workspaceDrawerTabs));
-      sessionStorage.setItem('manvis_intel_drawer_active_tab', activeWorkspaceDrawerTabId);
-    } catch (e) {}
-  }, [workspaceDrawerTabs, activeWorkspaceDrawerTabId]);
 
   // Reset drag state on window dragend
   useEffect(() => {
@@ -483,91 +467,226 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('dragend', handleDragEnd);
   }, []);
 
-  const handleOpenInWorkspace = useCallback((item: WorkspaceDrawerItem) => {
-    setIsWorkspaceDrawerOpen(true);
-    setIsWorkspaceDrawerMinimized(false);
+  const updateActiveTabIntelDesk = useCallback(
+    (updates: Partial<WorkspaceTabIntelDeskState>) => {
+      setTabs((prevTabs) => {
+        const nextTabs = prevTabs.map((t) =>
+          t.id === activeTabId
+            ? {
+                ...t,
+                intelDesk: {
+                  ...(t.intelDesk || createDefaultIntelDeskState(t.view)),
+                  ...updates
+                }
+              }
+            : t
+        );
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
 
-    setWorkspaceDrawerTabs((prevTabs) => {
-      let targetTabId = activeWorkspaceDrawerTabId;
-      let targetTab = prevTabs.find((t) => t.id === targetTabId);
+  const updateActiveTabRightDrawer = useCallback(
+    (updates: Partial<WorkspaceTabRightDrawerState>) => {
+      setTabs((prevTabs) => {
+        const nextTabs = prevTabs.map((t) =>
+          t.id === activeTabId
+            ? {
+                ...t,
+                rightDrawer: {
+                  ...(t.rightDrawer || createDefaultRightDrawerState()),
+                  ...updates
+                }
+              }
+            : t
+        );
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
 
-      if (!targetTab) {
-        targetTab = prevTabs[0];
-        targetTabId = targetTab ? targetTab.id : 'drawer_tab_1';
-      }
+  const handleOpenInWorkspace = useCallback(
+    (item: WorkspaceDrawerItem) => {
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId) || prevTabs[0];
+        if (!currentTab) return prevTabs;
 
-      if (!targetTab) {
-        const newTab: WorkspaceDrawerTab = {
-          id: 'drawer_tab_1',
-          title: item.type === 'video' ? 'Live Stream' : 'Intel Brief',
-          items: [item]
-        };
-        return [newTab];
-      }
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        let targetDrawerTabId = currentDrawer.activeDrawerTabId;
+        let targetDrawerTab = currentDrawer.drawerTabs.find((t) => t.id === targetDrawerTabId);
 
-      const alreadyExists = targetTab.items.some((i) => i.id === item.id);
-      if (alreadyExists) return prevTabs;
+        if (!targetDrawerTab) {
+          targetDrawerTab = currentDrawer.drawerTabs[0];
+          targetDrawerTabId = targetDrawerTab ? targetDrawerTab.id : 'drawer_tab_1';
+        }
 
-      return prevTabs.map((t) =>
-        t.id === targetTabId
-          ? {
-              ...t,
-              title:
-                t.title === 'Tactical Watch' && t.items.length === 0
-                  ? item.type === 'video'
-                    ? 'Live Stream'
-                    : 'Intel Brief'
-                  : t.title,
-              items: [...t.items, item]
-            }
-          : t
-      );
-    });
-  }, [activeWorkspaceDrawerTabId]);
+        let updatedDrawerTabs = currentDrawer.drawerTabs;
+
+        if (!targetDrawerTab) {
+          const newTab: WorkspaceDrawerTab = {
+            id: 'drawer_tab_1',
+            title: item.type === 'video' ? 'Live Stream' : 'Intel Brief',
+            items: [item]
+          };
+          updatedDrawerTabs = [newTab];
+          targetDrawerTabId = 'drawer_tab_1';
+        } else {
+          const alreadyExists = targetDrawerTab.items.some((i) => i.id === item.id);
+          if (!alreadyExists) {
+            updatedDrawerTabs = currentDrawer.drawerTabs.map((t) =>
+              t.id === targetDrawerTabId
+                ? {
+                    ...t,
+                    title:
+                      t.title === 'Tactical Watch' && t.items.length === 0
+                        ? item.type === 'video'
+                          ? 'Live Stream'
+                          : 'Intel Brief'
+                        : t.title,
+                    items: [...t.items, item]
+                  }
+                : t
+            );
+          }
+        }
+
+        const nextTabs = prevTabs.map((t) =>
+          t.id === activeTabId
+            ? {
+                ...t,
+                rightDrawer: {
+                  ...currentDrawer,
+                  isOpen: true,
+                  isMinimized: false,
+                  activeDrawerTabId: targetDrawerTabId,
+                  drawerTabs: updatedDrawerTabs
+                }
+              }
+            : t
+        );
+
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
 
   const handleNewDrawerTab = useCallback(() => {
-    const nextNum = workspaceDrawerTabs.length + 1;
-    const newTabId = `drawer_tab_${Date.now()}`;
-    const newTab: WorkspaceDrawerTab = {
-      id: newTabId,
-      title: `Workspace ${nextNum}`,
-      items: []
-    };
-    setWorkspaceDrawerTabs((prev) => [...prev, newTab]);
-    setActiveWorkspaceDrawerTabId(newTabId);
-  }, [workspaceDrawerTabs]);
+    setTabs((prevTabs) => {
+      const currentTab = prevTabs.find((t) => t.id === activeTabId);
+      if (!currentTab) return prevTabs;
+      const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+      const nextNum = currentDrawer.drawerTabs.length + 1;
+      const newTabId = `drawer_tab_${Date.now()}`;
+      const newDrawerTab: WorkspaceDrawerTab = {
+        id: newTabId,
+        title: `Workspace ${nextNum}`,
+        items: []
+      };
+      const updatedDrawer: WorkspaceTabRightDrawerState = {
+        ...currentDrawer,
+        activeDrawerTabId: newTabId,
+        drawerTabs: [...currentDrawer.drawerTabs, newDrawerTab]
+      };
+      const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+      try {
+        sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+      } catch (e) {}
+      return nextTabs;
+    });
+  }, [activeTabId]);
 
   const handleCloseDrawerTab = useCallback(
     (tabId: string) => {
-      setWorkspaceDrawerTabs((prev) => {
-        if (prev.length <= 1) {
-          return [{ id: prev[0].id, title: 'Tactical Watch', items: [] }];
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId);
+        if (!currentTab) return prevTabs;
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        if (currentDrawer.drawerTabs.length <= 1) {
+          const resetDrawer: WorkspaceTabRightDrawerState = {
+            ...currentDrawer,
+            drawerTabs: [{ id: currentDrawer.drawerTabs[0].id, title: 'Tactical Watch', items: [] }]
+          };
+          const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: resetDrawer } : t));
+          try {
+            sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+          } catch (e) {}
+          return nextTabs;
         }
-        const remaining = prev.filter((t) => t.id !== tabId);
-        if (tabId === activeWorkspaceDrawerTabId) {
-          setActiveWorkspaceDrawerTabId(remaining[0].id);
+
+        const remaining = currentDrawer.drawerTabs.filter((t) => t.id !== tabId);
+        let nextActiveId = currentDrawer.activeDrawerTabId;
+        if (tabId === nextActiveId) {
+          nextActiveId = remaining[0].id;
         }
-        return remaining;
+
+        const updatedDrawer: WorkspaceTabRightDrawerState = {
+          ...currentDrawer,
+          activeDrawerTabId: nextActiveId,
+          drawerTabs: remaining
+        };
+        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
       });
     },
-    [activeWorkspaceDrawerTabId]
+    [activeTabId]
   );
 
-  const handleRenameDrawerTab = useCallback((tabId: string, newTitle: string) => {
-    setWorkspaceDrawerTabs((prev) =>
-      prev.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t))
-    );
-  }, []);
+  const handleRenameDrawerTab = useCallback(
+    (tabId: string, newTitle: string) => {
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId);
+        if (!currentTab) return prevTabs;
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        const updatedDrawer: WorkspaceTabRightDrawerState = {
+          ...currentDrawer,
+          drawerTabs: currentDrawer.drawerTabs.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t))
+        };
+        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
 
-  const handleRemoveDrawerItem = useCallback((tabId: string, itemId: string) => {
-    setWorkspaceDrawerTabs((prev) =>
-      prev.map((t) =>
-        t.id === tabId
-          ? { ...t, items: t.items.filter((i) => i.id !== itemId) }
-          : t
-      )
-    );
-  }, []);
+  const handleRemoveDrawerItem = useCallback(
+    (tabId: string, itemId: string) => {
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId);
+        if (!currentTab) return prevTabs;
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        const updatedDrawer: WorkspaceTabRightDrawerState = {
+          ...currentDrawer,
+          drawerTabs: currentDrawer.drawerTabs.map((t) =>
+            t.id === tabId ? { ...t, items: t.items.filter((i) => i.id !== itemId) } : t
+          )
+        };
+        const nextTabs = prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+        try {
+          sessionStorage.setItem('manvis_workspace_tabs', JSON.stringify(nextTabs));
+        } catch (e) {}
+        return nextTabs;
+      });
+    },
+    [activeTabId]
+  );
 
   const handleDropDrawerItem = useCallback(
     (tabId: string, item: WorkspaceDrawerItem) => {
@@ -715,6 +834,18 @@ export const App: React.FC = () => {
       setMapCenter([140.0, -25.0]);
       setMapZoom(3.8);
     }
+
+    const theaterRegionNameMap: Record<string, string> = {
+      'india': 'India / S. Asia',
+      'middle-east': 'Middle East',
+      'europe': 'Europe / UK',
+      'americas': 'Americas / US',
+      'indo-pacific': 'East Asia / Indo-Pacific',
+      'global': 'all'
+    };
+    updateActiveTabIntelDesk({
+      videoRegionFilter: theaterRegionNameMap[view] || 'all'
+    });
   };
 
   const handleToggleLayer = useCallback((layer: LayerKey) => {
@@ -771,6 +902,9 @@ export const App: React.FC = () => {
       severity: alert.severity,
       description: alert.summary,
       source: alert.source
+    });
+    updateActiveTabIntelDesk({
+      activeSubTab: 'dossier'
     });
   };
 
@@ -870,16 +1004,16 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Right: Palantir Edge-Docked Intelligence Desk */}
+      {/* Right: Palantir Edge-Docked Intelligence Desk (Per-Tab Isolated State) */}
       {isRightPanelOpen && (
         <div
           className="absolute z-30 flex flex-col animate-fade-in"
           style={{
             top: '76px',
-            right: isWorkspaceDrawerOpen
-              ? isWorkspaceDrawerMinimized
+            right: activeRightDrawer.isOpen
+              ? activeRightDrawer.isMinimized
                 ? '36px'
-                : `${workspaceDrawerWidth}px`
+                : `${activeRightDrawer.width}px`
               : '0px',
             bottom: 0,
             width: '380px',
@@ -906,22 +1040,41 @@ export const App: React.FC = () => {
             }}
             onOpenInWorkspace={handleOpenInWorkspace}
             onDragStartItem={() => setIsDraggingIntel(true)}
+            activeSubTab={activeIntelDesk.activeSubTab}
+            onChangeSubTab={(subTab) => updateActiveTabIntelDesk({ activeSubTab: subTab })}
+            searchQuery={activeIntelDesk.searchQuery}
+            onChangeSearchQuery={(q) => updateActiveTabIntelDesk({ searchQuery: q })}
+            severityFilter={activeIntelDesk.severityFilter}
+            onChangeSeverityFilter={(sev) => updateActiveTabIntelDesk({ severityFilter: sev })}
+            videoCategoryFilter={activeIntelDesk.videoCategoryFilter}
+            onChangeVideoCategoryFilter={(cat) => updateActiveTabIntelDesk({ videoCategoryFilter: cat })}
+            videoRegionFilter={activeIntelDesk.videoRegionFilter}
+            onChangeVideoRegionFilter={(reg) => updateActiveTabIntelDesk({ videoRegionFilter: reg })}
+            activeVideoChannelId={activeIntelDesk.activeVideoChannelId}
+            onChangeActiveVideoChannelId={(id) => updateActiveTabIntelDesk({ activeVideoChannelId: id })}
+            isPlayerMinimized={activeIntelDesk.isPlayerMinimized}
+            onTogglePlayerMinimized={() =>
+              updateActiveTabIntelDesk({ isPlayerMinimized: !activeIntelDesk.isPlayerMinimized })
+            }
+            currentTheater={currentView}
           />
         </div>
       )}
 
-      {/* Rightmost: Intel Workspace Drawer */}
+      {/* Rightmost: Intel Workspace Drawer (Per-Tab Isolated State) */}
       <IntelWorkspaceDrawer
-        isOpen={isWorkspaceDrawerOpen}
-        isMinimized={isWorkspaceDrawerMinimized}
-        width={workspaceDrawerWidth}
-        tabs={workspaceDrawerTabs}
-        activeTabId={activeWorkspaceDrawerTabId}
+        isOpen={activeRightDrawer.isOpen}
+        isMinimized={activeRightDrawer.isMinimized}
+        width={activeRightDrawer.width}
+        tabs={activeRightDrawer.drawerTabs}
+        activeTabId={activeRightDrawer.activeDrawerTabId}
         theme={theme}
-        onClose={() => setIsWorkspaceDrawerOpen(false)}
-        onToggleMinimize={() => setIsWorkspaceDrawerMinimized((prev) => !prev)}
-        onToggleWidth={() => setWorkspaceDrawerWidth((prev) => (prev === 440 ? 640 : 440))}
-        onSelectTab={setActiveWorkspaceDrawerTabId}
+        onClose={() => updateActiveTabRightDrawer({ isOpen: false })}
+        onToggleMinimize={() => updateActiveTabRightDrawer({ isMinimized: !activeRightDrawer.isMinimized })}
+        onToggleWidth={() =>
+          updateActiveTabRightDrawer({ width: activeRightDrawer.width === 440 ? 640 : 440 })
+        }
+        onSelectTab={(tabId) => updateActiveTabRightDrawer({ activeDrawerTabId: tabId })}
         onNewTab={handleNewDrawerTab}
         onCloseTab={handleCloseDrawerTab}
         onRenameTab={handleRenameDrawerTab}
@@ -934,7 +1087,7 @@ export const App: React.FC = () => {
       />
 
       {/* Auto-Open Drop Target on Right Edge (When dragging and drawer is closed) */}
-      {isDraggingIntel && !isWorkspaceDrawerOpen && (
+      {isDraggingIntel && !activeRightDrawer.isOpen && (
         <div
           onDragOver={(e) => {
             e.preventDefault();

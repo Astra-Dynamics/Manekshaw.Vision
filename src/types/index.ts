@@ -123,6 +123,9 @@ export interface IntelNewsItem {
   severity: 'critical' | 'high' | 'medium' | 'low';
   coordinates?: [number, number];
   relatedHotspot?: string;
+  region?: string;
+  countryCode?: string;
+  link?: string;
 }
 
 export type TheaterView =
@@ -143,20 +146,6 @@ export interface TheaterConfig {
   name: string;
   center: [number, number]; // [lon, lat]
   zoom: number;
-}
-
-export interface WorkspaceTab {
-  id: string;
-  title: string;
-  lat: number;
-  lon: number;
-  zoom: number;
-  view: TheaterView;
-  timeRange: string;
-  activeLayers: Record<LayerKey, boolean>;
-  searchQuery?: string;
-  selectedCountryCode?: string | null;
-  selectedCountryName?: string | null;
 }
 
 export type IntelDrawerItemType = 'video' | 'news' | 'hotspot' | 'conflict' | 'feature';
@@ -190,3 +179,70 @@ export interface WorkspaceDrawerTab {
   title: string;
   items: WorkspaceDrawerItem[];
 }
+
+export interface WorkspaceTabIntelDeskState {
+  isOpen: boolean;
+  isMinimized: boolean;
+  activeSubTab: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier';
+  searchQuery: string;
+  severityFilter: 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  videoCategoryFilter: string;
+  videoRegionFilter: string;
+  activeVideoChannelId: string;
+  isPlayerMinimized: boolean;
+  selectedCountryCode: string | null;
+}
+
+export interface WorkspaceTabRightDrawerState {
+  isOpen: boolean;
+  isMinimized: boolean;
+  width: number; // 440 or 640
+  activeDrawerTabId: string;
+  drawerTabs: WorkspaceDrawerTab[];
+}
+
+export interface WorkspaceTab {
+  id: string;
+  title: string;
+  lat: number;
+  lon: number;
+  zoom: number;
+  view: TheaterView;
+  timeRange: string;
+  activeLayers: Record<LayerKey, boolean>;
+  
+  // Isolated per-tab desk & drawer states
+  intelDesk: WorkspaceTabIntelDeskState;
+  rightDrawer: WorkspaceTabRightDrawerState;
+
+  searchQuery?: string;
+  selectedCountryCode?: string | null;
+  selectedCountryName?: string | null;
+}
+
+export const createDefaultIntelDeskState = (region?: string): WorkspaceTabIntelDeskState => ({
+  isOpen: true,
+  isMinimized: false,
+  activeSubTab: 'feed',
+  searchQuery: '',
+  severityFilter: 'ALL',
+  videoCategoryFilter: 'ALL',
+  videoRegionFilter: region || 'all',
+  activeVideoChannelId: 'dw_news_live',
+  isPlayerMinimized: false,
+  selectedCountryCode: null
+});
+
+export const createDefaultRightDrawerState = (): WorkspaceTabRightDrawerState => ({
+  isOpen: false,
+  isMinimized: false,
+  width: 440,
+  activeDrawerTabId: 'drawer_tab_1',
+  drawerTabs: [
+    {
+      id: 'drawer_tab_1',
+      title: 'Tactical Watch',
+      items: []
+    }
+  ]
+});

@@ -79,6 +79,23 @@ interface RightIntelligencePanelProps {
   onCenterMap: (coords: [number, number]) => void;
   onOpenInWorkspace?: (item: WorkspaceDrawerItem) => void;
   onDragStartItem?: (e: React.DragEvent, item: WorkspaceDrawerItem) => void;
+
+  // Isolated Per-Tab Desk State Props:
+  activeSubTab?: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier';
+  onChangeSubTab?: (subTab: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier') => void;
+  searchQuery?: string;
+  onChangeSearchQuery?: (q: string) => void;
+  severityFilter?: 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  onChangeSeverityFilter?: (sev: 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM') => void;
+  videoCategoryFilter?: string;
+  onChangeVideoCategoryFilter?: (cat: string) => void;
+  videoRegionFilter?: string;
+  onChangeVideoRegionFilter?: (reg: string) => void;
+  activeVideoChannelId?: string;
+  onChangeActiveVideoChannelId?: (id: string) => void;
+  isPlayerMinimized?: boolean;
+  onTogglePlayerMinimized?: () => void;
+  currentTheater?: string;
 }
 
 export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
@@ -92,18 +109,76 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   onSelectFeature,
   onCenterMap,
   onOpenInWorkspace,
-  onDragStartItem
+  onDragStartItem,
+  activeSubTab: propsActiveSubTab,
+  onChangeSubTab,
+  searchQuery: propsSearchQuery,
+  onChangeSearchQuery,
+  severityFilter: propsSeverityFilter,
+  onChangeSeverityFilter,
+  videoCategoryFilter: propsVideoCategoryFilter,
+  onChangeVideoCategoryFilter,
+  videoRegionFilter: propsVideoRegionFilter,
+  onChangeVideoRegionFilter,
+  activeVideoChannelId: propsActiveVideoChannelId,
+  onChangeActiveVideoChannelId,
+  isPlayerMinimized: propsIsPlayerMinimized,
+  onTogglePlayerMinimized,
+  currentTheater
 }) => {
-  const [activeTab, setActiveTab] = useState<'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'>('feed');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
+  const [internalActiveTab, setInternalActiveTab] = useState<'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'>('feed');
+  const activeTab = propsActiveSubTab !== undefined ? propsActiveSubTab : internalActiveTab;
+  const setActiveTab = (tab: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier') => {
+    setInternalActiveTab(tab);
+    if (onChangeSubTab) onChangeSubTab(tab);
+  };
+
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = propsSearchQuery !== undefined ? propsSearchQuery : internalSearchQuery;
+  const setSearchQuery = (q: string) => {
+    setInternalSearchQuery(q);
+    if (onChangeSearchQuery) onChangeSearchQuery(q);
+  };
+
+  const [internalSelectedSeverity, setInternalSelectedSeverity] = useState<string>('ALL');
+  const selectedSeverity = propsSeverityFilter !== undefined ? propsSeverityFilter : internalSelectedSeverity;
+  const setSelectedSeverity = (sev: string) => {
+    setInternalSelectedSeverity(sev);
+    if (onChangeSeverityFilter) onChangeSeverityFilter(sev.toUpperCase() as any);
+  };
+
   const [copiedCoords, setCopiedCoords] = useState(false);
 
   // Videos Tab Specific State
-  const [selectedVideoId, setSelectedVideoId] = useState<string>('dw_news_live');
-  const [isPlayerMinimized, setIsPlayerMinimized] = useState<boolean>(false);
-  const [selectedVideoRegion, setSelectedVideoRegion] = useState<string>('all');
-  const [selectedVideoCategory, setSelectedVideoCategory] = useState<string>('ALL');
+  const [internalSelectedVideoId, setInternalSelectedVideoId] = useState<string>('dw_news_live');
+  const selectedVideoId = propsActiveVideoChannelId !== undefined ? propsActiveVideoChannelId : internalSelectedVideoId;
+  const setSelectedVideoId = (id: string) => {
+    setInternalSelectedVideoId(id);
+    if (onChangeActiveVideoChannelId) onChangeActiveVideoChannelId(id);
+  };
+
+  const [internalIsPlayerMinimized, setInternalIsPlayerMinimized] = useState<boolean>(false);
+  const isPlayerMinimized = propsIsPlayerMinimized !== undefined ? propsIsPlayerMinimized : internalIsPlayerMinimized;
+  const setIsPlayerMinimized = (val: boolean | ((prev: boolean) => boolean)) => {
+    const nextVal = typeof val === 'function' ? val(isPlayerMinimized) : val;
+    setInternalIsPlayerMinimized(nextVal);
+    if (onTogglePlayerMinimized) onTogglePlayerMinimized();
+  };
+
+  const [internalSelectedVideoRegion, setInternalSelectedVideoRegion] = useState<string>('all');
+  const selectedVideoRegion = propsVideoRegionFilter !== undefined ? propsVideoRegionFilter : internalSelectedVideoRegion;
+  const setSelectedVideoRegion = (reg: string) => {
+    setInternalSelectedVideoRegion(reg);
+    if (onChangeVideoRegionFilter) onChangeVideoRegionFilter(reg);
+  };
+
+  const [internalSelectedVideoCategory, setInternalSelectedVideoCategory] = useState<string>('ALL');
+  const selectedVideoCategory = propsVideoCategoryFilter !== undefined ? propsVideoCategoryFilter : internalSelectedVideoCategory;
+  const setSelectedVideoCategory = (cat: string) => {
+    setInternalSelectedVideoCategory(cat);
+    if (onChangeVideoCategoryFilter) onChangeVideoCategoryFilter(cat);
+  };
+
   const [videoPlayerMode, setVideoPlayerMode] = useState<'embed' | 'briefing'>('embed');
 
   const handleDragStartItem = (e: React.DragEvent, drawerItem: WorkspaceDrawerItem) => {
@@ -128,10 +203,24 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.source.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchSev = selectedSeverity === 'all' || item.severity === selectedSeverity;
-      return matchQuery && matchSev;
+      
+      const matchSev =
+        selectedSeverity === 'ALL' ||
+        selectedSeverity === 'all' ||
+        item.severity.toLowerCase() === selectedSeverity.toLowerCase();
+
+      // Viewport-Aware Theater Filtering
+      const matchTheater =
+        !currentTheater ||
+        currentTheater === 'global' ||
+        !item.region ||
+        item.region === 'global' ||
+        item.region.toLowerCase().includes(currentTheater.toLowerCase()) ||
+        currentTheater.toLowerCase().includes(item.region.toLowerCase());
+
+      return matchQuery && matchSev && matchTheater;
     });
-  }, [news, searchQuery, selectedSeverity]);
+  }, [news, searchQuery, selectedSeverity, currentTheater]);
 
   const filteredVideos = useMemo(() => {
     return VIDEO_CATALOGUE.filter((item) => {
