@@ -769,7 +769,8 @@ const AppContent: React.FC = () => {
   // 3. Toggle Save / Bookmark Workspace Layout
   const handleToggleSaveWorkspace = useCallback(() => {
     if (isWorkspaceSaved) {
-      // Unsave layout: erase stored configuration and immediately start from brand new
+      // Unsave layout: erase stored configuration from storage
+      // Let current session stay how it is (no immediate reset)
       localStorage.removeItem(savedWorkspaceKey);
       localStorage.removeItem('manvis_saved_workspace_guest');
       if (user?.id) {
@@ -781,18 +782,6 @@ const AppContent: React.FC = () => {
       } catch (e) {}
 
       setIsWorkspaceSaved(false);
-
-      // Start fresh from brand new defaults
-      const brandNew = createBrandNewDefaultWorkspace();
-      setTabs(brandNew.tabs);
-      setActiveTabId(brandNew.activeTabId);
-      setMapCenter(brandNew.mapCenter);
-      setMapZoom(brandNew.mapZoom);
-      setCurrentView(brandNew.currentView);
-      setTimeRange(brandNew.timeRange);
-      setActiveLayers(brandNew.activeLayers);
-      setIsRightPanelOpen(brandNew.isRightPanelOpen);
-      setDeskWidth(brandNew.deskWidth);
     } else {
       // Save current layout
       const payload = {
