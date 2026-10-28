@@ -14,7 +14,9 @@ import {
   ChevronLeft,
   Tv,
   Play,
-  PlaySquare
+  PlaySquare,
+  Minimize2,
+  Maximize2
 } from 'lucide-react';
 import {
   IntelHotspot,
@@ -26,7 +28,7 @@ import {
   AdizZoneFeature,
   FortifiedBorderFeature
 } from '../types';
-import { STRATEGIC_VIDEO_DISPATCHES, VideoNewsItem } from '../data/videoNews';
+import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
 
 interface RightIntelligencePanelProps {
   isOpen: boolean;
@@ -56,6 +58,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [copiedCoords, setCopiedCoords] = useState(false);
 
+  // Videos Tab Specific State
+  const [selectedVideoId, setSelectedVideoId] = useState<string>('perun');
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState<boolean>(false);
+  const [selectedVideoRegion, setSelectedVideoRegion] = useState<string>('all');
+  const [selectedVideoCategory, setSelectedVideoCategory] = useState<string>('ALL');
+
   // Switch to dossier tab automatically when an item is selected
   useEffect(() => {
     if (selectedFeature) {
@@ -75,15 +83,43 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   }, [news, searchQuery, selectedSeverity]);
 
   const filteredVideos = useMemo(() => {
-    return STRATEGIC_VIDEO_DISPATCHES.filter((v) => {
-      return (
-        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.channel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    return VIDEO_CATALOGUE.filter((item) => {
+      // Search filter across title, channel, description, region, country, and tags
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = item.title.toLowerCase().includes(q);
+        const matchChannel = item.channel.toLowerCase().includes(q);
+        const matchDesc = item.description.toLowerCase().includes(q);
+        const matchRegion = item.region.toLowerCase().includes(q);
+        const matchCountry = item.countryCode.toLowerCase().includes(q);
+        const matchTags = item.tags.some((t) => t.toLowerCase().includes(q));
+        if (!matchTitle && !matchChannel && !matchDesc && !matchRegion && !matchCountry && !matchTags) {
+          return false;
+        }
+      }
+
+      // Region filter
+      if (selectedVideoRegion !== 'all' && item.region !== selectedVideoRegion) {
+        return false;
+      }
+
+      // Category filter
+      if (selectedVideoCategory !== 'ALL' && item.category !== selectedVideoCategory) {
+        return false;
+      }
+
+      return true;
     });
-  }, [searchQuery]);
+  }, [searchQuery, selectedVideoRegion, selectedVideoCategory]);
+
+  const activeVideo = useMemo(() => {
+    return (
+      filteredVideos.find((v) => v.id === selectedVideoId) ||
+      VIDEO_CATALOGUE.find((v) => v.id === selectedVideoId) ||
+      filteredVideos[0] ||
+      VIDEO_CATALOGUE[0]
+    );
+  }, [filteredVideos, selectedVideoId]);
 
   const filteredHotspots = useMemo(() => {
     return hotspots.filter((hs) => {
@@ -244,7 +280,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           />
         </div>
 
-        {activeTab !== 'videos' && (
+        {activeTab !== 'videos' ? (
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
@@ -256,8 +292,61 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             <option value="high">High</option>
             <option value="medium">Medium</option>
           </select>
+        ) : (
+          <select
+            value={selectedVideoRegion}
+            onChange={(e) => setSelectedVideoRegion(e.target.value)}
+            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500 shrink-0 cursor-pointer"
+            style={{ width: '115px', color: 'var(--text-secondary)' }}
+          >
+            <option value="all">All Regions</option>
+            <option value="India / S. Asia">India / S. Asia</option>
+            <option value="Global Wire">Global Wire</option>
+            <option value="Europe / UK">Europe / UK</option>
+            <option value="Americas / US">Americas / US</option>
+            <option value="Middle East">Middle East</option>
+            <option value="East Asia / Indo-Pacific">East Asia / Indo-Pacific</option>
+          </select>
         )}
       </div>
+
+      {/* Row 2: Category Filter Pills for Videos Tab */}
+      {activeTab === 'videos' && (
+        <div
+          className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto select-none shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {(
+            [
+              'ALL',
+              '★ SPECIAL ANALYSTS',
+              '24/7 LIVE NEWS',
+              'DEFENSE & THINK TANKS',
+              'THEATER CAMS & FEEDS'
+            ] as const
+          ).map((cat) => {
+            const isActive = selectedVideoCategory === cat;
+            const isSpecial = cat === '★ SPECIAL ANALYSTS';
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedVideoCategory(cat)}
+                className={`px-2 py-0.5 rounded-[3px] text-[10px] font-mono whitespace-nowrap transition-all cursor-pointer font-semibold ${
+                  isActive
+                    ? isSpecial
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                      : 'bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-[0_0_8px_rgba(56,189,248,0.25)]'
+                    : 'bg-white/[0.03] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)] hover:bg-white/[0.06]'
+                }`}
+                style={{ height: '22px' }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* 4. Tab Panels */}
       <div className="flex-1 overflow-y-auto feed-scrollbar">
@@ -392,93 +481,197 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           </div>
         )}
 
-        {/* 2. Video Feed Tab */}
+        {/* 2. Tactical Video & Analyst Broadcast Terminal */}
         {activeTab === 'videos' && (
-          <div className="space-y-0">
+          <div className="flex flex-col min-h-full">
+            {/* 1. Pinned Active Player Deck */}
             <div
-              className="flex items-center gap-2 text-xs font-mono text-sky-500 font-bold border-b border-[var(--border-subtle)]"
-              style={{ padding: '12px 22px', background: 'rgba(14, 165, 233, 0.08)' }}
+              className="sticky top-0 z-20 shrink-0 border-b border-[var(--border-subtle)] shadow-md"
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                padding: '10px 14px'
+              }}
             >
-              <Tv size={14} className="shrink-0" />
-              <span>LIVE STRATEGIC BROADCASTS & VIDEO BRIEFS</span>
-            </div>
-
-            {filteredVideos.map((video) => (
-              <div
-                key={video.id}
-                onClick={() => window.open(video.youtubeUrl, '_blank', 'noopener,noreferrer')}
-                className="palantir-feed-card cursor-pointer group"
-                style={{
-                  padding: '16px 22px',
-                  boxSizing: 'border-box',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface-elevated)'
-                }}
-              >
-                {/* Thumbnail Preview with Play Icon Overlay */}
-                <div className="relative aspect-video w-full overflow-hidden bg-slate-950 rounded-[2px] mb-3">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-red-600/90 group-hover:bg-red-600 group-hover:scale-110 flex items-center justify-center text-white shadow-xl transition-all">
-                      <Play size={16} className="fill-white translate-x-0.5" />
-                    </div>
-                  </div>
-
-                  {/* Live or Duration Badge */}
-                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                    {video.isLive ? (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-red-600 text-white text-[9.5px] font-mono font-bold uppercase tracking-wider animate-pulse shadow-md">
-                        <span className="w-1 h-1 rounded-full bg-white" />
-                        LIVE
-                      </span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 rounded-[2px] bg-black/80 text-white text-[9.5px] font-mono">
-                        {video.duration}
-                      </span>
-                    )}
-                    <span className="px-1.5 py-0.5 rounded-[2px] bg-slate-900/80 text-sky-300 border border-sky-500/30 text-[9px] font-mono font-semibold">
-                      {video.category}
-                    </span>
-                  </div>
-
-                  <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-[2px] bg-black/80 text-slate-300 text-[9.5px] font-mono">
-                    {video.channel}
+              {/* Player Top Navigation Strip */}
+              <div className="flex items-center justify-between mb-2 gap-2 text-xs font-mono">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span
+                    className={`px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold shrink-0 ${
+                      activeVideo.isSpecialAnalyst
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/35'
+                        : activeVideo.isLive
+                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/35 animate-pulse'
+                        : 'bg-sky-500/20 text-sky-400 border border-sky-500/35'
+                    }`}
+                  >
+                    {activeVideo.category}
+                  </span>
+                  <span className="font-semibold text-[11.5px] truncate text-[var(--text-primary)]">
+                    {activeVideo.channel}
+                  </span>
+                  <span className="text-[10px] text-sky-400/80 font-bold shrink-0">
+                    [{activeVideo.countryCode}]
                   </span>
                 </div>
 
-                {/* Video Info Content */}
-                <div className="space-y-1.5">
-                  <h3
-                    className="text-[13px] font-semibold group-hover:text-red-500 transition-colors leading-[1.35] font-sans"
-                    style={{ color: 'var(--text-primary)' }}
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
+                    className="text-[10px] font-mono text-[var(--text-muted)] hover:text-sky-400 transition-colors flex items-center gap-1 cursor-pointer select-none"
+                    title={isPlayerMinimized ? 'Expand Video Frame' : 'Collapse Video Frame to 32px bar'}
                   >
-                    {video.title}
-                  </h3>
-                  <p
-                    className="text-[12px] line-clamp-2 leading-[1.5] font-sans"
-                    style={{ color: 'var(--text-secondary)' }}
+                    {isPlayerMinimized ? (
+                      <>
+                        <Maximize2 size={11} />
+                        <span>[ Expand + ]</span>
+                      </>
+                    ) : (
+                      <>
+                        <Minimize2 size={11} />
+                        <span>[ Minimize – ]</span>
+                      </>
+                    )}
+                  </button>
+
+                  <a
+                    href={activeVideo.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono text-sky-400 hover:text-sky-300 font-bold flex items-center gap-0.5 group"
+                    title="Open on Source Platform"
                   >
-                    {video.description}
-                  </p>
-                  <div
-                    className="pt-2 flex items-center justify-between text-[10.5px] font-mono"
-                    style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
-                  >
-                    <span>{video.timeAgo}</span>
-                    <span className="inline-flex items-center gap-1 text-red-500 group-hover:underline font-bold">
-                      Watch on YouTube <ExternalLink size={10} />
-                    </span>
-                  </div>
+                    <span>Open Source</span>
+                    <ExternalLink size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
                 </div>
               </div>
-            ))}
+
+              {/* Player 16:9 Frame OR Minimized 32px Status Strip */}
+              {!isPlayerMinimized ? (
+                <div
+                  className="relative aspect-video w-full overflow-hidden rounded-[4px] shadow-lg"
+                  style={{
+                    background: '#05080F',
+                    border: '1px solid rgba(56, 189, 248, 0.3)'
+                  }}
+                >
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=0&rel=0&modestbranding=1`}
+                    title={activeVideo.title}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <div
+                  onClick={() => setIsPlayerMinimized(false)}
+                  className="w-full h-8 px-2.5 rounded-[3px] bg-[#05080F] border border-sky-500/30 flex items-center justify-between text-xs font-mono cursor-pointer hover:border-sky-400 transition-colors"
+                  title="Click to expand player"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Play size={10} className="text-sky-400 fill-sky-400 shrink-0" />
+                    <span className="text-white text-[11px] truncate font-medium">{activeVideo.title}</span>
+                  </div>
+                  <span className="text-[9.5px] text-sky-400 font-mono font-bold shrink-0 ml-2">
+                    MONITOR ACTIVE ↗
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Compact Scrollable Channel & Briefing Directory */}
+            <div className="divide-y divide-white/[0.06] flex-1">
+              {filteredVideos.length === 0 ? (
+                <div className="text-center py-10 px-4 text-xs font-mono text-[var(--text-muted)]">
+                  No video dispatches or channels found matching criteria.
+                </div>
+              ) : (
+                filteredVideos.map((item) => {
+                  const isSelected = activeVideo.id === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedVideoId(item.id)}
+                      className="group cursor-pointer transition-colors relative"
+                      style={{
+                        padding: '10px 14px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderLeft: isSelected ? '3px solid #38BDF8' : '3px solid transparent',
+                        background: isSelected ? 'rgba(56, 189, 248, 0.08)' : 'transparent'
+                      }}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {/* Compact 36x24px Monogram / Beacon Badge */}
+                        <div
+                          className="relative shrink-0 flex items-center justify-center font-mono font-bold text-[10px] rounded-[3px] border transition-all"
+                          style={{
+                            width: '36px',
+                            height: '24px',
+                            background: item.isSpecialAnalyst
+                              ? 'rgba(245, 158, 11, 0.12)'
+                              : item.isLive
+                              ? 'rgba(244, 63, 94, 0.12)'
+                              : 'rgba(56, 189, 248, 0.1)',
+                            borderColor: item.isSpecialAnalyst
+                              ? 'rgba(245, 158, 11, 0.35)'
+                              : item.isLive
+                              ? 'rgba(244, 63, 94, 0.35)'
+                              : 'rgba(56, 189, 248, 0.25)',
+                            color: item.isSpecialAnalyst
+                              ? '#F59E0B'
+                              : item.isLive
+                              ? '#F43F5E'
+                              : '#38BDF8'
+                          }}
+                        >
+                          {item.isSpecialAnalyst ? (
+                            <span className="text-[11px] leading-none">★</span>
+                          ) : item.isLive ? (
+                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
+                          ) : (
+                            <span className="text-[9px] tracking-tight">{item.monogram}</span>
+                          )}
+                        </div>
+
+                        {/* Center Title, Focus Tags, and Region */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-[12.5px] font-semibold truncate leading-tight text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
+                              {item.title}
+                            </h4>
+                            <span className="text-[10px] font-mono text-sky-400/80 font-bold shrink-0">
+                              [{item.countryCode}]
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#94A3B8] truncate leading-tight mt-0.5">
+                            {item.tags.join(' • ')}
+                          </p>
+                        </div>
+
+                        {/* Right Action / State Indicator */}
+                        <div className="shrink-0 flex items-center gap-1.5">
+                          {isSelected ? (
+                            <span className="text-[9.5px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-[2px] animate-pulse">
+                              PLAYING
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="text-[10px] font-mono font-semibold text-[var(--text-muted)] group-hover:text-sky-400 flex items-center gap-1 transition-colors"
+                            >
+                              <span>PLAY</span>
+                              <Play size={8} className="fill-current" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         )}
 
