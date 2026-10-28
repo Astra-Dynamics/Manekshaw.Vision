@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Share2,
   Check,
-  Bookmark
+  Bookmark,
+  LayoutGrid
 } from 'lucide-react';
 import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
 import { UserNav } from './UserNav';
@@ -26,6 +27,8 @@ interface HeaderProps {
   onSelectTimeRange: (range: string) => void;
   isRightPanelOpen: boolean;
   onToggleRightPanel: () => void;
+  isWorkspaceDrawerOpen?: boolean;
+  onToggleWorkspaceDrawer?: () => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
@@ -65,6 +68,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTimeRange,
   isRightPanelOpen,
   onToggleRightPanel,
+  isWorkspaceDrawerOpen = false,
+  onToggleWorkspaceDrawer,
   theme,
   onToggleTheme,
   onOpenCommandPalette,
@@ -489,19 +494,48 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Intel Desk Toggle */}
-        <button
-          onClick={onToggleRightPanel}
-          title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border font-mono text-[10.5px] transition-all ${
-            isRightPanelOpen
-              ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold shadow-sky-500/25'
-              : 'bg-[var(--bg-surface-elevated)]/80 text-[var(--text-primary)] border-[var(--hud-border)] hover:border-sky-500/40'
-          }`}
+        {/* Unified Intel Workstation & Intel Desk Toggle Control */}
+        <div
+          className="flex items-center rounded-md border border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 hover:border-sky-500/40 p-0.5 shadow-xs font-mono text-[10.5px] transition-all"
         >
-          {isRightPanelOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
-          <span className="hidden sm:inline">INTEL DESK</span>
-        </button>
+          {/* Intel Workstation Option Icon (Left side) */}
+          <button
+            type="button"
+            onClick={onToggleWorkspaceDrawer}
+            title={
+              isWorkspaceDrawerOpen
+                ? 'Collapse Intel Workstation (Workspace Canvas)'
+                : 'Open Intel Workstation (Workspace Canvas)'
+            }
+            aria-label="Toggle Intel Workstation"
+            className={`flex items-center justify-center p-1 px-1.5 rounded-sm transition-all cursor-pointer ${
+              isWorkspaceDrawerOpen
+                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]'
+                : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/5'
+            }`}
+          >
+            <LayoutGrid size={13} />
+          </button>
+
+          {/* Separation Bar In Between */}
+          <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-80" />
+
+          {/* Intel Desk Option (Right side) */}
+          <button
+            type="button"
+            onClick={onToggleRightPanel}
+            title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
+            aria-label="Toggle Intelligence Desk"
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-sm transition-all cursor-pointer ${
+              isRightPanelOpen
+                ? 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]'
+                : 'text-[var(--text-primary)] hover:text-sky-400 hover:bg-white/5'
+            }`}
+          >
+            {isRightPanelOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
+            <span className="hidden sm:inline font-semibold">INTEL DESK</span>
+          </button>
+        </div>
       </div>
     </header>
   );

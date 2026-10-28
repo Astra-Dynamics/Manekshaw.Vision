@@ -1132,6 +1132,13 @@ const AppContent: React.FC = () => {
         onSelectTimeRange={setTimeRange}
         isRightPanelOpen={isRightPanelOpen}
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+        isWorkspaceDrawerOpen={activeRightDrawer.isOpen}
+        onToggleWorkspaceDrawer={() =>
+          updateActiveTabRightDrawer({
+            isOpen: !activeRightDrawer.isOpen,
+            isMinimized: false
+          })
+        }
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
