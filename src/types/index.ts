@@ -171,6 +171,9 @@ export interface WorkspaceDrawerItem {
   timestamp?: string;
   severity?: string;
   youtubeId?: string;
+  channelId?: string;
+  uploadsPlaylistId?: string;
+  isLive?: boolean;
   channel?: string;
   externalUrl?: string;
   summary?: string;

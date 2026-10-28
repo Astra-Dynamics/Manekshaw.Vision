@@ -33,6 +33,7 @@ import {
   WorkspaceDrawerItem
 } from '../types';
 import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
+import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeResolver';
 
 // Canva-style compact tactical drag ghost token
 export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
@@ -170,6 +171,18 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       VIDEO_CATALOGUE[0]
     );
   }, [filteredVideos, selectedVideoId]);
+
+  const [resolvedVideoId, setResolvedVideoId] = useState<string | null>(null);
+  const [embedStreamType, setEmbedStreamType] = useState<'auto' | 'playlist'>('auto');
+
+  useEffect(() => {
+    setResolvedVideoId(null);
+    if (activeVideo && activeVideo.channelId) {
+      resolveLatestVideoFromRSS(activeVideo.channelId).then((vid) => {
+        if (vid) setResolvedVideoId(vid);
+      });
+    }
+  }, [activeVideo?.id, activeVideo?.channelId]);
 
   const filteredHotspots = useMemo(() => {
     return hotspots.filter((hs) => {
@@ -598,8 +611,19 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               }}
             >
               {/* Player Top Navigation Strip */}
-              <div className="flex items-center justify-between mb-2 gap-2 text-xs font-mono">
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <div
+                className="mb-2 text-xs font-mono bg-black/40 border border-white/[0.08] rounded-[4px]"
+                style={{
+                  padding: '8px 12px',
+                  minHeight: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                   <span
                     className={`px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold shrink-0 ${
                       activeVideo.isSpecialAnalyst
@@ -626,16 +650,33 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       type="button"
                       onClick={() => {
                         setVideoPlayerMode('embed');
+                        setEmbedStreamType('auto');
                         setIsPlayerMinimized(false);
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
-                        videoPlayerMode === 'embed' && !isPlayerMinimized
+                        videoPlayerMode === 'embed' && embedStreamType === 'auto' && !isPlayerMinimized
                           ? 'bg-sky-500 text-slate-950 font-bold'
                           : 'text-[var(--text-muted)] hover:text-white'
                       }`}
-                      title="Embedded Player View"
+                      title="Direct Latest Video Stream"
                     >
                       Stream
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVideoPlayerMode('embed');
+                        setEmbedStreamType('playlist');
+                        setIsPlayerMinimized(false);
+                      }}
+                      className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
+                        videoPlayerMode === 'embed' && embedStreamType === 'playlist' && !isPlayerMinimized
+                          ? 'bg-sky-500 text-slate-950 font-bold'
+                          : 'text-[var(--text-muted)] hover:text-white'
+                      }`}
+                      title="Channel Uploads Queue (UU Playlist)"
+                    >
+                      Playlist
                     </button>
                     <button
                       type="button"
@@ -680,7 +721,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     className="text-[10px] font-mono text-sky-400 hover:text-sky-300 font-bold flex items-center gap-0.5 group"
                     title="Open on Source Platform"
                   >
-                    <span>YouTube</span>
+                    <span>Open Source</span>
                     <ExternalLink size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </a>
                 </div>
@@ -698,7 +739,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                     >
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=0&rel=0&modestbranding=1`}
+                        key={`${activeVideo.id}_${embedStreamType}_${resolvedVideoId || activeVideo.youtubeId}`}
+                        src={getYouTubeEmbedUrl({
+                          youtubeId: resolvedVideoId || activeVideo.youtubeId,
+                          channelId: activeVideo.channelId,
+                          uploadsPlaylistId: activeVideo.uploadsPlaylistId,
+                          isLive: activeVideo.isLive,
+                          mode: embedStreamType === 'playlist' ? 'playlist' : 'video'
+                        })}
                         title={activeVideo.title}
                         className="w-full h-full border-0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -708,7 +756,17 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                     {/* Helpful Fallback Strip */}
                     <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-[var(--text-muted)] bg-black/40 border border-white/[0.08] rounded px-2.5 py-1.5">
-                      <span className="truncate">Embedding blocked? Some channels restrict iframe playback:</span>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-slate-400">Mode:</span>
+                        <button
+                          type="button"
+                          onClick={() => setEmbedStreamType((prev) => (prev === 'playlist' ? 'auto' : 'playlist'))}
+                          className="text-sky-400 hover:text-sky-300 font-bold underline cursor-pointer"
+                          title="Toggle between direct video and channel uploads playlist"
+                        >
+                          {embedStreamType === 'playlist' ? 'Switch to Direct Video' : 'Switch to Uploads Playlist (UU)'}
+                        </button>
+                      </div>
                       <a
                         href={activeVideo.externalUrl}
                         target="_blank"
@@ -799,6 +857,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           type: 'video',
                           title: item.title,
                           youtubeId: item.youtubeId,
+                          channelId: item.channelId,
+                          uploadsPlaylistId: item.uploadsPlaylistId,
+                          isLive: item.isLive,
                           channel: item.channel,
                           externalUrl: item.externalUrl,
                           tags: item.tags,
@@ -813,6 +874,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                             type: 'video',
                             title: item.title,
                             youtubeId: item.youtubeId,
+                            channelId: item.channelId,
+                            uploadsPlaylistId: item.uploadsPlaylistId,
+                            isLive: item.isLive,
                             channel: item.channel,
                             externalUrl: item.externalUrl,
                             tags: item.tags,
@@ -894,6 +958,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                                   type: 'video',
                                   title: item.title,
                                   youtubeId: item.youtubeId,
+                                  channelId: item.channelId,
+                                  uploadsPlaylistId: item.uploadsPlaylistId,
+                                  isLive: item.isLive,
                                   channel: item.channel,
                                   externalUrl: item.externalUrl,
                                   tags: item.tags,

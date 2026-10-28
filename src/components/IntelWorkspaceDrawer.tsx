@@ -18,6 +18,7 @@ import {
   Radio
 } from 'lucide-react';
 import { WorkspaceDrawerTab, WorkspaceDrawerItem, ThemeMode } from '../types';
+import { getYouTubeEmbedUrl } from '../utils/youtubeResolver';
 
 interface IntelWorkspaceDrawerProps {
   isOpen: boolean;
@@ -424,7 +425,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                   {/* Item Content Body */}
                   <div className="p-2.5">
                     {/* VIDEO PLAYER */}
-                    {isVideo && item.youtubeId ? (
+                    {isVideo && (item.youtubeId || item.channelId || item.uploadsPlaylistId) ? (
                       <div>
                         <div
                           className="relative aspect-video w-full overflow-hidden rounded-[3px] shadow-inner mb-2"
@@ -434,7 +435,12 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           }}
                         >
                           <iframe
-                            src={`https://www.youtube-nocookie.com/embed/${item.youtubeId}?autoplay=0&rel=0`}
+                            src={getYouTubeEmbedUrl({
+                              youtubeId: item.youtubeId,
+                              channelId: item.channelId,
+                              uploadsPlaylistId: item.uploadsPlaylistId,
+                              isLive: item.isLive
+                            })}
                             title={item.title}
                             className="w-full h-full border-0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
