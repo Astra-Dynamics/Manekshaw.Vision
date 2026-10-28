@@ -11,13 +11,14 @@ import {
   Swords,
   Check
 } from 'lucide-react';
-import { LayerKey, LayerMetadata } from '../types';
+import { LayerKey, LayerMetadata, ThemeMode } from '../types';
 
 interface LayerDockProps {
   activeLayers: Record<LayerKey, boolean>;
   onToggleLayer: (layer: LayerKey) => void;
   onSetAllLayers: (enabled: boolean) => void;
   counts: Record<LayerKey, number>;
+  theme?: ThemeMode;
 }
 
 export interface LayerCategoryDef {
@@ -201,8 +202,10 @@ export const LayerDock: React.FC<LayerDockProps> = ({
   activeLayers,
   onToggleLayer,
   onSetAllLayers,
-  counts
+  counts,
+  theme = 'dark'
 }) => {
+  const isLight = theme === 'light';
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [infoExpandedId, setInfoExpandedId] = useState<LayerKey | null>(null);
@@ -304,9 +307,12 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       >
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-2.5 py-1.2 rounded-[6px] text-slate-200 font-mono text-xs shadow-xl transition-all group border border-white/10 hover:border-sky-500/50"
+          className={`flex items-center gap-2 px-2.5 py-1.2 rounded-[6px] font-mono text-xs shadow-xl transition-all group border ${
+            isLight
+              ? 'bg-white/95 text-[#0F172A] border-[#CBD5E1] hover:border-sky-500'
+              : 'bg-[rgba(13,19,30,0.84)] text-slate-200 border-white/10 hover:border-sky-500/50'
+          }`}
           style={{
-            background: 'rgba(13, 19, 30, 0.84)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)'
           }}
@@ -314,10 +320,14 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
           <span className="font-bold tracking-wider uppercase text-[11px]">LAYERS</span>
-          <span className="text-[9.5px] px-1 py-0.2 rounded bg-white/5 text-slate-400 font-bold border border-white/10">
+          <span className={`text-[9.5px] px-1 py-0.2 rounded font-bold border ${
+            isLight
+              ? 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]'
+              : 'bg-white/5 text-slate-400 border-white/10'
+          }`}>
             {activeCount}/{totalLayers}
           </span>
-          <ChevronDown size={11} className="text-slate-400 group-hover:text-sky-400 transition-colors" />
+          <ChevronDown size={11} className={`${isLight ? 'text-[#64748B]' : 'text-slate-400'} group-hover:text-sky-500 transition-colors`} />
         </button>
       </div>
     );
@@ -333,11 +343,12 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         width: `${dockWidth}px`,
         height: dockHeight ? `${dockHeight}px` : undefined,
         maxHeight: dockHeight ? `${dockHeight}px` : 'calc(100vh - 110px)',
-        background: 'rgba(13, 19, 30, 0.88)',
+        background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(13, 19, 30, 0.88)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: isLight ? '1px solid #CBD5E1' : '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: '6px',
+        boxShadow: isLight ? '0 10px 25px -5px rgba(15, 23, 42, 0.12)' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         boxSizing: 'border-box',
         transition: isResizing !== 'none' ? 'none' : 'width 0.15s ease, height 0.15s ease'
       }}
@@ -345,26 +356,35 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       {/* 1. Header Bar: Title, Active Counter & Minimize */}
       <div
         onClick={() => setIsOpen(false)}
-        className="flex items-center justify-between cursor-pointer hover:bg-white/[0.04] transition-colors"
+        className={`flex items-center justify-between cursor-pointer transition-colors ${
+          isLight ? 'hover:bg-slate-100/80' : 'hover:bg-white/[0.04]'
+        }`}
         style={{
           padding: '6px 10px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
+          background: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.02)',
+          borderBottom: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.06)'
         }}
         title="Click to collapse Layer Matrix"
       >
         <div className="flex items-center gap-1.5">
-          <span className="text-[10.5px] font-bold text-slate-200 tracking-wider">
+          <span className={`text-[10.5px] font-bold tracking-wider ${isLight ? 'text-[#0F172A]' : 'text-slate-200'}`}>
             TACTICAL LAYERS
           </span>
-          <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-sky-500/10 border border-sky-500/25 text-sky-400 font-bold font-mono">
+          <span
+            className="text-[9.5px] px-1.5 py-0.2 rounded font-bold font-mono"
+            style={{
+              background: isLight ? '#E0F2FE' : 'rgba(14, 165, 233, 0.1)',
+              color: isLight ? '#0369A1' : '#38BDF8',
+              border: isLight ? '1px solid #BAE6FD' : '1px solid rgba(56, 189, 248, 0.25)'
+            }}
+          >
             {activeCount}/{totalLayers}
           </span>
         </div>
 
         <div className="flex items-center gap-1 text-slate-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
-          <ChevronUp size={12} className="hover:text-white" />
+          <ChevronUp size={12} className={isLight ? 'text-[#64748B] hover:text-[#0F172A]' : 'hover:text-white'} />
         </div>
       </div>
 
@@ -373,24 +393,30 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         className="space-y-1.5"
         style={{
           padding: '6px 10px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
+          borderBottom: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.06)'
         }}
       >
         <div
-          className="flex items-center gap-1.5 px-2 py-1 rounded border border-white/10 bg-white/[0.03] transition-colors focus-within:border-sky-500/50"
+          className={`flex items-center gap-1.5 px-2 py-1 rounded border transition-colors ${
+            isLight
+              ? 'border-[#CBD5E1] bg-white focus-within:border-sky-500'
+              : 'border-white/10 bg-white/[0.03] focus-within:border-sky-500/50'
+          }`}
         >
-          <Search size={11} className="text-slate-400 shrink-0" />
+          <Search size={11} className={isLight ? 'text-[#64748B] shrink-0' : 'text-slate-400 shrink-0'} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter matrix..."
-            className="w-full bg-transparent border-none text-[10.5px] text-slate-200 placeholder:text-slate-500 focus:outline-none font-mono"
+            className={`w-full bg-transparent border-none text-[10.5px] focus:outline-none font-mono ${
+              isLight ? 'text-[#0F172A] placeholder:text-[#64748B]' : 'text-slate-200 placeholder:text-slate-500'
+            }`}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="text-slate-400 hover:text-white shrink-0 ml-1"
+              className={`${isLight ? 'text-[#64748B] hover:text-[#0F172A]' : 'text-slate-400 hover:text-white'} shrink-0 ml-1`}
             >
               <X size={10} />
             </button>
@@ -398,19 +424,19 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         </div>
 
         {/* Quick Bulk Action Links */}
-        <div className="flex items-center justify-between text-[9px] text-slate-400 px-0.5">
+        <div className={`flex items-center justify-between text-[9px] px-0.5 ${isLight ? 'text-[#64748B]' : 'text-slate-400'}`}>
           <span className="uppercase tracking-wider font-sans font-semibold">Bulk:</span>
           <div className="flex items-center gap-1.5 font-mono">
             <button
               onClick={() => onSetAllLayers(true)}
-              className="hover:text-emerald-400 transition-colors uppercase font-bold"
+              className={`${isLight ? 'text-[#0369A1] hover:text-[#0284C7]' : 'hover:text-emerald-400'} transition-colors uppercase font-bold cursor-pointer`}
             >
               Select All
             </button>
             <span>•</span>
             <button
               onClick={() => onSetAllLayers(false)}
-              className="hover:text-rose-400 transition-colors uppercase font-bold"
+              className={`${isLight ? 'text-rose-600 hover:text-rose-700' : 'hover:text-rose-400'} transition-colors uppercase font-bold cursor-pointer`}
             >
               Clear All
             </button>
@@ -441,18 +467,24 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                 {/* Category Header with single-line guarantee (nowrap) */}
                 <div
                   onClick={() => toggleCategoryCollapse(cat.id)}
-                  className="flex items-center justify-between cursor-pointer hover:bg-white/[0.03] transition-colors"
+                  className={`flex items-center justify-between cursor-pointer transition-colors ${
+                    isLight ? 'hover:bg-[#E2E8F0]/60' : 'hover:bg-white/[0.03]'
+                  }`}
                   style={{
                     padding: '4px 10px',
                     boxSizing: 'border-box',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.04)',
+                    borderTop: isLight ? '1px solid #E2E8F0' : undefined,
+                    borderBottom: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.04)',
                     whiteSpace: 'nowrap'
                   }}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 pr-1">
                     <span className="text-[11px] shrink-0">{cat.icon}</span>
                     <span
-                      className="text-[9.5px] font-bold tracking-wider text-slate-200 truncate uppercase"
+                      className={`text-[9.5px] font-bold tracking-wider truncate uppercase ${
+                        isLight ? 'text-[#334155]' : 'text-slate-200'
+                      }`}
                       style={{ whiteSpace: 'nowrap' }}
                     >
                       {cat.title}
@@ -470,7 +502,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                     >
                       {catActiveCount}/{cat.layers.length}
                     </span>
-                    <span className="text-[9px] text-slate-400">
+                    <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                       {isCatCollapsed ? '▶' : '▼'}
                     </span>
                   </div>
@@ -478,7 +510,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
                 {/* Category Layer Rows with tight 3px 10px padding */}
                 {!isCatCollapsed && (
-                  <div className="divide-y divide-white/[0.03]">
+                  <div className={isLight ? 'divide-y divide-slate-200/70' : 'divide-y divide-white/[0.03]'}>
                     {cat.layers.map((layer) => {
                       const isActive = !!activeLayers[layer.id];
                       const count = counts[layer.id];
@@ -488,7 +520,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                         <div key={layer.id} className="group">
                           <div
                             onClick={() => onToggleLayer(layer.id)}
-                            className={`flex items-center justify-between hover:bg-white/[0.04] cursor-pointer transition-colors ${
+                            className={`flex items-center justify-between cursor-pointer transition-colors ${
+                              isLight ? 'hover:bg-[#F8FAFC]' : 'hover:bg-white/[0.04]'
+                            } ${
                               isActive ? 'bg-transparent' : 'opacity-60'
                             }`}
                             style={{
@@ -504,12 +538,12 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                               <div
                                 className="w-3 h-3 rounded-[2px] flex items-center justify-center shrink-0 transition-all border"
                                 style={{
-                                  backgroundColor: isActive ? layer.color : 'rgba(255, 255, 255, 0.05)',
-                                  borderColor: isActive ? layer.color : 'rgba(255, 255, 255, 0.15)',
+                                  backgroundColor: isActive ? layer.color : (isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)'),
+                                  borderColor: isActive ? layer.color : (isLight ? '#CBD5E1' : 'rgba(255, 255, 255, 0.15)'),
                                   boxShadow: isActive ? `0 0 6px ${layer.color}66` : undefined
                                 }}
                               >
-                                {isActive && <Check size={8} strokeWidth={3.5} className="text-slate-950" />}
+                                {isActive && <Check size={8} strokeWidth={3.5} className={isLight ? 'text-white' : 'text-slate-950'} />}
                               </div>
 
                               {/* Semantic Status Indicator Dot */}
@@ -524,7 +558,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                               {/* Layer Name */}
                               <span
                                 className={`truncate text-[10.5px] font-mono tracking-wide ${
-                                  isActive ? 'text-slate-100 font-semibold' : 'text-slate-300'
+                                  isLight
+                                    ? (isActive ? 'text-[#1E293B] font-semibold' : 'text-[#64748B]')
+                                    : (isActive ? 'text-slate-100 font-semibold' : 'text-slate-300')
                                 }`}
                                 style={{ whiteSpace: 'nowrap' }}
                               >
@@ -533,7 +569,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
 
                               {/* Count Badge */}
                               {typeof count === 'number' && count > 0 && (
-                                <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                                <span className={`text-[9px] font-mono shrink-0 ${isLight ? 'text-[#64748B]' : 'text-slate-400'}`}>
                                   ({count})
                                 </span>
                               )}
@@ -547,9 +583,11 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                                   e.stopPropagation();
                                   setInfoExpandedId(isInfoOpen ? null : layer.id);
                                 }}
-                                className="w-3.5 h-3.5 flex items-center justify-center text-[10px] font-serif transition-colors hover:text-[#38BDF8]"
+                                className={`w-3.5 h-3.5 flex items-center justify-center text-[10px] font-serif transition-colors ${
+                                  isLight ? 'hover:text-[#0284C7]' : 'hover:text-[#38BDF8]'
+                                }`}
                                 style={{
-                                  color: isInfoOpen ? '#38BDF8' : 'rgba(148, 163, 184, 0.35)',
+                                  color: isInfoOpen ? (isLight ? '#0284C7' : '#38BDF8') : (isLight ? '#94A3B8' : 'rgba(148, 163, 184, 0.35)'),
                                   background: 'transparent',
                                   border: 'none',
                                   padding: 0
@@ -568,16 +606,16 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                               style={{
                                 padding: '6px 10px',
                                 boxSizing: 'border-box',
-                                background: 'rgba(0, 0, 0, 0.3)',
-                                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                                color: '#94A3B8'
+                                background: isLight ? '#F8FAFC' : 'rgba(0, 0, 0, 0.3)',
+                                borderTop: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.05)',
+                                color: isLight ? '#475569' : '#94A3B8'
                               }}
                             >
                               <p>{layer.description}</p>
                               <div
                                 className="flex items-center justify-between text-[8.5px] font-mono pt-1"
                                 style={{
-                                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                                  borderTop: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.05)',
                                   color: '#64748B'
                                 }}
                               >
@@ -602,13 +640,13 @@ export const LayerDock: React.FC<LayerDockProps> = ({
         className="flex items-center justify-between text-[9px] font-mono shrink-0"
         style={{
           padding: '4px 10px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.04)',
-          color: '#38bdf8'
+          background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.02)',
+          borderTop: isLight ? '1px solid #CBD5E1' : '1px solid rgba(255, 255, 255, 0.04)',
+          color: isLight ? '#0284C7' : '#38bdf8'
         }}
       >
         <span className="truncate">© MANEKSHAW.VISION</span>
-        <span style={{ color: '#64748B' }}>GEOINT v1.5</span>
+        <span style={{ color: isLight ? '#64748B' : '#64748B' }}>GEOINT v1.5</span>
       </div>
 
       {/* Interactive Edge & Corner Drag-Resize Handles */}

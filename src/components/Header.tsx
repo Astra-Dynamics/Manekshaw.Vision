@@ -365,13 +365,17 @@ export const Header: React.FC<HeaderProps> = ({
       {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
       <div className="flex items-center gap-1.5 shrink-0 relative z-50">
         {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border */}
-        <div className="hidden lg:flex items-center gap-1.5 pl-4 border-l border-white/10 pr-1 text-[10.5px] font-mono text-[var(--text-muted)]">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/60 border border-[var(--hud-border)]">
-            <span className="text-sky-400 font-semibold">{latDisplay}</span>
+        <div className={`hidden lg:flex items-center gap-1.5 pl-4 border-l ${theme === 'light' ? 'border-[#CBD5E1]' : 'border-white/10'} pr-1 text-[10.5px] font-mono text-[var(--text-muted)]`}>
+          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${
+            theme === 'light'
+              ? 'bg-white border-[#CBD5E1] shadow-2xs'
+              : 'bg-[var(--bg-surface-elevated)]/60 border-[var(--hud-border)]'
+          }`}>
+            <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{latDisplay}</span>
             <span>,</span>
-            <span className="text-sky-400 font-semibold">{lonDisplay}</span>
-            <span className="text-zinc-600">•</span>
-            <span className="text-amber-400 font-semibold">Z{zoom.toFixed(1)}</span>
+            <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{lonDisplay}</span>
+            <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
+            <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'} font-semibold`}>Z{zoom.toFixed(1)}</span>
           </div>
         </div>
 

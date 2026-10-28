@@ -37,7 +37,8 @@ import {
   GpsJammingZone,
   AdizZoneFeature,
   FortifiedBorderFeature,
-  WorkspaceDrawerItem
+  WorkspaceDrawerItem,
+  ThemeMode
 } from '../types';
 import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
 import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeResolver';
@@ -116,11 +117,13 @@ interface RightIntelligencePanelProps {
   isPlayerMinimized?: boolean;
   onTogglePlayerMinimized?: () => void;
   currentTheater?: string;
+  theme?: ThemeMode;
 }
 
 export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   isOpen,
   onClose,
+  theme = 'dark',
   hotspots,
   conflicts,
   features,
@@ -146,6 +149,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   onTogglePlayerMinimized,
   currentTheater
 }) => {
+  const isLight = theme === 'light';
   const [internalActiveTab, setInternalActiveTab] = useState<'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'>('feed');
   const activeTab = propsActiveSubTab !== undefined ? propsActiveSubTab : internalActiveTab;
   const setActiveTab = (tab: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier') => {
@@ -426,12 +430,18 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           }
         }}
         onClick={() => setSelectedVideoId(item.id)}
-        className="group cursor-pointer transition-colors relative"
+        className={`group cursor-pointer transition-colors relative ${
+          isLight ? 'hover:bg-slate-100/70' : 'hover:bg-white/[0.04]'
+        }`}
         style={{
           padding: '9px 14px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-          borderLeft: isSelected ? '3px solid #38BDF8' : '3px solid transparent',
-          background: isSelected ? 'rgba(56, 189, 248, 0.08)' : 'transparent'
+          borderBottom: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.05)',
+          borderLeft: isSelected
+            ? (isLight ? '3px solid #0284C7' : '3px solid #38BDF8')
+            : '3px solid transparent',
+          background: isSelected
+            ? (isLight ? 'rgba(2, 132, 199, 0.08)' : 'rgba(56, 189, 248, 0.08)')
+            : 'transparent'
         }}
       >
         <div className="flex items-center gap-2.5">
@@ -477,11 +487,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               <h4 className="text-[12px] font-semibold truncate leading-tight text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
                 {item.title}
               </h4>
-              <span className="text-[9.5px] font-mono text-sky-400/80 font-bold shrink-0">
+              <span className={`text-[9.5px] font-mono font-bold shrink-0 ${isLight ? 'text-[#0284C7]' : 'text-sky-400/80'}`}>
                 [{item.countryCode}]
               </span>
             </div>
-            <p className="text-[10.5px] text-[#94A3B8] truncate leading-tight mt-0.5">
+            <p className={`text-[10.5px] truncate leading-tight mt-0.5 ${isLight ? 'text-[#64748B]' : 'text-[#94A3B8]'}`}>
               {item.tags.join(' • ')}
             </p>
           </div>
@@ -974,7 +984,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             >
               {/* Player Top Navigation Strip */}
               <div
-                className="mb-2 text-xs font-mono bg-black/40 border border-white/[0.08] rounded-[4px]"
+                className={`mb-2 text-xs font-mono rounded-[4px] ${
+                  isLight
+                    ? 'bg-[#F1F5F9] border border-[#CBD5E1] text-[#0F172A]'
+                    : 'bg-black/40 border border-white/[0.08]'
+                }`}
                 style={{
                   padding: '8px 12px',
                   minHeight: '34px',
@@ -989,10 +1003,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   <span
                     className={`px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold shrink-0 ${
                       activeVideo.isSpecialAnalyst
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/35'
+                        ? (isLight ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-amber-500/20 text-amber-400 border border-amber-500/35')
                         : activeVideo.isLive
-                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/35 animate-pulse'
-                        : 'bg-sky-500/20 text-sky-400 border border-sky-500/35'
+                        ? (isLight ? 'bg-rose-100 text-rose-700 border border-rose-300 animate-pulse' : 'bg-rose-500/20 text-rose-400 border border-rose-500/35 animate-pulse')
+                        : (isLight ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-sky-500/20 text-sky-400 border border-sky-500/35')
                     }`}
                   >
                     {activeVideo.category}
@@ -1000,14 +1014,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   <span className="font-semibold text-[11.5px] truncate text-[var(--text-primary)]">
                     {activeVideo.channel}
                   </span>
-                  <span className="text-[10px] text-sky-400/80 font-bold shrink-0">
+                  <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-[#0284C7]' : 'text-sky-400/80'}`}>
                     [{activeVideo.countryCode}]
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Mode Switcher */}
-                  <div className="flex items-center bg-black/30 border border-white/10 rounded-[2px] p-0.5">
+                  <div className={`flex items-center rounded-[2px] p-0.5 ${
+                    isLight ? 'bg-white border border-[#CBD5E1]' : 'bg-black/30 border border-white/10'
+                  }`}>
                     <button
                       type="button"
                       onClick={() => {
@@ -1017,8 +1033,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'embed' && embedStreamType === 'auto' && !isPlayerMinimized
-                          ? 'bg-sky-500 text-slate-950 font-bold'
-                          : 'text-[var(--text-muted)] hover:text-white'
+                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Direct Latest Video Stream"
                     >
@@ -1033,8 +1049,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'embed' && embedStreamType === 'playlist' && !isPlayerMinimized
-                          ? 'bg-sky-500 text-slate-950 font-bold'
-                          : 'text-[var(--text-muted)] hover:text-white'
+                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Channel Uploads Queue (UU Playlist)"
                     >
@@ -1048,8 +1064,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'briefing' && !isPlayerMinimized
-                          ? 'bg-sky-500 text-slate-950 font-bold'
-                          : 'text-[var(--text-muted)] hover:text-white'
+                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Tactical Briefing Card View"
                     >
@@ -1060,7 +1076,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
-                    className="text-[10px] font-mono text-[var(--text-muted)] hover:text-sky-400 transition-colors flex items-center gap-1 cursor-pointer select-none"
+                    className={`text-[10px] font-mono transition-colors flex items-center gap-1 cursor-pointer select-none ${
+                      isLight ? 'text-[#0284C7] hover:text-[#0369A1]' : 'text-[var(--text-muted)] hover:text-sky-400'
+                    }`}
                     title={isPlayerMinimized ? 'Expand Video Frame' : 'Collapse Video Frame to 32px bar'}
                   >
                     {isPlayerMinimized ? (
@@ -1080,7 +1098,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     href={activeVideo.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[10px] font-mono text-sky-400 hover:text-sky-300 font-bold flex items-center gap-0.5 group"
+                    className={`text-[10px] font-mono font-bold flex items-center gap-0.5 group ${
+                      isLight ? 'text-[#0284C7] hover:text-[#0369A1]' : 'text-sky-400 hover:text-sky-300'
+                    }`}
                     title="Open on Source Platform"
                   >
                     <span>Open Source</span>
@@ -1186,14 +1206,18 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               ) : (
                 <div
                   onClick={() => setIsPlayerMinimized(false)}
-                  className="w-full h-8 px-2.5 rounded-[3px] bg-[#05080F] border border-sky-500/30 flex items-center justify-between text-xs font-mono cursor-pointer hover:border-sky-400 transition-colors"
+                  className={`w-full h-8 px-2.5 rounded-[3px] border flex items-center justify-between text-xs font-mono cursor-pointer transition-colors ${
+                    isLight
+                      ? 'bg-[#EFF6FF] border-[#93C5FD] text-[#0F172A] hover:bg-[#DBEAFE]'
+                      : 'bg-[#05080F] border-sky-500/30 text-white hover:border-sky-400'
+                  }`}
                   title="Click to expand player"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Play size={10} className="text-sky-400 fill-sky-400 shrink-0" />
-                    <span className="text-white text-[11px] truncate font-medium">{activeVideo.title}</span>
+                    <Play size={10} className={`${isLight ? 'text-[#0284C7] fill-[#0284C7]' : 'text-sky-400 fill-sky-400'} shrink-0`} />
+                    <span className={`text-[11px] truncate font-medium ${isLight ? 'text-[#0F172A]' : 'text-white'}`}>{activeVideo.title}</span>
                   </div>
-                  <span className="text-[9.5px] text-sky-400 font-mono font-bold shrink-0 ml-2">
+                  <span className={`text-[9.5px] font-mono font-bold shrink-0 ml-2 ${isLight ? 'text-[#0284C7]' : 'text-sky-400'}`}>
                     MONITOR ACTIVE ↗
                   </span>
                 </div>
@@ -1201,7 +1225,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             </div>
 
             {/* 2. Compact Scrollable Channel & Briefing Directory */}
-            <div className="divide-y divide-white/[0.06] flex-1">
+            <div className={`${isLight ? 'divide-y divide-slate-200' : 'divide-y divide-white/[0.06]'} flex-1`}>
               {filteredVideos.length === 0 ? (
                 <div className="text-center py-12 px-4 text-xs font-mono text-[var(--text-muted)]">
                   No video dispatches or channels found matching criteria.
@@ -1217,35 +1241,46 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   const isCollapsed = !!collapsedVideoSections[group.id];
 
                   return (
-                    <div key={group.id} className="border-b border-white/[0.06]">
+                    <div key={group.id} className={isLight ? 'border-b border-slate-200' : 'border-b border-white/[0.06]'}>
                       <div
                         onClick={() => toggleVideoSection(group.id)}
-                        className="sticky top-0 z-10 px-3 py-1.5 flex items-center justify-between cursor-pointer select-none text-[10.5px] font-mono font-bold tracking-wider hover:bg-slate-900/60 transition-colors"
+                        className={`sticky top-0 z-10 px-3 py-1.5 flex items-center justify-between cursor-pointer select-none text-[10.5px] font-mono font-bold tracking-wider transition-colors ${
+                          isLight ? 'hover:bg-slate-200/50' : 'hover:bg-slate-900/60'
+                        }`}
                         style={{
-                          background: 'rgba(8, 12, 20, 0.95)',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                          color: group.color
+                          background: isLight
+                            ? (group.id === 'ANALYSTS' ? '#FEF3C7' : '#F1F5F9')
+                            : 'rgba(8, 12, 20, 0.95)',
+                          borderTop: isLight
+                            ? (group.id === 'ANALYSTS' ? '1px solid #FDE68A' : '1px solid #E2E8F0')
+                            : undefined,
+                          borderBottom: isLight
+                            ? (group.id === 'ANALYSTS' ? '1px solid #FDE68A' : '1px solid #CBD5E1')
+                            : '1px solid rgba(255, 255, 255, 0.08)',
+                          color: isLight
+                            ? (group.id === 'ANALYSTS' ? '#92400E' : '#1E293B')
+                            : group.color
                         }}
                       >
                         <div className="flex items-center gap-1.5">
                           <ChevronRight
                             size={12}
-                            className={`transition-transform duration-200 text-slate-400 ${
-                              !isCollapsed ? 'rotate-90' : ''
-                            }`}
+                            className={`transition-transform duration-200 ${
+                              isLight ? 'text-slate-600' : 'text-slate-400'
+                            } ${!isCollapsed ? 'rotate-90' : ''}`}
                           />
                           <span>{group.title}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
+                          <span className={`text-[10px] font-normal ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                             ({groupItems.length})
                           </span>
                         </div>
-                        <span className="text-[9px] text-slate-500 font-mono">
+                        <span className={`text-[9px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
                           {isCollapsed ? '[ Expand + ]' : '[ Collapse – ]'}
                         </span>
                       </div>
 
                       {!isCollapsed && (
-                        <div className="divide-y divide-white/[0.04]">
+                        <div className={isLight ? 'divide-y divide-slate-200/70' : 'divide-y divide-white/[0.04]'}>
                           {groupItems.map((item) => renderVideoRow(item))}
                         </div>
                       )}

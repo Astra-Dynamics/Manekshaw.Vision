@@ -47,13 +47,42 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [is3D, setIs3D] = useState(false);
 
+  // Tactical Blueprint / Daylight Cartographic Palette for Light Mode ONLY
+  const applyLightModeBasemapStyling = (map: maplibregl.Map) => {
+    try {
+      if (map.getLayer('water')) {
+        map.setPaintProperty('water', 'fill-color', '#DCE6F2');
+      }
+      if (map.getLayer('waterway')) {
+        map.setPaintProperty('waterway', 'line-color', '#DCE6F2');
+      }
+      if (map.getLayer('background')) {
+        map.setPaintProperty('background', 'background-color', '#F8FAFC');
+      }
+      if (map.getLayer('boundary_country_inner')) {
+        map.setPaintProperty('boundary_country_inner', 'line-color', '#94A3B8');
+        map.setPaintProperty('boundary_country_inner', 'line-width', 1);
+      }
+      if (map.getLayer('boundary_state')) {
+        map.setPaintProperty('boundary_state', 'line-color', '#CBD5E1');
+        map.setPaintProperty('boundary_state', 'line-width', 0.75);
+      }
+    } catch (e) {
+      console.warn('Could not apply light mode basemap styling:', e);
+    }
+  };
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    const initialStyle = theme === 'light'
+      ? 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+      : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      style: initialStyle,
       center: center,
       zoom: zoom,
       pitch: 25,
@@ -74,6 +103,9 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     popupRef.current = popup;
 
     map.on('load', () => {
+      if (theme === 'light') {
+        applyLightModeBasemapStyling(map);
+      }
       setMapLoaded(true);
       map.resize();
     });
@@ -131,6 +163,9 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     setMapLoaded(false);
     map.setStyle(targetStyle);
     map.once('style.load', () => {
+      if (theme === 'light') {
+        applyLightModeBasemapStyling(map);
+      }
       setMapLoaded(true);
     });
   }, [theme]);
@@ -202,13 +237,15 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'country-boundaries',
         paint: {
-          'line-color': '#38bdf8',
+          'line-color': theme === 'light' ? '#0284C7' : '#38bdf8',
           'line-width': 1.6,
           'line-opacity': 0.85
         },
         filter: ['==', ['get', 'ISO3166-1-Alpha-2'], '']
       });
     }
+
+    const isLight = theme === 'light';
 
     // Official Sovereign Boundary of India (Survey of India)
     // Depicting Jammu & Kashmir, Ladakh (including PoK, Gilgit-Baltistan & Aksai Chin) as integral sovereign parts of India
@@ -224,8 +261,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'india-soi-source',
         paint: {
-          'fill-color': '#0ea5e9',
-          'fill-opacity': 0.05
+          'fill-color': isLight ? '#0284C7' : '#0ea5e9',
+          'fill-opacity': isLight ? 0.06 : 0.05
         }
       });
 
@@ -235,10 +272,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': '#38bdf8',
-          'line-width': 5,
-          'line-blur': 3,
-          'line-opacity': 0.6
+          'line-color': isLight ? '#0284C7' : '#38bdf8',
+          'line-width': isLight ? 3 : 5,
+          'line-blur': isLight ? 2 : 3,
+          'line-opacity': isLight ? 0.35 : 0.6
         }
       });
 
@@ -248,8 +285,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': '#38bdf8',
-          'line-width': 2.2,
+          'line-color': isLight ? '#0284C7' : '#38bdf8',
+          'line-width': isLight ? 1.75 : 2.2,
           'line-opacity': 0.95
         }
       });
@@ -299,9 +336,9 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           'text-transform': 'uppercase'
         },
         paint: {
-          'text-color': '#7dd3fc',
-          'text-halo-color': '#020617',
-          'text-halo-width': 2
+          'text-color': isLight ? '#0F172A' : '#7dd3fc',
+          'text-halo-color': isLight ? '#FFFFFF' : '#020617',
+          'text-halo-width': isLight ? 2.5 : 2
         }
       });
     }
@@ -547,6 +584,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     // Add hotspots
     if (activeLayers.hotspots) {
       hotspots.forEach((h) => {
+        let hotColor = isLight
+          ? (h.escalationScore >= 5 ? '#E11D48' : h.escalationScore >= 4 ? '#EA580C' : '#D97706')
+          : (h.escalationScore >= 5 ? '#ef4444' : h.escalationScore >= 4 ? '#f97316' : '#eab308');
+
         allPointFeatures.push({
           type: 'Feature',
           geometry: {
@@ -561,7 +602,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
             trend: h.escalationTrend,
             description: h.description,
             whyItMatters: h.whyItMatters,
-            color: h.escalationScore >= 5 ? '#ef4444' : h.escalationScore >= 4 ? '#f97316' : '#eab308'
+            color: hotColor
           }
         });
       });
@@ -571,19 +612,19 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     features.forEach((feat) => {
       if (!activeLayers[feat.layer]) return;
 
-      let color = '#38bdf8';
-      if (feat.layer === 'iranAttacks') color = '#ef4444';
-      else if (feat.layer === 'bases') color = '#3b82f6';
-      else if (feat.layer === 'nuclear') color = '#eab308';
-      else if (feat.layer === 'military') color = '#06b6d4';
-      else if (feat.layer === 'weather') color = '#60a5fa';
-      else if (feat.layer === 'canadaAlerts') color = '#f43f5e';
-      else if (feat.layer === 'outages') color = '#a855f7';
-      else if (feat.layer === 'natural') color = '#ea580c';
-      else if (feat.layer === 'waterways') color = '#14b8a6';
-      else if (feat.layer === 'economic') color = '#10b981';
-      else if (feat.layer === 'sanctions') color = '#ec4899';
-      else if (feat.layer === 'gpsJamming') color = '#06b6d4';
+      let color = isLight ? '#0284C7' : '#38bdf8';
+      if (feat.layer === 'iranAttacks') color = isLight ? '#E11D48' : '#ef4444';
+      else if (feat.layer === 'bases') color = isLight ? '#0284C7' : '#3b82f6';
+      else if (feat.layer === 'nuclear') color = isLight ? '#D97706' : '#eab308';
+      else if (feat.layer === 'military') color = isLight ? '#EA580C' : '#06b6d4';
+      else if (feat.layer === 'weather') color = isLight ? '#0284C7' : '#60a5fa';
+      else if (feat.layer === 'canadaAlerts') color = isLight ? '#E11D48' : '#f43f5e';
+      else if (feat.layer === 'outages') color = isLight ? '#059669' : '#a855f7';
+      else if (feat.layer === 'natural') color = isLight ? '#EA580C' : '#ea580c';
+      else if (feat.layer === 'waterways') color = isLight ? '#0284C7' : '#14b8a6';
+      else if (feat.layer === 'economic') color = isLight ? '#059669' : '#10b981';
+      else if (feat.layer === 'sanctions') color = isLight ? '#BE185D' : '#ec4899';
+      else if (feat.layer === 'gpsJamming') color = isLight ? '#0284C7' : '#06b6d4';
 
       allPointFeatures.push({
         type: 'Feature',
@@ -624,16 +665,23 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'circle',
         source: 'points-source',
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            2, 6,
-            8, 14
-          ],
-          'circle-color': ['get', 'color'],
-          'circle-opacity': 0.25,
+          'circle-radius': isLight
+            ? [
+                'interpolate', ['linear'], ['zoom'],
+                2, 5,
+                4.5, 7.5,
+                8, 12
+              ]
+            : [
+                'interpolate', ['linear'], ['zoom'],
+                2, 6,
+                8, 14
+              ],
+          'circle-color': isLight ? 'rgba(0,0,0,0)' : ['get', 'color'],
+          'circle-opacity': isLight ? 0 : 0.25,
           'circle-stroke-width': 1,
           'circle-stroke-color': ['get', 'color'],
-          'circle-stroke-opacity': 0.5
+          'circle-stroke-opacity': isLight ? 0.35 : 0.5
         }
       });
 
@@ -643,14 +691,21 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'circle',
         source: 'points-source',
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            2, 3.5,
-            8, 6.5
-          ],
+          'circle-radius': isLight
+            ? [
+                'interpolate', ['linear'], ['zoom'],
+                2, 3.0,
+                4.5, 4.5,
+                8, 5.5
+              ]
+            : [
+                'interpolate', ['linear'], ['zoom'],
+                2, 3.5,
+                8, 6.5
+              ],
           'circle-color': ['get', 'color'],
           'circle-stroke-width': 1.5,
-          'circle-stroke-color': '#0c1017'
+          'circle-stroke-color': isLight ? '#FFFFFF' : '#0c1017'
         }
       });
 
@@ -669,9 +724,9 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           'text-max-width': 14
         },
         paint: {
-          'text-color': '#f8fafc',
-          'text-halo-color': '#020617',
-          'text-halo-width': 1.5
+          'text-color': isLight ? '#0F172A' : '#f8fafc',
+          'text-halo-color': isLight ? '#FFFFFF' : '#020617',
+          'text-halo-width': isLight ? 2.5 : 1.5
         }
       });
 
@@ -830,7 +885,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         }
       });
     }
-  }, [mapLoaded, activeLayers, hotspots, conflicts, features]);
+  }, [mapLoaded, activeLayers, hotspots, conflicts, features, theme]);
 
   return (
     <div className="relative w-full h-full flex-1 overflow-hidden bg-[#07090e]">

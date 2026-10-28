@@ -1183,6 +1183,7 @@ const AppContent: React.FC = () => {
           onToggleLayer={handleToggleLayer}
           onSetAllLayers={handleSetAllLayers}
           counts={layerCounts}
+          theme={theme}
         />
       )}
 
@@ -1202,7 +1203,7 @@ const AppContent: React.FC = () => {
             maxWidth: '100vw',
             background: 'var(--bg-surface)',
             borderLeft: '1px solid var(--border-medium)',
-            boxShadow: '-12px 0 24px rgba(0, 0, 0, 0.6)',
+            boxShadow: theme === 'light' ? '-6px 0 20px rgba(15, 23, 42, 0.08)' : '-12px 0 24px rgba(0, 0, 0, 0.6)',
             borderRadius: 0,
             transition: isDraggingAnyResizer ? 'none' : 'right 0.28s cubic-bezier(0.16, 1, 0.3, 1), width 0.15s ease'
           }}
@@ -1224,6 +1225,8 @@ const AppContent: React.FC = () => {
               className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
                 isDraggingAnyResizer
                   ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
+                  : theme === 'light'
+                  ? 'bg-white text-slate-600 border border-slate-300 shadow-sm group-hover:border-sky-500 group-hover:text-sky-600'
                   : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
               }`}
             >
@@ -1234,6 +1237,7 @@ const AppContent: React.FC = () => {
           <RightIntelligencePanel
             isOpen={isRightPanelOpen}
             onClose={() => setIsRightPanelOpen(false)}
+            theme={theme}
             hotspots={INTEL_HOTSPOTS}
             conflicts={CONFLICT_ZONES}
             features={allFeatures}
