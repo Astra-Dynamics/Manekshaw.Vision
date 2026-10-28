@@ -141,7 +141,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     const dist = Math.hypot(currentCenter.lng - center[0], currentCenter.lat - center[1]);
     const zoomDiff = Math.abs(currentZoom - zoom);
 
-    if (dist > 0.1 || zoomDiff > 0.2) {
+    if (dist > 0.001 || zoomDiff > 0.05) {
       mapRef.current.flyTo({
         center: center,
         zoom: zoom,

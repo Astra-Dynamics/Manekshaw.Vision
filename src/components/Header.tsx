@@ -42,6 +42,7 @@ interface HeaderProps {
   onNavigateLogin?: () => void;
   isWorkspaceSaved?: boolean;
   onToggleSaveWorkspace?: () => void;
+  onChangeCoordinates?: (coords: [number, number], zoom?: number) => void;
 }
 
 interface CityTimeZone {
@@ -60,6 +61,111 @@ const STRATEGIC_CITIES: CityTimeZone[] = [
   { id: 'washington', city: 'Washington', offsetLabel: 'GMT-4', timeZone: 'America/New_York' },
   { id: 'tokyo', city: 'Tokyo', offsetLabel: 'GMT+9', timeZone: 'Asia/Tokyo' }
 ];
+
+/**
+ * Flexible coordinate and angle parser supporting:
+ * - Decimal: "25.06, 86.35" or "-33.86, 151.2"
+ * - Cardinal angles: "25.06°N, 86.35°E" or "86.35 E 25.06 N" or "25.06N 86.35E"
+ * - Degrees & minutes: "28°36'N, 77°12'E" or "28°36'20"N 77°12'15"E"
+ * - Zoom notation: "• Z5.5", "Z6", "zoom 4" (either standalone or attached to coordinates)
+ */
+export function parseCoordinatesInput(
+  rawInput: string,
+  currentCenter: [number, number] = [86.35, 25.06],
+  currentZoom: number = 3.5
+): { coords: [number, number]; zoom?: number } | null {
+  if (!rawInput || !rawInput.trim()) return null;
+  let text = rawInput.trim().replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+
+  // 1. Extract zoom level if provided (e.g. "• Z3.5", "Z5", "zoom: 4")
+  let parsedZoom: number | undefined = undefined;
+  const zoomMatch = text.match(/(?:[•,;/|]|\s|^)\s*(?:z|zoom)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)/i);
+  if (zoomMatch) {
+    const z = parseFloat(zoomMatch[1]);
+    if (!isNaN(z)) {
+      parsedZoom = Math.min(Math.max(z, 1.5), 18);
+    }
+    text = text.replace(zoomMatch[0], ' ').trim();
+  }
+
+  // If input was only a zoom directive (e.g. "Z6"), keep current coords and apply new zoom
+  if (!text || text === '•' || text === ',' || text === ';') {
+    if (parsedZoom !== undefined) {
+      return { coords: currentCenter, zoom: parsedZoom };
+    }
+    return null;
+  }
+
+  // 2. Check for DMS (Degrees Minutes Seconds) or DM (Degrees Minutes) with N/S/E/W
+  const dmsRegex = /(\d+(?:\.\d+)?)[°\s]+(?:(\d+(?:\.\d+)?)['′\s]+)?(?:(\d+(?:\.\d+)?)["″\s]*)?([NSEWnsew])/g;
+  const dmsMatches = [...text.matchAll(dmsRegex)];
+  if (dmsMatches.length === 2) {
+    let lat: number | null = null;
+    let lon: number | null = null;
+
+    for (const m of dmsMatches) {
+      const deg = parseFloat(m[1]) || 0;
+      const min = parseFloat(m[2]) || 0;
+      const sec = parseFloat(m[3]) || 0;
+      const dir = m[4].toUpperCase();
+      const val = deg + min / 60 + sec / 3600;
+      if (dir === 'N') lat = val;
+      else if (dir === 'S') lat = -val;
+      else if (dir === 'E') lon = val;
+      else if (dir === 'W') lon = -val;
+    }
+
+    if (lat !== null && lon !== null) {
+      lat = Math.max(-85, Math.min(85, lat));
+      lon = Math.max(-180, Math.min(180, lon));
+      return { coords: [lon, lat], zoom: parsedZoom };
+    }
+  }
+
+  // 3. Check for Cardinal Decimal Angles (e.g. "25.06°N, 86.35°E" or "25.06N, 86.35E")
+  const cardinalRegex = /([+-]?\d+(?:\.\d+)?)\s*°?\s*([NSEWnsew])\b/gi;
+  const cardMatches = [...text.matchAll(cardinalRegex)];
+  if (cardMatches.length === 2) {
+    let lat: number | null = null;
+    let lon: number | null = null;
+
+    for (const m of cardMatches) {
+      const val = parseFloat(m[1]);
+      const dir = m[2].toUpperCase();
+      if (isNaN(val)) continue;
+      if (dir === 'N') lat = Math.abs(val);
+      else if (dir === 'S') lat = -Math.abs(val);
+      else if (dir === 'E') lon = Math.abs(val);
+      else if (dir === 'W') lon = -Math.abs(val);
+    }
+
+    if (lat !== null && lon !== null) {
+      lat = Math.max(-85, Math.min(85, lat));
+      lon = Math.max(-180, Math.min(180, lon));
+      return { coords: [lon, lat], zoom: parsedZoom };
+    }
+  }
+
+  // 4. Standard Decimal Pair: "lat, lon" or "lat lon" (e.g. "25.06, 86.35" or "-33.86, 151.20")
+  const cleanNumbers = text.replace(/[^0-9.\-+\s,]/g, ' ').trim();
+  const numMatches = cleanNumbers.match(/[+-]?\d+(?:\.\d+)?/g);
+  if (numMatches && numMatches.length >= 2) {
+    let lat = parseFloat(numMatches[0]);
+    let lon = parseFloat(numMatches[1]);
+    if (!isNaN(lat) && !isNaN(lon)) {
+      lat = Math.max(-85, Math.min(85, lat));
+      lon = Math.max(-180, Math.min(180, lon));
+      return { coords: [lon, lat], zoom: parsedZoom };
+    }
+  }
+
+  // If coordinates couldn't be parsed but zoom was parsed
+  if (parsedZoom !== undefined) {
+    return { coords: currentCenter, zoom: parsedZoom };
+  }
+
+  return null;
+}
 
 export const Header: React.FC<HeaderProps> = ({
   currentView,
@@ -82,7 +188,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuthModal,
   onNavigateLogin,
   isWorkspaceSaved = false,
-  onToggleSaveWorkspace
+  onToggleSaveWorkspace,
+  onChangeCoordinates
 }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>('delhi');
   const [formattedTime, setFormattedTime] = useState<string>('');
@@ -91,11 +198,32 @@ export const Header: React.FC<HeaderProps> = ({
   const [isTheaterOpen, setIsTheaterOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
+  // Editable coordinates state
+  const [isEditingCoords, setIsEditingCoords] = useState<boolean>(false);
+  const [coordsInput, setCoordsInput] = useState<string>('');
+  const coordsInputRef = useRef<HTMLInputElement>(null);
+
   const handleShareLink = () => {
     const shareUrl = getShareUrl ? getShareUrl() : window.location.href;
     navigator.clipboard.writeText(shareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  useEffect(() => {
+    if (isEditingCoords && coordsInputRef.current) {
+      coordsInputRef.current.focus();
+      coordsInputRef.current.select();
+    }
+  }, [isEditingCoords]);
+
+  const handleSaveCoords = () => {
+    setIsEditingCoords(false);
+    if (!coordsInput.trim()) return;
+    const parsed = parseCoordinatesInput(coordsInput, coordinates, zoom);
+    if (parsed && onChangeCoordinates) {
+      onChangeCoordinates(parsed.coords, parsed.zoom);
+    }
   };
 
   const theaterDropdownRef = useRef<HTMLDivElement>(null);
@@ -364,19 +492,57 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* 3. Right Cluster: Coordinates, Clock, Search, Theme, Desk Toggle */}
       <div className="flex items-center gap-1.5 shrink-0 relative z-50">
-        {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border */}
+        {/* Monospace Live Telemetry Coordinates Readout with Visual Left Border (Directly Editable, No Icons) */}
         <div className={`hidden lg:flex items-center gap-1.5 pl-4 border-l ${theme === 'light' ? 'border-[#CBD5E1]' : 'border-white/10'} pr-1 text-[10.5px] font-mono text-[var(--text-muted)]`}>
-          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${
-            theme === 'light'
-              ? 'bg-white border-[#CBD5E1] shadow-2xs'
-              : 'bg-[var(--bg-surface-elevated)]/60 border-[var(--hud-border)]'
-          }`}>
-            <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{latDisplay}</span>
-            <span>,</span>
-            <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{lonDisplay}</span>
-            <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
-            <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'} font-semibold`}>Z{zoom.toFixed(1)}</span>
-          </div>
+          {isEditingCoords ? (
+            <div
+              className={`flex items-center px-1.5 py-0.5 rounded-md border transition-colors ${
+                theme === 'light'
+                  ? 'bg-white border-sky-500 shadow-2xs'
+                  : 'bg-[var(--bg-surface-elevated)] border-sky-500/80 shadow-[0_0_8px_rgba(56,189,248,0.25)]'
+              }`}
+            >
+              <input
+                ref={coordsInputRef}
+                type="text"
+                value={coordsInput}
+                onChange={(e) => setCoordsInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveCoords();
+                  } else if (e.key === 'Escape') {
+                    setIsEditingCoords(false);
+                  }
+                }}
+                onBlur={handleSaveCoords}
+                className={`w-[185px] bg-transparent outline-none font-mono text-[10.5px] font-semibold text-center ${
+                  theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'
+                }`}
+                placeholder="lat, lon • Z3.5"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+          ) : (
+            <div
+              onClick={() => {
+                setCoordsInput(`${latDisplay}, ${lonDisplay} • Z${zoom.toFixed(1)}`);
+                setIsEditingCoords(true);
+              }}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md border cursor-pointer transition-colors ${
+                theme === 'light'
+                  ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
+                  : 'bg-[var(--bg-surface-elevated)]/60 border-[var(--hud-border)] hover:border-sky-500/60'
+              }`}
+              title="Click to enter custom coordinates or zoom (Enter to navigate)"
+            >
+              <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{latDisplay}</span>
+              <span>,</span>
+              <span className={`${theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'} font-semibold`}>{lonDisplay}</span>
+              <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
+              <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'} font-semibold`}>Z{zoom.toFixed(1)}</span>
+            </div>
+          )}
         </div>
 
         {/* Divider */}

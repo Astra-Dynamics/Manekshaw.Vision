@@ -1145,6 +1145,12 @@ const AppContent: React.FC = () => {
         getShareUrl={getSharableUrl}
         coordinates={mapCenter}
         zoom={mapZoom}
+        onChangeCoordinates={(coords, newZoom) => {
+          setMapCenter(coords);
+          if (newZoom !== undefined) {
+            setMapZoom(newZoom);
+          }
+        }}
         alerts={newsFeed}
         onSelectAlert={handleSelectAlert}
         onOpenAuthModal={() => handleOpenAuth('signin')}
