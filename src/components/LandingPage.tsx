@@ -749,16 +749,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             <div className="flex flex-col md:flex-row items-stretch">
               {/* Left Column (30% width) - Left-Aligned Identity & Spec Block */}
               <div className="md:w-[32%] shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] p-6 sm:p-8 flex flex-col items-start text-left bg-slate-950/40">
-                {/* Unconstrained Prominent ADYN Logo Image */}
-                <img
-                  src="/adyn-logo.png"
-                  alt="Team Astra Dynamics (ADYN) Monogram"
-                  className="w-[150px] h-auto object-contain rounded-[6px] transition-transform duration-300 hover:scale-[1.02]"
+                {/* Tactical Blue Framed Wrapper Around ADYN Logo */}
+                <div
+                  className="group transition-all duration-300"
                   style={{
-                    boxShadow: '0 10px 30px -5px rgba(245, 158, 11, 0.2)',
-                    marginBottom: '18px'
+                    padding: '14px',
+                    background: 'radial-gradient(circle at center, rgba(14, 165, 233, 0.12) 0%, rgba(10, 15, 26, 0.95) 100%)',
+                    border: '1px solid rgba(56, 189, 248, 0.25)',
+                    borderRadius: '6px',
+                    boxShadow: '0 0 28px rgba(14, 165, 233, 0.22), inset 0 0 16px rgba(56, 189, 248, 0.08)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '20px'
                   }}
-                />
+                >
+                  <img
+                    src="/adyn-logo.png"
+                    alt="Team Astra Dynamics (ADYN) Monogram"
+                    style={{
+                      width: '145px',
+                      height: 'auto',
+                      display: 'block',
+                      borderRadius: '2px',
+                      objectFit: 'contain'
+                    }}
+                    className="transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
 
                 <span className="font-mono font-bold text-base tracking-wider text-white text-left">
                   ASTRA DYNAMICS
