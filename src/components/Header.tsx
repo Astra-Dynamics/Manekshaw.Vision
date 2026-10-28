@@ -11,7 +11,9 @@ import {
   Sun,
   Moon,
   Search,
-  ChevronRight
+  ChevronRight,
+  Share2,
+  Check
 } from 'lucide-react';
 import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
 
@@ -68,6 +70,13 @@ export const Header: React.FC<HeaderProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
   const [isTheaterOpen, setIsTheaterOpen] = useState<boolean>(false);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  const handleShareLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   const theaterDropdownRef = useRef<HTMLDivElement>(null);
   const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
@@ -333,6 +342,25 @@ export const Header: React.FC<HeaderProps> = ({
           <kbd className="hidden sm:inline-block px-1 py-0.1 rounded text-[9px] bg-[var(--bg-surface)] border border-[var(--hud-border)] text-[var(--text-faint)]">
             ⌘K
           </kbd>
+        </button>
+
+        {/* Share Dashboard Intel Link */}
+        <button
+          onClick={handleShareLink}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 text-[11px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
+          title="Copy Sharable Dashboard Link"
+        >
+          {copiedLink ? (
+            <>
+              <Check size={12} className="text-emerald-400" />
+              <span className="text-emerald-400 font-bold text-[10px]">COPIED</span>
+            </>
+          ) : (
+            <>
+              <Share2 size={12} className="text-sky-400 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline-block text-[10px] font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">SHARE</span>
+            </>
+          )}
         </button>
 
         {/* Theme Toggle */}

@@ -222,7 +222,9 @@ export const App: React.FC = () => {
     }
 
     const query = params.toString();
-    const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    const currentPath = window.location.pathname;
+    const basePath = currentPath === '/Dashboard' ? '/Dashboard' : '/dashboard';
+    const newUrl = query ? `${basePath}?${query}` : basePath;
     window.history.replaceState({}, '', newUrl);
   }, [mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
