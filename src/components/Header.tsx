@@ -28,6 +28,7 @@ interface HeaderProps {
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
   onNavigateHome?: () => void;
+  getShareUrl?: () => string;
   coordinates?: [number, number]; // [lon, lat]
   zoom?: number;
   alerts?: IntelNewsItem[];
@@ -62,6 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   onOpenCommandPalette,
   onNavigateHome,
+  getShareUrl,
   coordinates = [82.75, 22.46],
   zoom = 3.25,
   alerts = [],
@@ -75,7 +77,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
   const handleShareLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const shareUrl = getShareUrl ? getShareUrl() : window.location.href;
+    navigator.clipboard.writeText(shareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };

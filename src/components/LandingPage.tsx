@@ -11,6 +11,7 @@ import {
   Layers,
   Award,
   ChevronRight,
+  ChevronDown,
   Compass,
   Radar,
   Lock,
@@ -20,7 +21,15 @@ import {
   CheckCircle2,
   Sparkles,
   Terminal,
-  Flag
+  Flag,
+  Crosshair,
+  Server,
+  Share2,
+  AlertTriangle,
+  HelpCircle,
+  TrendingUp,
+  Clock,
+  Check
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -28,61 +37,141 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) => {
-  const [mounted, setMounted] = useState(false);
+  const [activeTheaterTab, setActiveTheaterTab] = useState<'indo' | 'mideast' | 'europe' | 'asia'>('indo');
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     window.scrollTo(0, 0);
   }, []);
+
+  const liveTickers = [
+    'MILITARY • PLA Eastern Theater exercises detected near Taiwan Strait median line',
+    'CYBER • Red Sea subsea telecommunication cable consortium reports stable telemetry',
+    'SEISMIC • USGS detects M5.4 seismic anomaly along Pacific Ring of Fire',
+    'DEFENSE • Indian Army surveillance deployed along LAC northern sectors',
+    'MARITIME • Strait of Hormuz commercial maritime convoy operating under heightened naval watch',
+    'RADAR • Active GNSS spoofing detected over Eastern Mediterranean airspace'
+  ];
+
+  const theaters = [
+    {
+      id: 'indo',
+      name: 'Indo-Pacific & Northern Borders',
+      coordinates: '34.08°N, 74.79°E',
+      status: 'HIGH ALERT',
+      statusColor: 'text-rose-400 bg-rose-500/15 border-rose-500/30',
+      description:
+        'Continuous surveillance across Jammu & Kashmir (LoC, AGPL), Ladakh (LAC Western Sector), Arunachal Pradesh, and the vital Siliguri Corridor with 100% Survey of India unbroken border adherence.',
+      keyLayers: ['Fortified Frontlines', 'Military Bases', 'Nuclear Sites', 'Strategic Deployments']
+    },
+    {
+      id: 'mideast',
+      name: 'Middle East & Levant Basin',
+      coordinates: '29.31°N, 47.48°E',
+      status: 'ELEVATED RISK',
+      statusColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+      description:
+        'Ballistic missile trajectory reporting, counter-battery operations, naval carrier task groups in the Arabian Sea, and strategic chokepoint transit monitoring through the Strait of Hormuz and Bab el-Mandeb.',
+      keyLayers: ['Middle East Strikes', 'Maritime Chokepoints', 'Intel Hotspots', 'Frontlines']
+    },
+    {
+      id: 'europe',
+      name: 'Eastern Europe & Black Sea',
+      coordinates: '48.37°N, 31.16°E',
+      status: 'ACTIVE WARZONE',
+      statusColor: 'text-red-400 bg-red-500/15 border-red-500/30',
+      description:
+        'Dynamic frontline warfare polygons, mechanized combat operations across the Donbas, electronic warfare jamming corridors over the Baltic Sea, and NATO air policing alerts.',
+      keyLayers: ['Frontlines & Wars', 'Electronic Warfare', 'Grid Disruption', 'Sanctions Regimes']
+    },
+    {
+      id: 'asia',
+      name: 'East Asia & Taiwan Strait',
+      coordinates: '23.69°N, 120.96°E',
+      status: 'STRATEGIC WATCH',
+      statusColor: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30',
+      description:
+        'Air Defense Identification Zone (ADIZ) sovereign airspace monitoring, First Island Chain naval deployments, and semiconductor manufacturing center vulnerability index tracking.',
+      keyLayers: ['ADIZ Air Defense', 'Naval Task Forces', 'Economic Centers', 'Subsea Cables']
+    }
+  ];
 
   const capabilities = [
     {
       icon: <Flame className="text-rose-500" size={20} />,
-      title: 'Kinetic Frontlines & Conflict Zones',
+      title: 'Kinetic Frontlines & Active Conflicts',
       tag: 'KINETIC',
       description:
-        'Live mechanized combat zones, fortified demarcations (LoC, LAC, AGPL, DMZ), ballistic missile strikes, and verified tactical frontline polygons.',
-      accent: 'border-rose-500/30 group-hover:border-rose-500/60',
-      badgeBg: 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+        'Live frontline warfare polygons, fortified defensive demarcations (LoC, LAC, AGPL, DMZ), precision strikes, and mechanized combat operations aggregated with sub-second latency.',
+      accent: 'border-rose-500/30 hover:border-rose-500/60'
     },
     {
       icon: <Shield className="text-amber-500" size={20} />,
       title: 'Strategic Garrisons & Nuclear Deterrence',
       tag: 'STRATEGIC',
       description:
-        'Global military bases, carrier strike groups, strategic bomber wings, uranium enrichment complexes, and sovereign Air Defense Identification Zones (ADIZ).',
-      accent: 'border-amber-500/30 group-hover:border-amber-500/60',
-      badgeBg: 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+        'Global military command hubs, naval carrier strike groups, strategic bomber wings, uranium enrichment complexes, and sovereign Air Defense Identification Zones (ADIZ).',
+      accent: 'border-amber-500/30 hover:border-amber-500/60'
     },
     {
       icon: <Radio className="text-cyan-400" size={20} />,
       title: 'Electronic Warfare & GNSS Jamming',
       tag: 'ELECTRONIC',
       description:
-        'High-density GPS/GLONASS spoofing corridors, signal attenuation telemetry, and active electronic combat arrays monitored across sensitive maritime and border skies.',
-      accent: 'border-cyan-500/30 group-hover:border-cyan-500/60',
-      badgeBg: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+        'High-density GPS and GLONASS signal degradation corridors, attenuation loss percentages, and active electronic combat arrays monitored across sensitive maritime and border airspace.',
+      accent: 'border-cyan-500/30 hover:border-cyan-500/60'
     },
     {
       icon: <Zap className="text-emerald-400" size={20} />,
-      title: 'Maritime Chokepoints & Grid Resilience',
+      title: 'Maritime Chokepoints & Grid Outages',
       tag: 'INFRASTRUCTURE',
       description:
-        'Critical maritime choke points (Hormuz, Malacca, Bab el-Mandeb, Suez), undersea fiber-optic cable severances, and real-time telecom & energy grid blackout tracking.',
-      accent: 'border-emerald-500/30 group-hover:border-emerald-500/60',
-      badgeBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+        'Critical maritime choke points (Hormuz, Malacca, Bab el-Mandeb, Suez), undersea fiber-optic cable severances, electrical grid blackouts, and critical telecommunication telemetry.',
+      accent: 'border-emerald-500/30 hover:border-emerald-500/60'
+    },
+    {
+      icon: <Activity className="text-purple-400" size={20} />,
+      title: 'Country Dossiers & Instability Scoring (CII)',
+      tag: 'INTELLIGENCE',
+      description:
+        'Comprehensive national security profiles featuring the Country Instability Index (CII), active armed forces posture, nuclear status, defense spending, and bilateral treaty alliances.',
+      accent: 'border-purple-500/30 hover:border-purple-500/60'
+    },
+    {
+      icon: <Globe2 className="text-sky-400" size={20} />,
+      title: 'Real-Time Hazard & Seismic Feeds',
+      tag: 'ENVIRONMENT',
+      description:
+        'Direct telemetry integration with real-time USGS seismic feeds, NASA EONET volcanic and wildfire satellite sensors, and NOAA severe atmospheric watches.',
+      accent: 'border-sky-500/30 hover:border-sky-500/60'
     }
   ];
 
-  const telemetryStats = [
-    { label: 'Active Intel Layers', value: '16+' },
-    { label: 'Global Sovereign Zones', value: '190+' },
-    { label: 'Live Data Refresh', value: 'Sub-Second' },
-    { label: 'Border Integrity Standard', value: 'SOI 100%' }
+  const faqs = [
+    {
+      q: 'What is Manekshaw.Vision (ManVis)?',
+      a: 'Manekshaw.Vision is an independent, sovereign geospatial intelligence (GEOINT) and situational awareness platform. It aggregates physical conflict data, strategic military garrisons, electronic warfare signals, and critical infrastructure telemetry onto an interactive, high-contrast tactical map.'
+    },
+    {
+      q: 'How does it differ from consumer mapping platforms like Google Maps?',
+      a: 'Commercial map services are built for consumer navigation and frequently show broken, dashed, or contested territorial lines depending on the visitor’s country of access. Manekshaw.Vision is built from the ground up to strictly honor the official unbroken territorial integrity of India as mandated by the Survey of India (SOI), while providing tactical defense overlays (ADIZ, EW jamming, carrier groups) not found in consumer maps.'
+    },
+    {
+      q: 'How frequently is tactical intelligence updated?',
+      a: 'Telemetry feeds—including USGS real-time seismic sensors, NASA EONET events, NOAA weather warnings, and defense dispatch bulletins—refresh automatically every few minutes directly in your browser.'
+    },
+    {
+      q: 'Is an account or installation required to use the Dashboard?',
+      a: 'No. The entire platform runs directly inside your web browser using WebGL client-side rendering. There is no sign-up wall, no tracking, and zero installation required.'
+    },
+    {
+      q: 'Who developed Manekshaw.Vision?',
+      a: 'The platform is engineered by Team Astra Dynamics (ADYN), a deep-tech engineering and sovereign defense research collective, in proud dedication to India’s legendary First Field Marshal, Sam Manekshaw.'
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-[#06090e] text-[#F8FAFC] font-sans selection:bg-sky-500 selection:text-slate-950 overflow-x-hidden relative">
+    <div className="w-full min-h-screen bg-[#06090e] text-[#F8FAFC] font-sans selection:bg-sky-500 selection:text-slate-950 overflow-x-hidden relative">
       {/* Background Decorative Tactical Grid */}
       <div
         className="fixed inset-0 pointer-events-none opacity-20"
@@ -97,17 +186,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       <div className="fixed top-[600px] right-0 w-[500px] h-[400px] bg-rose-600/8 blur-[160px] pointer-events-none rounded-full" />
 
       {/* 1. TOP TACTICAL NAVIGATION BAR */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#06090e]/85 border-b border-white/[0.08] transition-all">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#06090e]/90 border-b border-white/[0.08] transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Lockup with Sir Sam Favicon */}
+          {/* Brand Lockup with Tactical Dashboard Emblem */}
           <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9 rounded-[4px] overflow-hidden border border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.3)] bg-slate-950 shrink-0">
-              <img
-                src="/logo.jpg"
-                alt="Field Marshal Sam Manekshaw"
-                className="w-full h-full object-cover object-top"
-              />
-              <span className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+            {/* Tactical Dashboard Radio Emblem (replacing picture beside logo) */}
+            <div className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 shrink-0 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+              <Radio size={15} className="animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
             </div>
 
             <div>
@@ -126,16 +212,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-mono text-[#94A3B8]">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-mono text-[#94A3B8]">
             <a href="#platform" className="hover:text-sky-400 transition-colors">
               PLATFORM
+            </a>
+            <a href="#theaters" className="hover:text-sky-400 transition-colors">
+              THEATERS
+            </a>
+            <a href="#capabilities" className="hover:text-sky-400 transition-colors">
+              CAPABILITIES
             </a>
             <a href="#dedication" className="hover:text-amber-400 transition-colors flex items-center gap-1">
               <Award size={13} className="text-amber-400" />
               DEDICATION
             </a>
-            <a href="#capabilities" className="hover:text-sky-400 transition-colors">
-              CAPABILITIES
+            <a href="#faq" className="hover:text-sky-400 transition-colors">
+              FAQ
             </a>
             <a href="#team" className="hover:text-sky-400 transition-colors">
               ASTRA DYNAMICS
@@ -156,14 +248,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </header>
 
-      {/* 2. HERO SECTION */}
+      {/* 2. LIVE INTEL TICKER MARQUEE */}
+      <div className="bg-[#090D15] border-b border-white/[0.06] py-2 px-4 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto flex items-center gap-4 text-xs font-mono">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[10px] font-bold tracking-wider shrink-0 uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            LIVE DISPATCHES
+          </div>
+
+          <div className="flex-1 overflow-hidden relative">
+            <div className="flex items-center gap-8 animate-marquee whitespace-nowrap text-[11px] text-[#94A3B8]">
+              {liveTickers.map((t, idx) => (
+                <span key={idx} className="flex items-center gap-2">
+                  <span className="text-sky-400">●</span> {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. HERO SECTION */}
       <section id="platform" className="relative pt-16 sm:pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-4xl mx-auto space-y-6">
           {/* Sovereign Live Status Pill */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[2px] bg-white/[0.04] border border-white/10 text-xs font-mono text-[#94A3B8] shadow-inner">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
             <span className="text-slate-200 font-semibold tracking-wider uppercase text-[10.5px]">
-              OPERATIONAL SENTINEL SYSTEM
+              SOVEREIGN GEOSPATIAL INTELLIGENCE PLATFORM
             </span>
             <span className="text-white/20">•</span>
             <span className="text-sky-400 font-bold text-[10.5px]">v1.5 LIVE</span>
@@ -171,47 +283,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
 
           {/* Main Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
-            Sovereign Situational Awareness & Global Defense Intelligence
+            Real-Time Defense Intelligence & Global Situational Awareness
           </h1>
 
           {/* Subheading */}
-          <p className="text-base sm:text-lg text-[#94A3B8] max-w-2xl mx-auto leading-relaxed font-sans font-normal">
-            A high-contrast, real-time tactical command platform synthesizing kinetic conflict zones, frontline deployments, electronic warfare telemetry, and critical global infrastructure onto an interactive geospatial map.
+          <p className="text-base sm:text-lg text-[#94A3B8] max-w-3xl mx-auto leading-relaxed font-sans font-normal">
+            A unified, sovereign tactical command center synthesizing frontline warfare, military garrisons, nuclear posture, electronic warfare degradation, and maritime chokepoints onto an interactive geospatial canvas.
           </p>
 
           {/* Dual Action Buttons */}
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={onLaunchDashboard}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-sm tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(56,189,248,0.45)] hover:shadow-[0_0_40px_rgba(56,189,248,0.6)] flex items-center justify-center gap-2.5 cursor-pointer group"
+              className="w-full sm:w-auto px-8 py-4 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-sm tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(56,189,248,0.45)] hover:shadow-[0_0_40px_rgba(56,189,248,0.6)] flex items-center justify-center gap-2.5 cursor-pointer group"
             >
-              <Compass size={16} className="text-slate-950 group-hover:rotate-45 transition-transform" />
+              <Compass size={17} className="text-slate-950 group-hover:rotate-45 transition-transform" />
               <span>Launch Live Dashboard</span>
-              <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={17} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             <a
               href="#dedication"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-[3px] bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/10 hover:border-amber-400/50 font-mono font-medium text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-4 rounded-[3px] bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/10 hover:border-amber-400/50 font-mono font-medium text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2"
             >
-              <Award size={14} className="text-amber-400" />
+              <Award size={15} className="text-amber-400" />
               <span>Dedication to Sir Sam</span>
             </a>
           </div>
 
           {/* Telemetry Metric Badges */}
-          <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
-            {telemetryStats.map((stat, idx) => (
-              <div
-                key={idx}
-                className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono relative overflow-hidden"
-              >
-                <div className="text-lg sm:text-xl font-bold text-sky-400">{stat.value}</div>
-                <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
-                  {stat.label}
-                </div>
+          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
+              <div className="text-lg sm:text-xl font-bold text-sky-400">16+</div>
+              <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
+                Tactical Layers
               </div>
-            ))}
+            </div>
+            <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
+              <div className="text-lg sm:text-xl font-bold text-emerald-400">Sub-Second</div>
+              <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
+                Telemetry Ingest
+              </div>
+            </div>
+            <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
+              <div className="text-lg sm:text-xl font-bold text-amber-400">190+</div>
+              <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
+                Sovereign Nations
+              </div>
+            </div>
+            <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
+              <div className="text-lg sm:text-xl font-bold text-purple-400">100% SOI</div>
+              <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
+                Border Compliance
+              </div>
+            </div>
           </div>
         </div>
 
@@ -228,7 +353,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
-              <span className="ml-2 font-semibold text-slate-300">manvis.tech/dashboard</span>
+              <span className="ml-2 font-semibold text-slate-300">manvis.tech/Dashboard</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               <span className="text-emerald-400 flex items-center gap-1 font-bold">
@@ -238,15 +363,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             </div>
           </div>
 
-          {/* Dashboard Canvas Preview with Interactive Hover Overlay */}
+          {/* Interactive Preview Canvas */}
           <div
             onClick={onLaunchDashboard}
             className="relative aspect-video sm:aspect-[21/9] w-full rounded-b-[4px] overflow-hidden cursor-pointer bg-slate-950"
           >
-            {/* High-tech simulated geospatial backdrop */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sky-950/30 via-slate-950 to-slate-950" />
             
-            {/* Abstract World Grid Lines */}
+            {/* World Grid Lines */}
             <div
               className="absolute inset-0 opacity-30"
               style={{
@@ -255,12 +379,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               }}
             />
 
-            {/* Simulated Tactical Nodes on Canvas */}
+            {/* Simulated Live Tactical Beacons */}
             <div className="absolute top-[35%] left-[62%] -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-sky-400 animate-ping absolute" />
               <span className="w-3 h-3 rounded-full bg-sky-500 shadow-[0_0_12px_#38bdf8] relative" />
               <span className="px-2 py-0.5 rounded-[2px] bg-slate-900/90 border border-sky-500/40 text-[9.5px] font-mono text-sky-300 font-bold">
-                NEW DELHI HQ • 28.61°N, 77.20°E
+                NEW DELHI COMMAND • 28.61°N, 77.20°E
               </span>
             </div>
 
@@ -279,9 +403,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             </div>
 
             {/* Click to Enter Overlay */}
-            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] group-hover:bg-slate-950/30 transition-all flex items-center justify-center">
+            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] group-hover:bg-slate-950/25 transition-all flex items-center justify-center">
               <div className="px-6 py-3 rounded-[3px] bg-sky-500 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_30px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform">
-                <span>Click to Enter Fullscreen Dashboard</span>
+                <span>Enter Live Interactive Dashboard</span>
                 <ArrowRight size={14} />
               </div>
             </div>
@@ -289,7 +413,168 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 3. NOBLE DEDICATION TO SIR SAM MANEKSHAW */}
+      {/* 4. THEATER INTELLIGENCE EXPLORER (WorldMonitor Style) */}
+      <section id="theaters" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
+        <div className="text-center space-y-3 mb-12">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase">
+            <Compass size={13} />
+            <span>OPERATIONAL THEATERS</span>
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Multi-Theater Surveillance Matrix
+          </h2>
+          <p className="text-xs sm:text-sm text-[#94A3B8] font-mono max-w-xl mx-auto">
+            Switch between tactical sectors to monitor frontline combat, sovereign borders, and maritime chokepoints.
+          </p>
+        </div>
+
+        {/* Interactive Theater Tabs */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 font-mono text-xs">
+          {theaters.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTheaterTab(t.id as any)}
+              className={`px-4 py-2 rounded-[2px] border transition-all cursor-pointer font-bold ${
+                activeTheaterTab === t.id
+                  ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.35)]'
+                  : 'bg-white/[0.03] text-slate-300 border-white/10 hover:border-white/20'
+              }`}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Selected Theater Showcase Card */}
+        {theaters
+          .filter((t) => t.id === activeTheaterTab)
+          .map((t) => (
+            <div
+              key={t.id}
+              className="rounded-[4px] border border-white/10 bg-[#090E17] p-6 sm:p-8 relative overflow-hidden shadow-2xl"
+            >
+              <span className="bracket-tl" />
+              <span className="bracket-tr" />
+              <span className="bracket-bl" />
+              <span className="bracket-br" />
+
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white">{t.name}</h3>
+                    <span className={`px-2 py-0.5 rounded-[2px] font-mono text-[10px] font-bold border uppercase ${t.statusColor}`}>
+                      {t.status}
+                    </span>
+                  </div>
+                  <p className="text-xs font-mono text-sky-400 mt-1">Sector Coordinates: {t.coordinates}</p>
+                </div>
+
+                <button
+                  onClick={onLaunchDashboard}
+                  className="px-4 py-2 rounded-[2px] bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-400 font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span>Focus in Dashboard</span>
+                  <ExternalLink size={13} />
+                </button>
+              </div>
+
+              <div className="pt-6 space-y-4">
+                <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans">{t.description}</p>
+
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block mb-2 font-semibold">
+                    ACTIVE SENSOR OVERLAYS FOR THIS SECTOR:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {t.keyLayers.map((layer, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 rounded-[2px] bg-white/[0.03] text-slate-200 border border-white/10 font-mono text-[11px]"
+                      >
+                        ⚡ {layer}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+      </section>
+
+      {/* 5. CAPABILITIES GRID (WorldMonitor Feature Set) */}
+      <section id="capabilities" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
+        <div className="text-center space-y-3 mb-14">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase">
+            <Layers size={13} />
+            <span>CORE CAPABILITIES</span>
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Six Dimensions of Global Telemetry
+          </h2>
+          <p className="text-xs sm:text-sm text-[#94A3B8] font-mono max-w-xl mx-auto">
+            Aggregating physical conflict, sovereign borders, electronic combat, and critical supply corridors.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {capabilities.map((cap, idx) => (
+            <div
+              key={idx}
+              className={`p-6 rounded-[3px] bg-[#0A0E17] border ${cap.accent} transition-all duration-300 relative group overflow-hidden shadow-lg`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-[2px] bg-white/[0.03] border border-white/10 flex items-center justify-center">
+                  {cap.icon}
+                </div>
+                <span className="px-2 py-0.5 rounded-[2px] font-mono text-[10px] font-bold border border-white/10 bg-white/5 text-[#94A3B8] uppercase">
+                  {cap.tag}
+                </span>
+              </div>
+
+              <h3 className="text-base font-bold text-white mb-2 group-hover:text-sky-400 transition-colors">
+                {cap.title}
+              </h3>
+
+              <p className="text-xs text-[#94A3B8] leading-relaxed">
+                {cap.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 6. SOVEREIGN CARTOGRAPHIC STANDARDS BANNER */}
+      <section className="py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-[4px] border border-sky-500/30 bg-sky-950/20 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <span className="bracket-tl" />
+          <span className="bracket-tr" />
+          <span className="bracket-bl" />
+          <span className="bracket-br" />
+
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-[2px] bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+              <Flag size={24} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                Official Survey of India (SOI) Border Integrity
+              </h3>
+              <p className="text-xs sm:text-sm text-[#94A3B8] max-w-2xl leading-relaxed">
+                Unlike international commercial mapping engines that alter Jammu & Kashmir or Arunachal Pradesh into dashed lines depending on user IP geolocation, Manekshaw.Vision enforces unbroken sovereign national borders strictly compliant with the statutory cartographic standards of the Republic of India.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onLaunchDashboard}
+            className="px-5 py-2.5 rounded-[2px] bg-sky-500 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider shrink-0 hover:bg-sky-400 transition-colors shadow-md"
+          >
+            Inspect India Theater
+          </button>
+        </div>
+      </section>
+
+      {/* 7. NOBLE DEDICATION TO SIR SAM MANEKSHAW */}
       <section id="dedication" className="relative py-20 bg-gradient-to-b from-[#06090e] via-[#0A0E17] to-[#06090e] border-y border-white/[0.08]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -375,50 +660,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 4. MULTI-DOMAIN INTELLIGENCE CAPABILITIES */}
-      <section id="capabilities" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* 8. INTERACTIVE FAQ ACCORDION (WorldMonitor Style) */}
+      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.08]">
         <div className="text-center space-y-3 mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase">
-            <Layers size={13} />
-            <span>GEOINT MATRIX</span>
+            <HelpCircle size={13} />
+            <span>FREQUENTLY ASKED QUESTIONS</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Comprehensive Multi-Domain Surveillance
+            Understanding the Platform
           </h2>
-          <p className="text-xs sm:text-sm text-[#94A3B8] font-mono max-w-xl mx-auto">
-            16 interactive, real-time data overlays aggregated into a single unified high-contrast canvas.
+          <p className="text-xs sm:text-sm text-[#94A3B8] font-mono">
+            Key operational details regarding data integrity, telemetry latency, and architecture.
           </p>
         </div>
 
-        {/* 4-Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {capabilities.map((cap, idx) => (
-            <div
-              key={idx}
-              className={`p-6 rounded-[3px] bg-[#0A0E17] border ${cap.accent} transition-all duration-300 relative group overflow-hidden shadow-lg`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-[2px] bg-white/[0.03] border border-white/10 flex items-center justify-center">
-                  {cap.icon}
-                </div>
-                <span className={`px-2 py-0.5 rounded-[2px] font-mono text-[10px] font-bold border uppercase ${cap.badgeBg}`}>
-                  {cap.tag}
-                </span>
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div
+                key={idx}
+                className="rounded-[3px] border border-white/[0.08] bg-[#0A0E17] overflow-hidden transition-colors"
+              >
+                <button
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="w-full p-4 sm:p-5 flex items-center justify-between text-left text-sm font-semibold text-white hover:text-sky-400 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-sky-400' : ''}`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-[#94A3B8] leading-relaxed border-t border-white/[0.04] pt-3 font-sans">
+                    {faq.a}
+                  </div>
+                )}
               </div>
-
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-sky-400 transition-colors">
-                {cap.title}
-              </h3>
-
-              <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-                {cap.description}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* 5. ENGINEERED BY TEAM ASTRA DYNAMICS (ADYN) */}
+      {/* 9. ENGINEERED BY TEAM ASTRA DYNAMICS (ADYN) */}
       <section id="team" className="py-20 bg-[#070B12] border-t border-white/[0.08] relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-[4px] border border-sky-500/25 bg-[#0A0F1A] p-8 sm:p-12 relative overflow-hidden shadow-2xl">
@@ -483,19 +769,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 6. CALL TO ACTION BANNER */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-        <div className="p-8 sm:p-12 rounded-[4px] border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-sky-950/40 backdrop-blur-xl relative shadow-[0_0_50px_rgba(56,189,248,0.15)] space-y-6">
+      {/* 10. CALL TO ACTION BANNER */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
+        <div className="p-8 sm:p-14 rounded-[4px] border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-sky-950/40 backdrop-blur-xl relative shadow-[0_0_50px_rgba(56,189,248,0.15)] space-y-6">
           <span className="bracket-tl" />
           <span className="bracket-tr" />
           <span className="bracket-bl" />
           <span className="bracket-br" />
 
           <h3 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Experience the Sovereign Tactical Sentinel
+            Enter the Sovereign Command Center
           </h3>
-          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto font-sans">
-            Launch the interactive command center now. Free, fully functional, and accessible directly in your browser.
+          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto font-sans leading-relaxed">
+            Free, real-time, and fully operational directly in your browser. No sign-up wall, zero tracking.
           </p>
 
           <button
@@ -508,13 +794,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 7. FOOTER */}
+      {/* 11. FOOTER */}
       <footer className="border-t border-white/[0.08] py-8 px-4 sm:px-6 lg:px-8 bg-[#04060A] text-xs font-mono text-[#64748B]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">MANEKSHAW.VISION</span>
             <span>•</span>
-            <span>Astra Dynamics (ADYN)</span>
+            <span>Team Astra Dynamics (ADYN)</span>
           </div>
 
           <div className="text-center sm:text-right text-[11px] text-[#475569]">

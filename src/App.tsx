@@ -132,8 +132,8 @@ export const App: React.FC = () => {
   const isDashboard = currentPath.toLowerCase().startsWith('/dashboard');
 
   const handleLaunchDashboard = () => {
-    window.history.pushState({}, '', '/dashboard');
-    setCurrentPath('/dashboard');
+    window.history.pushState({}, '', '/Dashboard');
+    setCurrentPath('/Dashboard');
   };
 
   const handleNavigateHome = () => {
@@ -218,10 +218,17 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Update URL Query Parameters on State Change with Compact Micro-Encoding (Dashboard Only)
+  // Maintain clean address bar: strictly '/Dashboard' without query strings
   useEffect(() => {
     if (!isDashboard) return;
 
+    if (window.location.pathname !== '/Dashboard' || window.location.search) {
+      window.history.replaceState({}, '', '/Dashboard');
+    }
+  }, [isDashboard]);
+
+  // Generate Sharable Deep Link with Telemetry on demand (accessible via SHARE button)
+  const getSharableUrl = useCallback(() => {
     const params = new URLSearchParams();
 
     // 1. Compact coordinates: c=lat,lon,zoom (e.g. c=25.58,89.88,4.2)
@@ -242,16 +249,13 @@ export const App: React.FC = () => {
 
     // 4. Compact 4-character hex layer bitmask (e.g. l=fffe)
     const layerHex = encodeLayersToHex(activeLayers);
-    // If not all 16 layers are active, include 'l'
     if (layerHex !== DEFAULT_LAYER_MASK.toString(16)) {
       params.set('l', layerHex);
     }
 
-    const query = params.toString();
-    const basePath = currentPath === '/Dashboard' ? '/Dashboard' : '/dashboard';
-    const newUrl = query ? `${basePath}?${query}` : basePath;
-    window.history.replaceState({}, '', newUrl);
-  }, [isDashboard, currentPath, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
+    const origin = window.location.origin;
+    return `${origin}/Dashboard?${params.toString()}`;
+  }, [mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
   // Combined feature items
   const allFeatures = useMemo(() => {
@@ -448,6 +452,7 @@ export const App: React.FC = () => {
         onToggleTheme={handleToggleTheme}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onNavigateHome={handleNavigateHome}
+        getShareUrl={getSharableUrl}
         coordinates={mapCenter}
         zoom={mapZoom}
         alerts={newsFeed}
