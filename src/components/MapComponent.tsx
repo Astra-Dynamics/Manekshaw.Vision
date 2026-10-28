@@ -27,6 +27,7 @@ interface MapComponentProps {
   onSelectFeature: (feature: StrategicFeature) => void;
   onSelectCountry?: (country: { code: string; name: string }) => void;
   onViewChange: (center: [number, number], zoom: number) => void;
+  onFocusDefault?: () => void;
 }
 
 export const MapComponent: React.FC<MapComponentProps> = ({
@@ -39,11 +40,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   theme = 'dark',
   onSelectFeature,
   onSelectCountry,
-  onViewChange
+  onViewChange,
+  onFocusDefault
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const cameraTargetRef = useRef<{ center: [number, number]; zoom: number } | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [is3D, setIs3D] = useState(false);
 
@@ -118,6 +121,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     }
 
     map.on('moveend', () => {
+      cameraTargetRef.current = null;
       const c = map.getCenter();
       const z = map.getZoom();
       onViewChange([c.lng, c.lat], z);
@@ -138,10 +142,23 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     const currentCenter = mapRef.current.getCenter();
     const currentZoom = mapRef.current.getZoom();
 
+    // If camera is already flying to this exact coordinate target, don't interrupt
+    if (cameraTargetRef.current) {
+      const targetDist = Math.hypot(
+        cameraTargetRef.current.center[0] - center[0],
+        cameraTargetRef.current.center[1] - center[1]
+      );
+      const targetZoomDiff = Math.abs(cameraTargetRef.current.zoom - zoom);
+      if (targetDist < 0.001 && targetZoomDiff < 0.05) {
+        return;
+      }
+    }
+
     const dist = Math.hypot(currentCenter.lng - center[0], currentCenter.lat - center[1]);
     const zoomDiff = Math.abs(currentZoom - zoom);
 
     if (dist > 0.001 || zoomDiff > 0.05) {
+      cameraTargetRef.current = { center: [center[0], center[1]], zoom };
       mapRef.current.flyTo({
         center: center,
         zoom: zoom,
@@ -191,8 +208,29 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     setIs3D(false);
   };
 
-  const handleFocusIndia = () => {
-    mapRef.current?.flyTo({ center: [86.35, 25.06], zoom: 3.5, essential: true });
+  const handleFocusIndia = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const map = mapRef.current;
+    if (!map) return;
+
+    setIs3D(false);
+    popupRef.current?.remove();
+
+    cameraTargetRef.current = { center: [86.35, 25.06], zoom: 3.5 };
+    map.flyTo({
+      center: [86.35, 25.06],
+      zoom: 3.5,
+      pitch: 25,
+      bearing: 0,
+      speed: 1.2,
+      curve: 1.4,
+      essential: true
+    });
+
+    onFocusDefault?.();
     onViewChange([86.35, 25.06], 3.5);
   };
 
@@ -894,6 +932,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       {/* Floating Tactical Map Controls (Offset below Header 44px + TabBar 32px) */}
       <div className="absolute top-[84px] left-3 z-10 flex flex-col gap-1 p-1 rounded-lg hud-panel shadow-2xl select-none">
         <button
+          type="button"
           onClick={handleZoomIn}
           className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
           title="Zoom In"
@@ -901,6 +940,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           +
         </button>
         <button
+          type="button"
           onClick={handleZoomOut}
           className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] font-bold text-sm transition-colors"
           title="Zoom Out"
@@ -909,6 +949,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         <div className="h-px w-5 bg-[var(--hud-border)] mx-auto my-0.5" />
         <button
+          type="button"
           onClick={handleToggle3D}
           className={`w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
             is3D
@@ -920,6 +961,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           3D
         </button>
         <button
+          type="button"
           onClick={handleResetNorth}
           className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors"
           title="Reset Compass / Orient North"
@@ -927,6 +969,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           <Compass size={13} />
         </button>
         <button
+          type="button"
           onClick={handleFocusIndia}
           className="w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-[11px] text-orange-400 hover:text-sky-300 hover:bg-[var(--bg-surface-hover)] hover:scale-110 transition-all cursor-pointer"
           title="Center Sovereign India (SOI) [IN] - 25.06°N, 86.35°E, Z3.5"

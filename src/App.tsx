@@ -1384,6 +1384,17 @@ const AppContent: React.FC = () => {
     });
   };
 
+  const handleFocusDefault = useCallback(() => {
+    setMapCenter(DEFAULT_MAP_CENTER);
+    setMapZoom(DEFAULT_MAP_ZOOM);
+    setCurrentView('global');
+    setSelectedFeature(null);
+    setSelectedCountry(null);
+    if (window.location.search) {
+      window.history.replaceState({}, '', '/Dashboard');
+    }
+  }, []);
+
   const handleToggleLayer = useCallback((layer: LayerKey) => {
     setActiveLayers((prev) => ({
       ...prev,
@@ -1515,6 +1526,7 @@ const AppContent: React.FC = () => {
             setMapCenter(c);
             setMapZoom(z);
           }}
+          onFocusDefault={handleFocusDefault}
         />
       </div>
 
