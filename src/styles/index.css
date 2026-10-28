@@ -115,6 +115,7 @@ html {
   overflow-x: hidden;
   overflow-y: auto !important;
   scroll-behavior: smooth;
+  scroll-padding-top: 108px;
 }
 
 body {
@@ -356,4 +357,10 @@ body {
 .maplibregl-popup-close-button:hover {
   color: #0284c7 !important;
   background: transparent !important;
+}
+
+/* Smooth anchor scrolling with offset for pinned header */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 112px;
 }
