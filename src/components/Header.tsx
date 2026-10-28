@@ -27,6 +27,7 @@ interface HeaderProps {
   theme: ThemeMode;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
+  onNavigateHome?: () => void;
   coordinates?: [number, number]; // [lon, lat]
   zoom?: number;
   alerts?: IntelNewsItem[];
@@ -60,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
   theme,
   onToggleTheme,
   onOpenCommandPalette,
+  onNavigateHome,
   coordinates = [82.75, 22.46],
   zoom = 3.25,
   alerts = [],
@@ -146,15 +148,19 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="w-full h-11 bg-[var(--hud-bg)] border-b border-[var(--hud-border)] px-3 flex items-center justify-between select-none z-30 relative backdrop-blur-xl shrink-0 transition-colors shadow-xs">
       {/* 1. Left Cluster: Emblem, Theater Selector, Time Range */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Brand Emblem */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400">
+        {/* Brand Emblem (Click to return to Home) */}
+        <div
+          onClick={onNavigateHome}
+          className="flex items-center gap-2 cursor-pointer group"
+          title="Return to Manekshaw.Vision Home"
+        >
+          <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 group-hover:border-sky-400 transition-colors">
             <Radio size={13} className="animate-pulse" />
             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-primary)]">
+            <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
               MANEKSHAW<span className="text-sky-400">.VISION</span>
             </span>
             <span className="hidden xl:inline-block px-1 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">

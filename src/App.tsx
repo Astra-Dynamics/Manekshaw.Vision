@@ -6,6 +6,7 @@ import { LayerDock } from './components/LayerDock';
 import { RightIntelligencePanel } from './components/RightIntelligencePanel';
 import { CountryBriefModal } from './components/CountryBriefModal';
 import { CommandPalette } from './components/CommandPalette';
+import { LandingPage } from './components/LandingPage';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -117,6 +118,29 @@ export const App: React.FC = () => {
     return obj;
   }, [initialLayersHex, initialLegacyLayers]);
 
+  // Routing State: '/' for Landing Page, '/dashboard' or '/Dashboard' for live map
+  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const isDashboard = currentPath.toLowerCase().startsWith('/dashboard');
+
+  const handleLaunchDashboard = () => {
+    window.history.pushState({}, '', '/dashboard');
+    setCurrentPath('/dashboard');
+  };
+
+  const handleNavigateHome = () => {
+    window.history.pushState({}, '', '/');
+    setCurrentPath('/');
+  };
+
   // State
   const [mapCenter, setMapCenter] = useState<[number, number]>([initialLon, initialLat]);
   const [mapZoom, setMapZoom] = useState<number>(initialZoom);
@@ -194,8 +218,10 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Update URL Query Parameters on State Change with Compact Micro-Encoding
+  // Update URL Query Parameters on State Change with Compact Micro-Encoding (Dashboard Only)
   useEffect(() => {
+    if (!isDashboard) return;
+
     const params = new URLSearchParams();
 
     // 1. Compact coordinates: c=lat,lon,zoom (e.g. c=25.58,89.88,4.2)
@@ -222,11 +248,10 @@ export const App: React.FC = () => {
     }
 
     const query = params.toString();
-    const currentPath = window.location.pathname;
     const basePath = currentPath === '/Dashboard' ? '/Dashboard' : '/dashboard';
     const newUrl = query ? `${basePath}?${query}` : basePath;
     window.history.replaceState({}, '', newUrl);
-  }, [mapCenter, mapZoom, currentView, timeRange, activeLayers]);
+  }, [isDashboard, currentPath, mapCenter, mapZoom, currentView, timeRange, activeLayers]);
 
   // Combined feature items
   const allFeatures = useMemo(() => {
@@ -386,6 +411,10 @@ export const App: React.FC = () => {
     });
   }, [selectedCountry, allFeatures]);
 
+  if (!isDashboard) {
+    return <LandingPage onLaunchDashboard={handleLaunchDashboard} />;
+  }
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] font-sans select-none transition-colors">
       {/* 1. Full-Bleed Map Canvas (100vw x 100vh) */}
@@ -418,6 +447,7 @@ export const App: React.FC = () => {
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onNavigateHome={handleNavigateHome}
         coordinates={mapCenter}
         zoom={mapZoom}
         alerts={newsFeed}
