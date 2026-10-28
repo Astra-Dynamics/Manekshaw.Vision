@@ -230,11 +230,15 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
     const initialFlexB = targetRow.columns[colIdx + 1]?.widthFlex || 1;
     const totalFlex = initialFlexA + initialFlexB;
 
+    const rowElement = (e.currentTarget.parentElement as HTMLElement);
+    const rowWidth = rowElement ? rowElement.getBoundingClientRect().width : 400;
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
-      // Convert pixel delta to proportional flex shift
-      const flexShift = deltaX / 120;
-      const newFlexA = Math.max(0.4, Math.min(totalFlex - 0.4, initialFlexA + flexShift));
+      // Convert pixel delta directly proportional to row width
+      const flexShift = (deltaX / Math.max(200, rowWidth)) * totalFlex;
+      const minFlex = 0.25;
+      const newFlexA = Math.max(minFlex, Math.min(totalFlex - minFlex, initialFlexA + flexShift));
       const newFlexB = totalFlex - newFlexA;
 
       setLocalRows((prevRows) =>
@@ -261,6 +265,127 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // -------------------------------------------------------------
+  // 3B. Bottom-Right Corner Resizer (Taller ↕ & Wider ↔)
+  // -------------------------------------------------------------
+  const handleStartCardCornerResize = (
+    rowId: string,
+    colId: string,
+    colIdx: number,
+    currentHeight: number | undefined,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialHeight = currentHeight || 240;
+
+    const targetRow = localRows.find((r) => r.rowId === rowId);
+    if (!targetRow) return;
+
+    const hasSiblings = targetRow.columns.length > 1;
+    const initialFlex = targetRow.columns[colIdx]?.widthFlex || 1;
+    const rowElement = (e.currentTarget.closest('.flex.items-stretch') as HTMLElement);
+    const rowWidth = rowElement ? rowElement.getBoundingClientRect().width : 400;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      const newHeight = Math.max(130, Math.min(800, initialHeight + deltaY));
+
+      setLocalRows((prevRows) =>
+        prevRows.map((row) => {
+          if (row.rowId !== rowId) return row;
+
+          if (hasSiblings) {
+            // Reallocate widthFlex relative to row width
+            const deltaFlex = (deltaX / Math.max(200, rowWidth)) * 2;
+            const nextCols = row.columns.map((col) => {
+              if (col.id === colId) {
+                const adjustedFlex = Math.max(0.35, Math.min(2.5, initialFlex + deltaFlex));
+                return { ...col, customHeight: Math.round(newHeight), widthFlex: Number(adjustedFlex.toFixed(2)) };
+              }
+              return col;
+            });
+            return { ...row, columns: nextCols };
+          } else {
+            return {
+              ...row,
+              columns: row.columns.map((col) =>
+                col.id === colId ? { ...col, customHeight: Math.round(newHeight) } : col
+              )
+            };
+          }
+        })
+      );
+
+      // If standalone and stretched far to the right, expand workspace drawer width
+      if (!hasSiblings && deltaX > 50 && onResizeWidth) {
+        const candidateWidth = Math.min(window.innerWidth * 0.65, width + deltaX * 0.2);
+        if (candidateWidth > width) {
+          onResizeWidth(Math.round(candidateWidth));
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (onUpdateRows) {
+        setLocalRows((latest) => {
+          onUpdateRows(activeTabId, latest);
+          return latest;
+        });
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // -------------------------------------------------------------
+  // 3C. Quick-Toggle [ ⤢ Full Width / Split ]
+  // -------------------------------------------------------------
+  const handleToggleCardWidth = (rowId: string, colId: string) => {
+    const targetRowIdx = localRows.findIndex((r) => r.rowId === rowId);
+    if (targetRowIdx === -1) return;
+    const targetRow = localRows[targetRowIdx];
+
+    if (targetRow.columns.length > 1) {
+      // Snap to 100% Full Width by extracting to standalone row
+      splitColumnToOwnRow(rowId, colId);
+    } else {
+      // Snap to 50% Split Side-by-Side with adjacent row if available
+      if (localRows.length > 1) {
+        const neighborIdx = targetRowIdx < localRows.length - 1 ? targetRowIdx + 1 : targetRowIdx - 1;
+        const neighborRow = localRows[neighborIdx];
+        if (neighborRow.columns.length + targetRow.columns.length <= 3) {
+          if (width < 560 && onResizeWidth) {
+            onResizeWidth(560);
+          }
+          combineWithAdjacentRow(targetRowIdx, targetRowIdx < localRows.length - 1 ? 'next' : 'prev');
+          return;
+        }
+      }
+      // Toggle flex ratio directly if no neighbor row
+      setLocalRows((prevRows) =>
+        prevRows.map((r) =>
+          r.rowId === rowId
+            ? {
+                ...r,
+                columns: r.columns.map((c) =>
+                  c.id === colId ? { ...c, widthFlex: c.widthFlex === 0.5 ? 1 : 0.5 } : c
+                )
+              }
+            : r
+        )
+      );
+    }
   };
 
   // -------------------------------------------------------------
@@ -1060,14 +1185,20 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
                     return (
                       <React.Fragment key={col.id}>
-                        {/* Interactive Column Splitter Handle (Between Columns) */}
+                        {/* Interactive Horizontal Column Splitter Handle (Between Columns: ↔) */}
                         {colIdx > 0 && (
                           <div
                             onMouseDown={(e) => handleStartColumnSplitterResize(row.rowId, colIdx - 1, e)}
-                            className="w-1.5 hover:w-2 hover:bg-sky-400 cursor-ew-resize transition-all rounded-full select-none flex items-center justify-center -mx-1 z-30 group/split shrink-0 self-stretch"
-                            title="Drag to adjust column width split"
+                            className="w-2.5 hover:w-3.5 hover:bg-sky-400/25 cursor-col-resize transition-all select-none flex items-center justify-center -mx-1 z-30 group/split shrink-0 self-stretch relative"
+                            title="Drag horizontally to adjust column widths (↔)"
                           >
-                            <div className="w-[1.5px] h-10 bg-slate-700 group-hover/split:bg-sky-300 rounded-full" />
+                            {/* Glowing vertical cyan line */}
+                            <div className="w-[2px] h-full bg-slate-800 group-hover/split:bg-[#38BDF8] group-hover/split:shadow-[0_0_10px_#38BDF8] transition-all" />
+
+                            {/* Centered pill grip icon */}
+                            <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-6 rounded-full bg-slate-900 border border-slate-700 group-hover/split:border-sky-400 group-hover/split:bg-sky-500 text-slate-400 group-hover/split:text-slate-950 flex items-center justify-center transition-all shadow-md pointer-events-none">
+                              <MoveHorizontal size={9} />
+                            </div>
                           </div>
                         )}
 
@@ -1223,6 +1354,16 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                 </a>
                               )}
 
+                              {/* Quick Toggle: [ ⤢ Full Width / Split ] */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCardWidth(row.rowId, col.id)}
+                                className="p-1 text-slate-400 hover:text-sky-300 hover:bg-white/5 rounded transition-colors cursor-pointer"
+                                title={colCount > 1 ? "Snap to 100% Full Width Row (⤢)" : "Snap to 50% Split Side-by-Side (◫)"}
+                              >
+                                {colCount > 1 ? <Maximize2 size={11} /> : <Columns size={11} />}
+                              </button>
+
                               {/* Remove Card */}
                               <button
                                 type="button"
@@ -1357,15 +1498,31 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                             </div>
                           </div>
 
-                          {/* Canva-Style Bottom Height Drag Handle (↕) */}
-                          <div
-                            onMouseDown={(e) =>
-                              handleStartCardHeightResize(row.rowId, col.id, customHeight, e)
-                            }
-                            className="h-2 w-full hover:h-2.5 bg-slate-900 hover:bg-sky-500/20 border-t border-slate-800/80 cursor-ns-resize flex items-center justify-center group/resize select-none transition-all py-0.5 shrink-0"
-                            title="Drag down/up to resize card height"
-                          >
-                            <div className="w-10 h-0.5 bg-slate-600 group-hover/resize:bg-sky-400 group-hover/resize:w-14 rounded-full transition-all" />
+                          {/* Canva-Style Bottom Bar & Corner Resize Gutter (↕ / ↘) */}
+                          <div className="relative h-2.5 w-full bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between select-none shrink-0 group/bottombar">
+                            {/* Bottom Edge ↕ Height Drag Handle */}
+                            <div
+                              onMouseDown={(e) =>
+                                handleStartCardHeightResize(row.rowId, col.id, customHeight, e)
+                              }
+                              className="h-full flex-1 hover:bg-sky-500/20 cursor-ns-resize flex items-center justify-center group/height transition-colors"
+                              title="Drag down/up to resize card height (↕)"
+                            >
+                              <div className="w-12 h-0.5 bg-slate-600 group-hover/height:bg-sky-400 group-hover/height:w-16 rounded-full transition-all" />
+                            </div>
+
+                            {/* Bottom-Right Corner ↘ Height + Width Drag Handle */}
+                            <div
+                              onMouseDown={(e) =>
+                                handleStartCardCornerResize(row.rowId, col.id, colIdx, customHeight, e)
+                              }
+                              className="h-full w-5 hover:w-6 hover:bg-sky-500/30 cursor-nwse-resize flex items-center justify-center text-slate-500 hover:text-sky-300 transition-all border-l border-white/[0.04] group/corner"
+                              title="Drag corner to resize taller & wider (↘)"
+                            >
+                              <svg className="w-2.5 h-2.5 opacity-60 group-hover/corner:opacity-100 transition-opacity" viewBox="0 0 10 10" fill="none">
+                                <path d="M8 2L2 8M9 5L5 9M9 8L8 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       </React.Fragment>
