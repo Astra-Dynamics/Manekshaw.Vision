@@ -420,15 +420,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           >
             Multi-Theater Surveillance Matrix
           </h2>
+          {/* Operational Theaters Subtitle - 1 Single Clean Line */}
           <p
-            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto whitespace-normal lg:whitespace-nowrap"
             style={{
               marginTop: 0,
               marginBottom: '36px',
               lineHeight: 1.6,
               color: '#94A3B8',
-              maxWidth: '780px',
-              textWrap: 'balance'
+              maxWidth: '1000px'
             }}
           >
             Pre-configured regional viewports tracking border demarcations, naval corridors, and kinetic flashpoints.
@@ -530,14 +530,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Six Dimensions of Global Telemetry
           </h2>
           <p
-            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto whitespace-normal lg:whitespace-nowrap"
             style={{
               marginTop: 0,
               marginBottom: '36px',
               lineHeight: 1.6,
               color: '#94A3B8',
-              maxWidth: '820px',
-              textWrap: 'balance'
+              maxWidth: '1000px'
             }}
           >
             Six integrated data pipelines combining static defense infrastructure with live hazard and conflict feeds.
@@ -863,14 +862,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Understanding the Platform
           </h2>
           <p
-            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto whitespace-normal lg:whitespace-nowrap"
             style={{
               marginTop: 0,
               marginBottom: '36px',
               lineHeight: 1.6,
               color: '#94A3B8',
-              maxWidth: '820px',
-              textWrap: 'balance'
+              maxWidth: '1000px'
             }}
           >
             Key operational details on cartographic compliance, OSINT feed latency, and platform architecture.
@@ -921,14 +919,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Enter the Sovereign Command Center
           </h3>
           <p
-            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
+            className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto whitespace-normal lg:whitespace-nowrap"
             style={{
               marginTop: 0,
               marginBottom: '28px',
               lineHeight: 1.6,
               color: '#94A3B8',
-              maxWidth: '780px',
-              textWrap: 'balance'
+              maxWidth: '1000px'
             }}
           >
             Free, real-time, and fully operational in your browser—no sign-up wall, zero tracking.
