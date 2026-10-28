@@ -310,11 +310,6 @@ export const Header: React.FC<HeaderProps> = ({
       {/* 2. Center: Seamless Integrated Alert Dispatch Marquee with Mask Fade */}
       <div className="flex-1 min-w-0 mx-3 mr-4 hidden md:flex items-center overflow-hidden h-full">
         <div className="hud-divider" />
-        
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9px] font-mono font-bold tracking-wider shrink-0 mr-2.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-          DISPATCH
-        </div>
 
         <div
           className="flex-1 min-w-0 overflow-hidden relative"

@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Shield,
+  ShieldCheck,
   LogOut,
-  ChevronDown,
-  Sparkles,
-  ShieldAlert,
-  ShieldCheck
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,8 +15,7 @@ interface UserNavProps {
 
 export const UserNav: React.FC<UserNavProps> = ({
   onOpenAuthModal,
-  onNavigateLogin,
-  compact = false
+  onNavigateLogin
 }) => {
   const { user, profile, role, isAdmin, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,17 +40,15 @@ export const UserNav: React.FC<UserNavProps> = ({
     }
   };
 
+  // 1. Logged Out: Just the clean cyan shield icon (no text taking up space)
   if (!user) {
     return (
       <button
         onClick={handleLoginClick}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/50 text-[11px] font-mono text-sky-400 hover:text-sky-300 transition-all shadow-xs cursor-pointer active:scale-95 group"
-        title="Sign in to your account"
+        className="p-1.5 rounded-md bg-[var(--bg-surface-elevated)]/80 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/50 text-sky-400 hover:text-sky-300 transition-all shadow-xs cursor-pointer active:scale-95 group flex items-center justify-center shrink-0"
+        title="Sign in to Manekshaw.Vision"
       >
-        <Shield size={12} className="group-hover:scale-110 transition-transform text-sky-400" />
-        <span className="font-semibold tracking-wider">
-          {compact ? 'SIGN IN' : 'SIGN IN'}
-        </span>
+        <Shield size={14} className="group-hover:scale-110 transition-transform text-sky-400" />
       </button>
     );
   }
@@ -61,47 +56,22 @@ export const UserNav: React.FC<UserNavProps> = ({
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'Operator';
 
   return (
-    <div className="relative font-mono z-50" ref={menuRef}>
-      {/* Trigger Button */}
+    <div className="relative font-mono z-50 shrink-0" ref={menuRef}>
+      {/* 2. Logged In: Ultra-compact shield with tick inside */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer shadow-xs border ${
+        className={`p-1.5 rounded-md transition-all cursor-pointer shadow-xs border flex items-center justify-center shrink-0 ${
           menuOpen
-            ? 'bg-slate-800 border-sky-400/60 shadow-[0_0_12px_rgba(56,189,248,0.2)]'
+            ? isAdmin
+              ? 'bg-[#18233c] border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.35)]'
+              : 'bg-slate-800 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.35)]'
             : isAdmin
-            ? 'bg-[#0e1626] hover:bg-[#121c32] border-amber-500/40 text-amber-300 hover:border-amber-400'
-            : 'bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border-[var(--hud-border)] hover:border-sky-500/50 text-slate-200'
+            ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/40 text-amber-400 hover:border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.15)]'
+            : 'bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/40 text-sky-400 hover:border-sky-400'
         }`}
+        title={`${displayName} (${isAdmin ? 'Admin' : 'Individual'}) - Click to view dossier`}
       >
-        {/* Role Icon */}
-        {isAdmin ? (
-          <ShieldAlert size={12} className="text-amber-400 shrink-0" />
-        ) : (
-          <ShieldCheck size={12} className="text-sky-400 shrink-0" />
-        )}
-
-        {/* Operator Call Sign */}
-        <span className="font-bold truncate max-w-[120px] text-white">
-          {displayName}
-        </span>
-
-        {/* Role Badge */}
-        <span
-          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${
-            isAdmin
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-          }`}
-        >
-          {role || 'INDIVIDUAL'}
-        </span>
-
-        <ChevronDown
-          size={11}
-          className={`text-slate-400 transition-transform duration-200 ${
-            menuOpen ? 'rotate-180 text-sky-400' : ''
-          }`}
-        />
+        <ShieldCheck size={15} className={isAdmin ? 'text-amber-400' : 'text-sky-400'} />
       </button>
 
       {/* Profile Overview Card (Solid, Modern, Floating Above All Tickers) */}
@@ -133,7 +103,7 @@ export const UserNav: React.FC<UserNavProps> = ({
                     : 'bg-sky-500/15 border-sky-500/30 text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.2)]'
                 }`}
               >
-                {isAdmin ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
+                <ShieldCheck size={18} />
               </div>
 
               {/* Identity & Email */}
@@ -170,7 +140,7 @@ export const UserNav: React.FC<UserNavProps> = ({
             <div className="mx-3 my-2.5 px-2.5 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-[10.5px]">
               <span className="text-amber-300 font-semibold flex items-center gap-1.5">
                 <Sparkles size={12} className="text-amber-400" />
-                ADMIN ACCESS
+                ADMINISTRATIVE PRIVILEGES
               </span>
               <span className="text-[9px] px-1 py-0.2 rounded font-mono font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30">
                 ACTIVE
