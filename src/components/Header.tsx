@@ -144,14 +144,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   const theaters: { id: TheaterView; label: string }[] = [
     { id: 'global', label: 'Global' },
-    { id: 'india', label: 'India' },
-    { id: 'americas', label: 'Americas' },
-    { id: 'middle-east', label: 'Middle East' },
-    { id: 'europe', label: 'Europe' },
-    { id: 'indo-pacific', label: 'Asia' },
-    { id: 'latin-america', label: 'Latin America' },
+    { id: 'asia', label: 'Asia' },
     { id: 'africa', label: 'Africa' },
-    { id: 'oceania', label: 'Oceania' }
+    { id: 'europe', label: 'Europe' },
+    { id: 'north-america', label: 'North America' },
+    { id: 'south-america', label: 'South America' },
+    { id: 'oceania', label: 'Oceania' },
+    { id: 'antarctica', label: 'Antarctica' }
   ];
 
   const currentTheater = theaters.find((th) => th.id === currentView) || theaters[0];

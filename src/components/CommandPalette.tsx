@@ -66,14 +66,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const items: PaletteItem[] = useMemo(() => {
     const list: PaletteItem[] = [];
 
-    // Theaters
+    // Theaters (Continents with Asia on top + Antarctica)
     const theaters: { id: TheaterView; name: string }[] = [
       { id: 'global', name: 'Global Command View' },
-      { id: 'india', name: 'India & South Asia Strategic Theater' },
-      { id: 'middle-east', name: 'Middle East & Levant Theater' },
-      { id: 'indo-pacific', name: 'Indo-Pacific & South China Sea' },
-      { id: 'europe', name: 'Europe & Eastern Front' },
-      { id: 'americas', name: 'Americas & Atlantic Theater' }
+      { id: 'asia', name: 'Asia Continental Theater' },
+      { id: 'africa', name: 'Africa Continental Theater' },
+      { id: 'europe', name: 'Europe Continental Theater' },
+      { id: 'north-america', name: 'North America Continental Theater' },
+      { id: 'south-america', name: 'South America Continental Theater' },
+      { id: 'oceania', name: 'Oceania Continental Theater' },
+      { id: 'antarctica', name: 'Antarctica Polar Theater' }
     ];
 
     theaters.forEach((th) => {

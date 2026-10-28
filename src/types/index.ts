@@ -141,14 +141,18 @@ export interface IntelNewsItem {
 
 export type TheaterView =
   | 'global'
+  | 'asia'
+  | 'africa'
+  | 'europe'
+  | 'north-america'
+  | 'south-america'
+  | 'oceania'
+  | 'antarctica'
   | 'india'
   | 'americas'
   | 'middle-east'
-  | 'europe'
   | 'indo-pacific'
-  | 'latin-america'
-  | 'africa'
-  | 'oceania';
+  | 'latin-america';
 
 export type ThemeMode = 'dark' | 'light';
 

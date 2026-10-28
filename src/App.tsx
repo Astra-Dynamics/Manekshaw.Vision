@@ -945,44 +945,54 @@ const AppContent: React.FC = () => {
     return res;
   }, [liveWeather, liveEarthquakes, liveEonet]);
 
-  // Theater Views Presets (Matching Reference Menu)
+  // Theater Views Presets (Continental Matrix with Asia on top + Antarctica)
   const handleSelectView = (view: TheaterView) => {
     setCurrentView(view);
     if (view === 'global') {
       setMapCenter([30.0, 25.0]);
       setMapZoom(2.8);
+    } else if (view === 'asia' || view === 'indo-pacific') {
+      setMapCenter([95.0, 35.0]);
+      setMapZoom(3.0);
+    } else if (view === 'africa') {
+      setMapCenter([20.0, 3.0]);
+      setMapZoom(3.2);
+    } else if (view === 'europe') {
+      setMapCenter([15.0, 50.0]);
+      setMapZoom(3.8);
+    } else if (view === 'north-america' || view === 'americas') {
+      setMapCenter([-100.0, 45.0]);
+      setMapZoom(3.2);
+    } else if (view === 'south-america' || view === 'latin-america') {
+      setMapCenter([-60.0, -20.0]);
+      setMapZoom(3.3);
+    } else if (view === 'oceania') {
+      setMapCenter([138.0, -25.0]);
+      setMapZoom(3.5);
+    } else if (view === 'antarctica') {
+      setMapCenter([0.0, -82.0]);
+      setMapZoom(2.6);
     } else if (view === 'india') {
       setMapCenter([86.35, 25.06]);
       setMapZoom(3.5);
-    } else if (view === 'americas') {
-      setMapCenter([-98.0, 39.0]);
-      setMapZoom(3.6);
     } else if (view === 'middle-east') {
       setMapCenter([48.0, 28.0]);
       setMapZoom(4.6);
-    } else if (view === 'europe') {
-      setMapCenter([24.0, 52.0]);
-      setMapZoom(4.2);
-    } else if (view === 'indo-pacific') {
-      setMapCenter([115.0, 18.0]);
-      setMapZoom(4.0);
-    } else if (view === 'latin-america') {
-      setMapCenter([-60.0, -18.0]);
-      setMapZoom(3.5);
-    } else if (view === 'africa') {
-      setMapCenter([22.0, 4.0]);
-      setMapZoom(3.5);
-    } else if (view === 'oceania') {
-      setMapCenter([140.0, -25.0]);
-      setMapZoom(3.8);
     }
 
     const theaterRegionNameMap: Record<string, string> = {
+      'asia': 'East Asia / Indo-Pacific',
+      'indo-pacific': 'East Asia / Indo-Pacific',
+      'africa': 'all',
+      'europe': 'Europe / UK',
+      'north-america': 'Americas / US',
+      'americas': 'Americas / US',
+      'south-america': 'Americas / US',
+      'latin-america': 'Americas / US',
+      'oceania': 'all',
+      'antarctica': 'all',
       'india': 'India / S. Asia',
       'middle-east': 'Middle East',
-      'europe': 'Europe / UK',
-      'americas': 'Americas / US',
-      'indo-pacific': 'East Asia / Indo-Pacific',
       'global': 'all'
     };
     updateActiveTabIntelDesk({
