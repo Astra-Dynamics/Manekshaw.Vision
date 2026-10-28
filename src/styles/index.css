@@ -359,8 +359,8 @@ body {
   background: transparent !important;
 }
 
-/* Smooth anchor scrolling with offset for pinned header */
+/* Smooth anchor scrolling with offset for razor-thin 48px pinned header */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 112px;
+  scroll-padding-top: 64px;
 }

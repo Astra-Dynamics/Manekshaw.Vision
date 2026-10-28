@@ -39,13 +39,13 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) => {
   const [activeTheaterTab, setActiveTheaterTab] = useState<'indo' | 'mideast' | 'europe' | 'asia'>('indo');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolledPastTop, setScrolledPastTop] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 16);
+      setScrolledPastTop(window.scrollY >= 50);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -193,104 +193,134 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-sky-600/10 blur-[140px] pointer-events-none rounded-full" />
       <div className="fixed top-[600px] right-0 w-[500px] h-[400px] bg-rose-600/8 blur-[160px] pointer-events-none rounded-full" />
 
-      {/* UNIFIED PINNED FROSTED-GLASS HEADER & LIVE DISPATCHES TICKER */}
+      {/* RAZOR-THIN 48px FROSTED-GLASS HEADER & AUTO-HIDING LIVE DISPATCHES */}
       <header
         className="fixed top-0 left-0 right-0 w-full z-[1000] transition-all duration-300"
         style={{
-          boxShadow: isScrolled ? '0 12px 32px rgba(0, 0, 0, 0.75)' : 'none'
+          boxShadow: scrolledPastTop ? '0 10px 30px -10px rgba(0, 0, 0, 0.8)' : 'none'
         }}
       >
-        {/* 1. Primary Nav Row */}
+        {/* 1. Primary Nav Row (Strict 48px Height) */}
         <div
-          className="transition-all duration-300"
+          className="w-full transition-all duration-200"
           style={{
-            background: isScrolled ? 'rgba(7, 10, 18, 0.78)' : 'rgba(7, 10, 18, 0.58)',
+            background: scrolledPastTop ? 'rgba(6, 9, 16, 0.85)' : 'rgba(6, 9, 16, 0.65)',
             backdropFilter: 'saturate(180%) blur(20px)',
             WebkitBackdropFilter: 'saturate(180%) blur(20px)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.07)'
           }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            {/* Brand Lockup with Tactical Dashboard Emblem */}
-            <div className="flex items-center gap-3">
-              <div className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 shrink-0 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
-                <Radio size={15} className="animate-pulse" />
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+          <div
+            style={{
+              height: '48px',
+              padding: '0 24px',
+              maxWidth: '1400px',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            {/* Single Crisp Horizontal Brand Lockup */}
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex items-center justify-center w-6 h-6 rounded bg-sky-500/10 border border-sky-500/30 text-sky-400 shrink-0 shadow-[0_0_10px_rgba(56,189,248,0.25)]">
+                <Radio size={13} className="animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#10b981]" />
               </div>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold tracking-wider text-sm sm:text-base text-white">
-                    MANEKSHAW<span className="text-sky-400">.VISION</span>
-                  </span>
-                  <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9.5px] font-mono font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-                    GEOINT
-                  </span>
-                </div>
-                <p className="text-[10px] font-mono text-[#94A3B8] hidden sm:block">
-                  Sovereign Defense Intelligence Command Center
-                </p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold tracking-wider text-[14px] text-white leading-none">
+                  MANEKSHAW<span className="text-sky-400">.VISION</span>
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30 leading-none">
+                  GEOINT
+                </span>
               </div>
             </div>
 
-            {/* Navigation Links */}
-            <nav className="hidden md:flex items-center gap-7 text-xs font-mono text-[#94A3B8]">
-              <a href="#platform" className="hover:text-sky-400 transition-colors">
+            {/* Slim Navigation Links */}
+            <nav
+              className="hidden md:flex items-center font-mono text-[#94A3B8]"
+              style={{ fontSize: '11px', letterSpacing: '0.08em', gap: '24px' }}
+            >
+              <a href="#platform" className="hover:text-[#F8FAFC] transition-colors">
                 PLATFORM
               </a>
-              <a href="#theaters" className="hover:text-sky-400 transition-colors">
+              <a href="#theaters" className="hover:text-[#F8FAFC] transition-colors">
                 THEATERS
               </a>
-              <a href="#capabilities" className="hover:text-sky-400 transition-colors">
+              <a href="#capabilities" className="hover:text-[#F8FAFC] transition-colors">
                 CAPABILITIES
               </a>
               <a href="#dedication" className="hover:text-amber-400 transition-colors flex items-center gap-1">
-                <Award size={13} className="text-amber-400" />
+                <Award size={12} className="text-amber-400" />
                 DEDICATION
               </a>
-              <a href="#team" className="hover:text-sky-400 transition-colors">
+              <a href="#team" className="hover:text-[#F8FAFC] transition-colors">
                 ASTRA DYNAMICS
               </a>
-              <a href="#faq" className="hover:text-sky-400 transition-colors">
+              <a href="#faq" className="hover:text-[#F8FAFC] transition-colors">
                 FAQ
               </a>
             </nav>
 
-            {/* Direct Launch Button */}
-            <div className="flex items-center gap-3">
+            {/* Compact CTA Button */}
+            <div className="flex items-center">
               <button
                 onClick={onLaunchDashboard}
-                className="relative group px-4 py-2 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(56,189,248,0.4)] flex items-center gap-2 cursor-pointer active:scale-95"
+                className="relative group bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold tracking-wider uppercase transition-all shadow-[0_0_16px_rgba(56,189,248,0.35)] flex items-center gap-1.5 cursor-pointer active:scale-95"
+                style={{
+                  height: '30px',
+                  padding: '0 12px',
+                  fontSize: '11px',
+                  borderRadius: '4px'
+                }}
               >
-                <Radar size={14} className="animate-spin text-slate-950" style={{ animationDuration: '6s' }} />
+                <Radar size={12} className="animate-spin text-slate-950" style={{ animationDuration: '6s' }} />
                 <span>OPEN DASHBOARD</span>
-                <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* 2. Live Dispatches Ticker Sub-Bar (Pinned inside Header) */}
+        {/* 2. Live Dispatches Ticker Sub-Bar (Auto-Hides on Scroll >= 50px) */}
         <div
-          className="py-2 px-4 overflow-hidden relative transition-all duration-300"
+          className="w-full"
           style={{
-            background: 'rgba(4, 7, 13, 0.75)',
+            height: scrolledPastTop ? '0px' : '28px',
+            maxHeight: scrolledPastTop ? '0px' : '28px',
+            opacity: scrolledPastTop ? 0 : 1,
+            overflow: 'hidden',
+            pointerEvents: scrolledPastTop ? 'none' : 'auto',
+            background: 'rgba(4, 7, 13, 0.85)',
             backdropFilter: 'saturate(180%) blur(16px)',
             WebkitBackdropFilter: 'saturate(180%) blur(16px)',
-            borderBottom: isScrolled
-              ? '1px solid rgba(56, 189, 248, 0.22)'
-              : '1px solid rgba(56, 189, 248, 0.14)',
-            boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.6)'
+            borderBottom: scrolledPastTop ? 'none' : '1px solid rgba(56, 189, 248, 0.16)',
+            boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.6)',
+            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          <div className="max-w-7xl mx-auto flex items-center gap-4 text-xs font-mono">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[10px] font-bold tracking-wider shrink-0 uppercase">
+          <div
+            style={{
+              height: '28px',
+              padding: '0 24px',
+              maxWidth: '1400px',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              fontSize: '10.5px'
+            }}
+            className="font-mono"
+          >
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/25 text-[9.5px] font-bold tracking-wider shrink-0 uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               LIVE DISPATCHES
             </div>
 
             <div className="flex-1 overflow-hidden relative">
-              <div className="flex items-center gap-8 animate-marquee whitespace-nowrap text-[11px] text-[#94A3B8]">
+              <div className="flex items-center gap-8 animate-marquee whitespace-nowrap text-[10.5px] text-[#94A3B8]">
                 {liveTickers.map((t, idx) => (
                   <span key={idx} className="flex items-center gap-2">
                     <span className="text-sky-400">●</span> {t}
@@ -303,7 +333,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       </header>
 
       {/* 3. HERO SECTION */}
-      <section id="platform" className="relative pt-32 sm:pt-40 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="platform" className="relative pt-28 sm:pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
           {/* Sovereign Live Status Pill */}
           <div
