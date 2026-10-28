@@ -22,10 +22,7 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
 
       {/* Marquee Content */}
       <div className="flex-1 overflow-hidden relative">
-        <div
-          className="animate-marquee hover:pause flex items-center gap-8 whitespace-nowrap"
-          style={{ animationDuration: '190s' }}
-        >
+        <div className="animate-marquee-dashboard hover:pause flex items-center gap-8 whitespace-nowrap">
           {alerts.concat(alerts).map((item, idx) => (
             <div
               key={`${item.id}-${idx}`}

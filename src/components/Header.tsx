@@ -318,10 +318,7 @@ export const Header: React.FC<HeaderProps> = ({
             WebkitMaskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 20px), transparent)'
           }}
         >
-          <div
-            className="animate-marquee flex items-center gap-8 whitespace-nowrap font-mono text-[11px]"
-            style={{ animationDuration: '190s' }}
-          >
+          <div className="animate-marquee-dashboard flex items-center gap-8 whitespace-nowrap font-mono text-[11px]">
             {alerts && alerts.length > 0 ? (
               alerts.concat(alerts).map((item, idx) => (
                 <div

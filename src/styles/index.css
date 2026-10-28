@@ -266,7 +266,7 @@ body {
 .pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
 .pulse-amber { animation: radar-pulse-amber 2s infinite; }
 
-/* Marquee for alert ticker in Top Telemetry Bar */
+/* Marquee for Landing Page */
 @keyframes marquee-flow {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
@@ -275,10 +275,21 @@ body {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee-flow var(--marquee-duration, 190s) linear infinite;
+  animation: marquee-flow 45s linear infinite;
   will-change: transform;
 }
 .animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Slower Marquee dedicated for Dashboard Header Dispatches */
+.animate-marquee-dashboard {
+  display: flex;
+  width: max-content;
+  animation: marquee-flow 190s linear infinite;
+  will-change: transform;
+}
+.animate-marquee-dashboard:hover {
   animation-play-state: paused;
 }
 
