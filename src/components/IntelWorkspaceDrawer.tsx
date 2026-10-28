@@ -57,6 +57,8 @@ interface IntelWorkspaceDrawerProps {
   onUpdateRows?: (tabId: string, rows: WorkspaceRow[]) => void;
   isDraggingResizer?: boolean;
   onSetDraggingResizer?: (dragging: boolean) => void;
+  onClearTab?: (tabId: string) => void;
+  onCloseAllWorkspace?: () => void;
 }
 
 export type ActiveWorkspaceDropTarget =
@@ -93,7 +95,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   onResizeWidth,
   onUpdateRows,
   isDraggingResizer = false,
-  onSetDraggingResizer
+  onSetDraggingResizer,
+  onClearTab,
+  onCloseAllWorkspace
 }) => {
   const [internalWholePage, setInternalWholePage] = useState(false);
   const isWholePage = isWholePageProp || internalWholePage;
@@ -104,6 +108,13 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       setInternalWholePage((prev) => !prev);
     }
   };
+
+  // Confirmation state for clearing tab elements and closing entire workspace
+  const [isConfirmingClearTab, setIsConfirmingClearTab] = useState(false);
+  const confirmClearTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [isConfirmingCloseAll, setIsConfirmingCloseAll] = useState(false);
+  const confirmCloseAllTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -151,6 +162,74 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   // Flattened items for badges & counts
   const allItems = localRows.flatMap((r) => r.columns.map((c) => c.item));
   const videoCount = allItems.filter((i) => i.type === 'video').length;
+
+  // Reset tab confirmation when active tab changes
+  useEffect(() => {
+    setIsConfirmingClearTab(false);
+  }, [activeTabId]);
+
+  // Clean up confirmation timers on unmount
+  useEffect(() => {
+    return () => {
+      if (confirmClearTimerRef.current) clearTimeout(confirmClearTimerRef.current);
+      if (confirmCloseAllTimerRef.current) clearTimeout(confirmCloseAllTimerRef.current);
+    };
+  }, []);
+
+  // Handle Clearing All Elements on Current Active Tab
+  const handleClearActiveTab = () => {
+    if (allItems.length === 0) return;
+    if (!isConfirmingClearTab) {
+      setIsConfirmingClearTab(true);
+      if (confirmClearTimerRef.current) clearTimeout(confirmClearTimerRef.current);
+      confirmClearTimerRef.current = setTimeout(() => {
+        setIsConfirmingClearTab(false);
+      }, 3500);
+      return;
+    }
+
+    // Confirmed
+    setIsConfirmingClearTab(false);
+    if (confirmClearTimerRef.current) clearTimeout(confirmClearTimerRef.current);
+    updateRows([]);
+    if (onClearTab) {
+      onClearTab(activeTabId);
+    }
+  };
+
+  // Handle Closing & Clearing Entire Intel Workspace
+  const handleCloseAllWorkspace = () => {
+    const totalItemsAcrossAllTabs = tabs.reduce((acc, t) => {
+      const rows = getNormalizedRows(t);
+      return acc + rows.flatMap((r) => r.columns).length;
+    }, 0);
+
+    // If already empty and only 1 tab, close directly without confirmation
+    if (totalItemsAcrossAllTabs === 0 && tabs.length <= 1) {
+      onClose();
+      return;
+    }
+
+    if (!isConfirmingCloseAll) {
+      setIsConfirmingCloseAll(true);
+      if (confirmCloseAllTimerRef.current) clearTimeout(confirmCloseAllTimerRef.current);
+      confirmCloseAllTimerRef.current = setTimeout(() => {
+        setIsConfirmingCloseAll(false);
+      }, 3500);
+      return;
+    }
+
+    // Confirmed
+    setIsConfirmingCloseAll(false);
+    if (confirmCloseAllTimerRef.current) clearTimeout(confirmCloseAllTimerRef.current);
+
+    if (onCloseAllWorkspace) {
+      onCloseAllWorkspace();
+    } else {
+      updateRows([]);
+      onClose();
+    }
+  };
 
   // -------------------------------------------------------------
   // 1. Interactive Drawer Edge Drag-Resize (Width: 300px to 65vw)
@@ -1031,6 +1110,23 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             )}
           </button>
 
+          {/* Close All Button for Whole Intel Workspace (Clears & Closes Workspace) */}
+          <button
+            type="button"
+            onClick={handleCloseAllWorkspace}
+            className={`px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer ${
+              isConfirmingCloseAll
+                ? 'bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)]'
+                : isDark
+                ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30'
+                : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-300 hover:border-rose-300'
+            }`}
+            title="Close all tabs and clear entire Intel Workspace"
+          >
+            <Trash2 size={11} className={isConfirmingCloseAll ? 'text-white' : ''} />
+            <span className="hidden sm:inline">{isConfirmingCloseAll ? 'CONFIRM CLOSE ALL?' : 'CLOSE ALL'}</span>
+          </button>
+
           {/* Toggle Preset Width (Only visible when in Drawer mode) */}
           {!isWholePage && (
             <button
@@ -1172,6 +1268,46 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           title="Create New Intel Watch Tab (+)"
         >
           <Plus size={12} />
+        </button>
+      </div>
+
+      {/* 2.5 Active Tab Control Strip (Just below the tabs: Tab name + Clear All) */}
+      <div
+        className="h-7 px-3 flex items-center justify-between shrink-0 select-none font-mono text-[10px]"
+        style={{
+          background: isDark ? 'rgba(8, 12, 20, 0.88)' : '#F1F5F9',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid #CBD5E1'
+        }}
+      >
+        {/* Left: Active Tab Indicator & Item Count */}
+        <div className="flex items-center gap-1.5 truncate pr-2">
+          <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)]">ACTIVE TAB:</span>
+          <span className="font-bold text-sky-400 truncate max-w-[180px] sm:max-w-[260px]">
+            {activeTab.title}
+          </span>
+          <span className="text-[9px] text-[var(--text-muted)]">
+            • {allItems.length} {allItems.length === 1 ? 'element' : 'elements'}
+          </span>
+        </div>
+
+        {/* Right: Clear All Elements for Current Tab */}
+        <button
+          type="button"
+          onClick={handleClearActiveTab}
+          disabled={allItems.length === 0}
+          className={`px-2 py-0.5 rounded text-[9.5px] font-mono flex items-center gap-1 transition-all ${
+            allItems.length === 0
+              ? 'opacity-35 cursor-not-allowed text-slate-500'
+              : isConfirmingClearTab
+              ? 'bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.4)] cursor-pointer'
+              : isDark
+              ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 cursor-pointer'
+              : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-300 hover:border-rose-300 cursor-pointer'
+          }`}
+          title={allItems.length === 0 ? 'No elements to clear on this tab' : `Clear all elements on "${activeTab.title}"`}
+        >
+          <Trash2 size={10} className={isConfirmingClearTab ? 'text-white' : ''} />
+          <span>{isConfirmingClearTab ? 'CONFIRM CLEAR ALL?' : 'CLEAR ALL'}</span>
         </button>
       </div>
 

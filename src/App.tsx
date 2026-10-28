@@ -683,6 +683,45 @@ const AppContent: React.FC = () => {
     [activeTabId]
   );
 
+  const handleClearDrawerTab = useCallback(
+    (tabId: string) => {
+      setTabs((prevTabs) => {
+        const currentTab = prevTabs.find((t) => t.id === activeTabId);
+        if (!currentTab) return prevTabs;
+        const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+        const updatedDrawer: WorkspaceTabRightDrawerState = {
+          ...currentDrawer,
+          drawerTabs: currentDrawer.drawerTabs.map((t) => {
+            if (t.id !== tabId) return t;
+            return {
+              ...t,
+              items: [],
+              rows: []
+            };
+          })
+        };
+        return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: updatedDrawer } : t));
+      });
+    },
+    [activeTabId]
+  );
+
+  const handleCloseAllWorkspace = useCallback(() => {
+    setTabs((prevTabs) => {
+      const currentTab = prevTabs.find((t) => t.id === activeTabId);
+      if (!currentTab) return prevTabs;
+      const currentDrawer = currentTab.rightDrawer || createDefaultRightDrawerState();
+      const defaultDrawer = createDefaultRightDrawerState();
+      const resetDrawer: WorkspaceTabRightDrawerState = {
+        ...defaultDrawer,
+        isOpen: false,
+        isWholePage: false,
+        width: currentDrawer.width || 460
+      };
+      return prevTabs.map((t) => (t.id === activeTabId ? { ...t, rightDrawer: resetDrawer } : t));
+    });
+  }, [activeTabId]);
+
   // Interactive Panel Drag-Resizing States
   const [deskWidth, setDeskWidth] = useState<number>(380);
   const [isDraggingAnyResizer, setIsDraggingAnyResizer] = useState<boolean>(false);
@@ -1297,6 +1336,8 @@ const AppContent: React.FC = () => {
         }}
         onResizeWidth={(newWidth) => updateActiveTabRightDrawer({ width: newWidth })}
         onUpdateRows={handleUpdateDrawerRows}
+        onClearTab={handleClearDrawerTab}
+        onCloseAllWorkspace={handleCloseAllWorkspace}
         isDraggingResizer={isDraggingAnyResizer}
         onSetDraggingResizer={setIsDraggingAnyResizer}
       />
