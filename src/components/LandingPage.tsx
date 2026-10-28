@@ -287,24 +287,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           {/* Main Headline */}
           <h1
             className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white"
-            style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
+            style={{ marginBottom: '22px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
           >
-            Real-Time Defense Intelligence & Global Situational Awareness
+            Real-Time Defense Intelligence <br className="hidden md:inline" />
+            & Global Situational Awareness
           </h1>
 
-          {/* Subheading with balanced wrapping and clear vertical gap */}
+          {/* Subheading - Refactored to 2 balanced, elegant lines on desktop */}
           <p
             className="text-base sm:text-lg font-sans font-normal text-center mx-auto"
             style={{
               marginTop: 0,
-              marginBottom: '32px',
-              lineHeight: 1.6,
+              marginBottom: '36px',
+              lineHeight: 1.65,
               color: '#94A3B8',
-              maxWidth: '680px',
+              maxWidth: '880px',
               textWrap: 'balance'
             }}
           >
-            An open-source geospatial intelligence monitor mapping active frontlines, military installations, ADIZ perimeters, GNSS interference zones, and critical maritime chokepoints in real time.
+            An open-source geospatial intelligence monitor mapping active frontlines, military installations,
+            <br className="hidden md:inline" />{' '}
+            ADIZ perimeters, GNSS interference zones, and critical maritime chokepoints in real time.
           </p>
 
           {/* Dual Action Buttons */}
