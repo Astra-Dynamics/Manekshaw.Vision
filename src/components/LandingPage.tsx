@@ -102,7 +102,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       title: 'Kinetic Frontlines & Active Conflicts',
       tag: 'KINETIC',
       description:
-        'Live frontline warfare polygons, fortified defensive demarcations (LoC, LAC, AGPL, DMZ), precision strikes, and mechanized combat operations aggregated with sub-second latency.',
+        'Maps active combat zones, fortified border demarcations (LOC, LAC, AGPL, DMZ), and reported strike coordinates across global flashpoints.',
       accent: 'border-rose-500/30 hover:border-rose-500/60'
     },
     {
@@ -110,7 +110,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       title: 'Strategic Garrisons & Nuclear Deterrence',
       tag: 'STRATEGIC',
       description:
-        'Global military command hubs, naval carrier strike groups, strategic bomber wings, uranium enrichment complexes, and sovereign Air Defense Identification Zones (ADIZ).',
+        'Tracks major airbases, naval ports, known nuclear facilities, and sovereign Air Defense Identification Zones (ADIZ).',
       accent: 'border-amber-500/30 hover:border-amber-500/60'
     },
     {
@@ -118,7 +118,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       title: 'Electronic Warfare & GNSS Jamming',
       tag: 'ELECTRONIC',
       description:
-        'High-density GPS and GLONASS signal degradation corridors, attenuation loss percentages, and active electronic combat arrays monitored across sensitive maritime and border airspace.',
+        'Visualizes reported GPS/GLONASS interference zones, spoofing corridors, and airspace advisories across contested regions.',
       accent: 'border-cyan-500/30 hover:border-cyan-500/60'
     },
     {
@@ -126,7 +126,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       title: 'Maritime Chokepoints & Grid Outages',
       tag: 'INFRASTRUCTURE',
       description:
-        'Critical maritime choke points (Hormuz, Malacca, Bab el-Mandeb, Suez), undersea fiber-optic cable severances, electrical grid blackouts, and critical telecommunication telemetry.',
+        'Monitors strategic shipping lanes (Hormuz, Malacca, Bab el-Mandeb, Suez), subsea cable routes, and major connectivity disruptions.',
       accent: 'border-emerald-500/30 hover:border-emerald-500/60'
     },
     {
@@ -166,7 +166,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
     },
     {
       q: 'Who developed Manekshaw.Vision?',
-      a: 'Manekshaw.Vision was built by Team Astra Dynamics (ADYN)—a team of four high school students who created it out of fun, curiosity, and exploration as part of a school AI project, dedicated to Field Marshal Sir Sam Manekshaw.'
+      a: 'Manekshaw.Vision (ManVis) was architected and built by Team Astra Dynamics (ADYN)—a four-member high school engineering team exploring what happens when modern AI workflows, live open-source intelligence (OSINT) feeds, and WebGL cartography are combined into a single browser-native interface, dedicated to Field Marshal Sir Sam Manekshaw.'
     }
   ];
 
@@ -226,11 +226,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               <Award size={13} className="text-amber-400" />
               DEDICATION
             </a>
-            <a href="#faq" className="hover:text-sky-400 transition-colors">
-              FAQ
-            </a>
             <a href="#team" className="hover:text-sky-400 transition-colors">
               ASTRA DYNAMICS
+            </a>
+            <a href="#faq" className="hover:text-sky-400 transition-colors">
+              FAQ
             </a>
           </nav>
 
@@ -241,7 +241,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               className="relative group px-4 py-2 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(56,189,248,0.4)] flex items-center gap-2 cursor-pointer active:scale-95"
             >
               <Radar size={14} className="animate-spin text-slate-950" style={{ animationDuration: '6s' }} />
-              <span>View Dashboard</span>
+              <span>OPEN DASHBOARD</span>
               <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -286,9 +286,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Real-Time Defense Intelligence & Global Situational Awareness
           </h1>
 
-          {/* Subheading with refined spacing and alignment */}
+          {/* Subheading with refined spacing, concrete copy, and alignment */}
           <p className="text-base sm:text-lg text-[#94A3B8] max-w-3xl mx-auto leading-relaxed font-sans font-normal mt-4 sm:mt-5 text-center">
-            A unified, sovereign tactical command center synthesizing frontline warfare, military garrisons, nuclear posture, electronic warfare degradation, and maritime chokepoints onto an interactive geospatial canvas.
+            An open-source geospatial intelligence monitor mapping active frontlines, military installations, ADIZ perimeters, GNSS interference zones, and critical maritime chokepoints in real time.
           </p>
 
           {/* Dual Action Buttons */}
@@ -299,7 +299,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             >
               <Compass size={17} className="text-slate-950 group-hover:rotate-45 transition-transform" />
               <span>Launch Live Dashboard</span>
-              <ChevronRight size={17} className="group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
 
             <a
@@ -314,27 +314,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           {/* Telemetry Metric Badges */}
           <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
             <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
-              <div className="text-lg sm:text-xl font-bold text-sky-400">16+</div>
+              <div className="text-lg sm:text-xl font-bold text-sky-400">16</div>
               <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
-                Tactical Layers
+                ACTIVE DATA LAYERS
               </div>
             </div>
             <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
-              <div className="text-lg sm:text-xl font-bold text-emerald-400">Sub-Second</div>
+              <div className="text-lg sm:text-xl font-bold text-emerald-400">LIVE</div>
               <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
-                Telemetry Ingest
+                OSINT & SENSOR FEEDS
               </div>
             </div>
             <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
-              <div className="text-lg sm:text-xl font-bold text-amber-400">190+</div>
+              <div className="text-lg sm:text-xl font-bold text-amber-400">195</div>
               <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
-                Sovereign Nations
+                COUNTRY DOSSIERS
               </div>
             </div>
             <div className="p-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.08] text-center font-mono">
               <div className="text-lg sm:text-xl font-bold text-purple-400">100% SOI</div>
               <div className="text-[10px] text-[#64748B] uppercase tracking-wider mt-0.5 font-semibold">
-                Border Compliance
+                BORDER COMPLIANT
               </div>
             </div>
           </div>
@@ -396,7 +396,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Multi-Theater Surveillance Matrix
           </h2>
           <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
-            Switch between tactical sectors to monitor frontline combat, sovereign borders, and maritime chokepoints.
+            Pre-configured regional viewports tracking border demarcations, naval corridors, and active kinetic flashpoints.
           </p>
         </div>
 
@@ -430,7 +430,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               <span className="bracket-bl" />
               <span className="bracket-br" />
 
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-6 border-b border-white/[0.08]">
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="text-xl sm:text-2xl font-bold text-white">{t.name}</h3>
@@ -438,16 +438,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
                       {t.status}
                     </span>
                   </div>
-                  <p className="text-xs font-mono text-sky-400 mt-1">Sector Coordinates: {t.coordinates}</p>
                 </div>
 
-                <button
-                  onClick={onLaunchDashboard}
-                  className="px-4 py-2 rounded-[2px] bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-400 font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
-                >
-                  <span>Focus in Dashboard</span>
-                  <ExternalLink size={13} />
-                </button>
+                {/* Read-Only Technical Coordinates Badge (Replaced Bulky Button) */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-[2px] bg-slate-950/80 border border-white/10 font-mono text-xs text-sky-400 shadow-inner">
+                  <span className="text-[#64748B] text-[10px] uppercase font-bold tracking-wider">SECTOR COORDS:</span>
+                  <span>{t.coordinates}</span>
+                </div>
               </div>
 
               <div className="pt-6 space-y-4">
@@ -484,7 +481,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             Six Dimensions of Global Telemetry
           </h2>
           <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
-            Aggregating physical conflict, sovereign borders, electronic combat, and critical supply corridors.
+            Six integrated data pipelines combining static defense infrastructure with live hazard and conflict feeds.
           </p>
         </div>
 
@@ -537,12 +534,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             </div>
           </div>
 
-          <button
-            onClick={onLaunchDashboard}
-            className="px-5 py-2.5 rounded-[2px] bg-sky-500 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider shrink-0 hover:bg-sky-400 transition-colors shadow-md cursor-pointer"
-          >
-            Inspect India Theater
-          </button>
+          {/* Read-Only Cartographic Standard Badge (Replaced Bulky Button) */}
+          <div className="px-3.5 py-2.5 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10.5px] sm:text-[11px] font-bold tracking-wider shrink-0 flex items-center gap-2 shadow-inner">
+            <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+            <span>CARTOGRAPHIC STANDARD: SOI-VERIFIED // UNBROKEN BOUNDARIES</span>
+          </div>
         </div>
       </section>
 
@@ -632,7 +628,107 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 8. INTERACTIVE FAQ ACCORDION (WorldMonitor Style) */}
+      {/* 8. TEAM ASTRA DYNAMICS (ADYN) - ORIGIN DOSSIER CARD */}
+      <section id="team" className="py-20 bg-[#070B12] border-t border-white/[0.08] relative">
+        <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+              <Cpu size={13} />
+              <span>ENGINEERING ORIGINS</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center">
+              Team Astra Dynamics (ADYN)
+            </h2>
+            <p className="text-sm sm:text-base text-[#94A3B8] font-sans leading-relaxed text-center max-w-xl mx-auto mt-4 sm:mt-5">
+              The high school engineering team and sovereign intelligence project behind Manekshaw.Vision.
+            </p>
+          </div>
+
+          {/* 2-Column Engineering Lab / Origin Dossier Card */}
+          <div
+            className="rounded-[4px] border border-sky-500/20 bg-[#090E17] shadow-2xl relative overflow-hidden"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px)',
+              backgroundSize: '24px 24px'
+            }}
+          >
+            <span className="bracket-tl" />
+            <span className="bracket-tr" />
+            <span className="bracket-bl" />
+            <span className="bracket-br" />
+
+            <div className="flex flex-col md:flex-row items-stretch">
+              {/* Left Column (30% width) - Vertical Identity & Spec Block */}
+              <div className="md:w-[32%] shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-slate-950/40">
+                <div className="relative w-28 h-28 rounded-[4px] p-3 bg-slate-950 border border-sky-500/30 shadow-[0_0_20px_rgba(56,189,248,0.2)] flex items-center justify-center mb-4 group">
+                  <img
+                    src="/adyn-logo.png"
+                    alt="Team Astra Dynamics (ADYN) Monogram"
+                    className="max-w-full max-h-full object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform"
+                  />
+                </div>
+
+                <span className="font-mono font-bold text-sm tracking-wider text-white">
+                  ASTRA DYNAMICS
+                </span>
+                <span className="text-[10px] font-mono text-sky-400 uppercase tracking-widest font-semibold mt-0.5 mb-6">
+                  STUDENT AI & GEOINT COLLECTIVE
+                </span>
+
+                {/* Clean Vertical Spec Stack */}
+                <div className="w-full space-y-3 text-left font-mono text-[11px] border-t border-white/[0.08] pt-4">
+                  <div className="flex flex-col">
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">TEAM:</span>
+                    <span className="text-slate-200 font-medium">4 High School Developers</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">ORIGIN:</span>
+                    <span className="text-slate-200 font-medium">Student AI & Systems Initiative</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">ARCHITECTURE:</span>
+                    <span className="text-slate-200 font-medium">Multi-Layer OSINT Engine</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column (70% width) - Editorial Typography & Authentic Engineering Copy */}
+              <div className="flex-1 p-6 sm:p-10 flex flex-col justify-center space-y-5">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-sky-400 font-bold">
+                    LAB BRIEFING // MISSION
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                    Engineered by Team Astra Dynamics
+                  </h3>
+                </div>
+
+                <div className="w-full h-px bg-white/[0.08]" />
+
+                <div className="space-y-4 text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans">
+                  <p>
+                    Manekshaw.Vision (ManVis) was architected and built by <strong className="text-white">Team Astra Dynamics (ADYN)</strong>—a four-member high school engineering team exploring what happens when modern AI workflows, live open-source intelligence (OSINT) feeds, and WebGL cartography are combined into a single browser-native interface.
+                  </p>
+                  <p>
+                    What began as an experimental school AI project evolved into a full-scale geospatial monitor. We built ManVis to prove that clean, sovereign situational awareness doesn't require enterprise bloat—and dedicated the platform to the enduring legacy of India's First Field Marshal, Sam Manekshaw.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3 font-mono text-[10px] text-[#64748B] border-t border-white/[0.04]">
+                  <span>STATUS: ACTIVE RESEARCH</span>
+                  <span>•</span>
+                  <span>LOCATION: NEW DELHI, INDIA</span>
+                  <span>•</span>
+                  <span>WEBGL // REACT // OSINT STACK</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. INTERACTIVE FAQ ACCORDION (WorldMonitor Style) */}
       <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.08]">
         <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono font-bold tracking-wider uppercase mb-3">
@@ -676,74 +772,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
         </div>
       </section>
 
-      {/* 9. ENGINEERED BY TEAM ASTRA DYNAMICS (ADYN) */}
-      <section id="team" className="py-20 bg-[#070B12] border-t border-white/[0.08] relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[4px] border border-sky-500/25 bg-[#0A0F1A] p-8 sm:p-12 relative overflow-hidden shadow-2xl">
-            <span className="bracket-tl" />
-            <span className="bracket-tr" />
-            <span className="bracket-bl" />
-            <span className="bracket-br" />
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-              {/* Left: Official Team Astra Dynamics Logo */}
-              <div className="md:col-span-4 flex flex-col items-center text-center">
-                <div className="relative w-36 sm:w-44 aspect-square rounded-[4px] p-4 bg-slate-950/80 border border-sky-500/30 shadow-[0_0_25px_rgba(56,189,248,0.2)] flex items-center justify-center group">
-                  <img
-                    src="/adyn-logo.png"
-                    alt="Team Astra Dynamics (ADYN) Logo"
-                    className="max-w-full max-h-full object-contain filter drop-shadow-[0_0_12px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
-
-                <span className="mt-4 font-mono font-bold text-sm tracking-wider text-white">
-                  ASTRA DYNAMICS
-                </span>
-                <span className="text-[10.5px] font-mono text-sky-400 uppercase tracking-widest font-semibold">
-                  (ADYN)
-                </span>
-              </div>
-
-              {/* Right: Team Mission & Statement */}
-              <div className="md:col-span-8 space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[2px] bg-sky-500/10 border border-sky-500/25 text-sky-400 text-[10.5px] font-mono font-bold tracking-wider uppercase mb-1">
-                  <Cpu size={12} />
-                  <span>HIGH SCHOOL AI INNOVATION</span>
-                </div>
-
-                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                  Crafted by Team Astra Dynamics
-                </h3>
-
-                <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-sans mt-3">
-                  <strong>Manekshaw.Vision</strong> is made by <strong>Team Astra Dynamics (ADYN)</strong>. We are a team of four high school students who built this platform out of fun, curiosity, and exploration, aligning with our school AI project.
-                </p>
-
-                <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-sans mt-2">
-                  What started as an ambitious exploration into artificial intelligence, geospatial data feeds, and sovereign situational awareness grew into a full-scale tactical command center—designed in proud dedication to India’s First Field Marshal, Sam Manekshaw.
-                </p>
-
-                {/* Core Tags */}
-                <div className="pt-3 flex flex-wrap gap-2 text-[10px] font-mono">
-                  <span className="px-2.5 py-1 rounded-[2px] bg-sky-500/10 text-sky-300 border border-sky-500/30 font-semibold">
-                    🎓 4 HIGH SCHOOL STUDENTS
-                  </span>
-                  <span className="px-2.5 py-1 rounded-[2px] bg-sky-500/10 text-sky-300 border border-sky-500/30 font-semibold">
-                    🤖 SCHOOL AI PROJECT
-                  </span>
-                  <span className="px-2.5 py-1 rounded-[2px] bg-white/[0.03] text-slate-300 border border-white/10">
-                    🛡️ SOVEREIGN GEOINT
-                  </span>
-                  <span className="px-2.5 py-1 rounded-[2px] bg-white/[0.03] text-slate-300 border border-white/10">
-                    ⚡ MULTI-DOMAIN C4ISR
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 10. CALL TO ACTION BANNER */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="p-8 sm:p-14 rounded-[4px] border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900/60 to-sky-950/40 backdrop-blur-xl relative shadow-[0_0_50px_rgba(56,189,248,0.15)] flex flex-col items-center justify-center text-center">
@@ -763,7 +791,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             onClick={onLaunchDashboard}
             className="px-8 py-4 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-sm tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(56,189,248,0.5)] hover:shadow-[0_0_45px_rgba(56,189,248,0.7)] inline-flex items-center gap-2 cursor-pointer group"
           >
-            <span>Launch Manekshaw.Vision Dashboard</span>
+            <span>LAUNCH MANEKSHAW.VISION DASHBOARD</span>
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
