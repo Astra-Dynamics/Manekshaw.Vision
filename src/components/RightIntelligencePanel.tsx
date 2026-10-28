@@ -43,6 +43,18 @@ import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
 import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeResolver';
 import { classifySourceTier } from '../services/osintFeedService';
 
+export const VIDEO_REGION_GROUPS = [
+  { id: 'ALL', label: `ALL (${VIDEO_CATALOGUE.length})`, title: 'ALL GLOBAL BROADCASTERS & OSINT', color: '#38BDF8' },
+  { id: 'ANALYSTS', label: '★ ANALYSTS', title: '★ SPECIAL ANALYSTS & DEFENSE THINK TANKS', color: '#F59E0B' },
+  { id: 'INDIA', label: '🇮🇳 INDIA', title: '🇮🇳 INDIA & SOUTH ASIA', color: '#F97316' },
+  { id: 'US', label: '🇺🇸 US', title: '🌐 GLOBAL WIRES & US NETWORKS', color: '#38BDF8' },
+  { id: 'EUROPE', label: '🇬🇧/🇪🇺 EUROPE', title: '🇪🇺 UK & EUROPE', color: '#60A5FA' },
+  { id: 'MIDDLE_EAST', label: '🇲🇪 MIDDLE EAST', title: '🇲🇪 MIDDLE EAST & EURASIA', color: '#34D399' },
+  { id: 'EAST_ASIA', label: '🌏 EAST ASIA / PAC', title: '🌏 EAST ASIA, ASEAN & OCEANIA', color: '#A78BFA' },
+  { id: 'AMERICAS', label: '🌎 AMERICAS / LATAM', title: '🌎 AMERICAS / LATAM', color: '#F472B6' },
+  { id: 'AFRICA', label: '🌍 AFRICA', title: '🌍 AFRICA', color: '#FBBF24' }
+];
+
 // Canva-style compact tactical drag ghost token
 export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
   const ghost = document.createElement('div');
@@ -173,11 +185,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
     if (onTogglePlayerMinimized) onTogglePlayerMinimized();
   };
 
-  const [internalSelectedVideoRegion, setInternalSelectedVideoRegion] = useState<string>('all');
+  const [internalSelectedVideoRegion, setInternalSelectedVideoRegion] = useState<string>('ALL');
   const selectedVideoRegion = propsVideoRegionFilter !== undefined ? propsVideoRegionFilter : internalSelectedVideoRegion;
   const setSelectedVideoRegion = (reg: string) => {
     setInternalSelectedVideoRegion(reg);
     if (onChangeVideoRegionFilter) onChangeVideoRegionFilter(reg);
+  };
+
+  const [collapsedVideoSections, setCollapsedVideoSections] = useState<Record<string, boolean>>({});
+  const toggleVideoSection = (sectionKey: string) => {
+    setCollapsedVideoSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
   const [internalSelectedVideoCategory, setInternalSelectedVideoCategory] = useState<string>('ALL');
@@ -238,17 +255,22 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         const matchTitle = item.title.toLowerCase().includes(q);
         const matchChannel = item.channel.toLowerCase().includes(q);
         const matchDesc = item.description.toLowerCase().includes(q);
-        const matchRegion = item.region.toLowerCase().includes(q);
-        const matchCountry = item.countryCode.toLowerCase().includes(q);
+        const matchRegion = item.region?.toLowerCase().includes(q);
+        const matchCountry = item.countryCode?.toLowerCase().includes(q);
+        const matchGroup = item.regionGroup?.toLowerCase().includes(q);
         const matchTags = item.tags.some((t) => t.toLowerCase().includes(q));
-        if (!matchTitle && !matchChannel && !matchDesc && !matchRegion && !matchCountry && !matchTags) {
+        if (!matchTitle && !matchChannel && !matchDesc && !matchRegion && !matchCountry && !matchGroup && !matchTags) {
           return false;
         }
       }
 
       // Region filter
-      if (selectedVideoRegion !== 'all' && item.region !== selectedVideoRegion) {
-        return false;
+      if (selectedVideoRegion !== 'ALL' && selectedVideoRegion !== 'all') {
+        const matchesGroup = item.regionGroup === selectedVideoRegion;
+        const matchesRegion = item.region === selectedVideoRegion;
+        if (!matchesGroup && !matchesRegion) {
+          return false;
+        }
       }
 
       // Category filter
@@ -363,6 +385,155 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   const isFortified = selectedFeature && 'theater' in selectedFeature && 'forces' in selectedFeature;
   const isStandardFeature = selectedFeature && 'layer' in selectedFeature;
 
+  const renderVideoRow = (item: VideoCatalogueItem) => {
+    const isSelected = activeVideo.id === item.id;
+    return (
+      <div
+        key={item.id}
+        draggable="true"
+        onDragStart={(e) =>
+          handleDragStartItem(e, {
+            id: item.id,
+            type: 'video',
+            title: item.title,
+            youtubeId: item.youtubeId,
+            channelId: item.channelId,
+            uploadsPlaylistId: item.uploadsPlaylistId,
+            isLive: item.isLive,
+            channel: item.channel,
+            externalUrl: item.externalUrl,
+            tags: item.tags,
+            countryCode: item.countryCode,
+            description: item.description
+          })
+        }
+        onDoubleClick={() => {
+          if (onOpenInWorkspace) {
+            onOpenInWorkspace({
+              id: item.id,
+              type: 'video',
+              title: item.title,
+              youtubeId: item.youtubeId,
+              channelId: item.channelId,
+              uploadsPlaylistId: item.uploadsPlaylistId,
+              isLive: item.isLive,
+              channel: item.channel,
+              externalUrl: item.externalUrl,
+              tags: item.tags,
+              countryCode: item.countryCode,
+              description: item.description
+            });
+          }
+        }}
+        onClick={() => setSelectedVideoId(item.id)}
+        className="group cursor-pointer transition-colors relative"
+        style={{
+          padding: '9px 14px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          borderLeft: isSelected ? '3px solid #38BDF8' : '3px solid transparent',
+          background: isSelected ? 'rgba(56, 189, 248, 0.08)' : 'transparent'
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
+            <GripVertical size={12} />
+          </span>
+
+          {/* Compact 36x24px Monogram / Beacon Badge */}
+          <div
+            className="relative shrink-0 flex items-center justify-center font-mono font-bold text-[10px] rounded-[3px] border transition-all"
+            style={{
+              width: '36px',
+              height: '24px',
+              background: item.isSpecialAnalyst
+                ? 'rgba(245, 158, 11, 0.12)'
+                : item.isLive
+                ? 'rgba(244, 63, 94, 0.12)'
+                : 'rgba(56, 189, 248, 0.1)',
+              borderColor: item.isSpecialAnalyst
+                ? 'rgba(245, 158, 11, 0.35)'
+                : item.isLive
+                ? 'rgba(244, 63, 94, 0.35)'
+                : 'rgba(56, 189, 248, 0.25)',
+              color: item.isSpecialAnalyst
+                ? '#F59E0B'
+                : item.isLive
+                ? '#F43F5E'
+                : '#38BDF8'
+            }}
+          >
+            {item.isSpecialAnalyst ? (
+              <span className="text-[11px] leading-none">★</span>
+            ) : item.isLive ? (
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
+            ) : (
+              <span className="text-[9px] tracking-tight">{item.monogram}</span>
+            )}
+          </div>
+
+          {/* Center Title, Focus Tags, and Region */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-[12px] font-semibold truncate leading-tight text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
+                {item.title}
+              </h4>
+              <span className="text-[9.5px] font-mono text-sky-400/80 font-bold shrink-0">
+                [{item.countryCode}]
+              </span>
+            </div>
+            <p className="text-[10.5px] text-[#94A3B8] truncate leading-tight mt-0.5">
+              {item.tags.join(' • ')}
+            </p>
+          </div>
+
+          {/* Right Action / State Indicator */}
+          <div className="shrink-0 flex items-center gap-1.5">
+            {onOpenInWorkspace && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenInWorkspace({
+                    id: item.id,
+                    type: 'video',
+                    title: item.title,
+                    youtubeId: item.youtubeId,
+                    channelId: item.channelId,
+                    uploadsPlaylistId: item.uploadsPlaylistId,
+                    isLive: item.isLive,
+                    channel: item.channel,
+                    externalUrl: item.externalUrl,
+                    tags: item.tags,
+                    countryCode: item.countryCode,
+                    description: item.description
+                  });
+                }}
+                className="p-1 rounded text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-colors cursor-pointer"
+                title="Mount in Workspace Drawer Canvas"
+              >
+                <PlusSquare size={13} />
+              </button>
+            )}
+
+            {isSelected ? (
+              <span className="text-[9px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-[2px] animate-pulse">
+                PLAYING
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="text-[9.5px] font-mono font-semibold text-[var(--text-muted)] group-hover:text-sky-400 flex items-center gap-1 transition-colors"
+              >
+                <span>PLAY</span>
+                <Play size={8} className="fill-current" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const tabs: { id: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'; label: string; count?: number }[] = [
     { id: 'feed', label: 'Feed', count: filteredNews.length },
     { id: 'videos', label: 'Videos', count: filteredVideos.length },
@@ -456,19 +627,28 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           <Search size={13} className="text-[var(--text-muted)] shrink-0" />
           <input
             type="text"
-            placeholder={activeTab === 'videos' ? "Search defense video dispatches..." : "Search intel reports, assets..."}
+            placeholder={activeTab === 'videos' ? "Search 75+ channels, countries, analysts..." : "Search intel reports, assets..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent text-xs placeholder:text-[var(--text-muted)] focus:outline-none font-sans"
             style={{ color: 'var(--text-primary)' }}
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-slate-500 hover:text-slate-300 p-0.5 cursor-pointer"
+              title="Clear search"
+            >
+              <X size={12} />
+            </button>
+          )}
         </div>
 
         {activeTab !== 'videos' ? (
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500"
+            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500 cursor-pointer"
             style={{ color: 'var(--text-secondary)' }}
           >
             <option value="all">All Levels</option>
@@ -481,41 +661,31 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             value={selectedVideoRegion}
             onChange={(e) => setSelectedVideoRegion(e.target.value)}
             className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500 shrink-0 cursor-pointer"
-            style={{ width: '115px', color: 'var(--text-secondary)' }}
+            style={{ width: '135px', color: 'var(--text-secondary)' }}
           >
-            <option value="all">All Regions</option>
-            <option value="India / S. Asia">India / S. Asia</option>
-            <option value="Global Wire">Global Wire</option>
-            <option value="Europe / UK">Europe / UK</option>
-            <option value="Americas / US">Americas / US</option>
-            <option value="Middle East">Middle East</option>
-            <option value="East Asia / Indo-Pacific">East Asia / Indo-Pacific</option>
+            {VIDEO_REGION_GROUPS.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.label}
+              </option>
+            ))}
           </select>
         )}
       </div>
 
-      {/* Row 2: Category Filter Pills for Videos Tab */}
+      {/* Row 2: Country/Region Pills for Videos Tab */}
       {activeTab === 'videos' && (
         <div
-          className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto select-none shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]"
+          className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto select-none shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] scrollbar-none"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {(
-            [
-              'ALL',
-              '★ SPECIAL ANALYSTS',
-              '24/7 LIVE NEWS',
-              'DEFENSE & THINK TANKS',
-              'THEATER CAMS & FEEDS'
-            ] as const
-          ).map((cat) => {
-            const isActive = selectedVideoCategory === cat;
-            const isSpecial = cat === '★ SPECIAL ANALYSTS';
+          {VIDEO_REGION_GROUPS.map((reg) => {
+            const isActive = selectedVideoRegion === reg.id || (reg.id === 'ALL' && (selectedVideoRegion === 'all' || selectedVideoRegion === 'ALL'));
+            const isSpecial = reg.id === 'ANALYSTS';
             return (
               <button
-                key={cat}
+                key={reg.id}
                 type="button"
-                onClick={() => setSelectedVideoCategory(cat)}
+                onClick={() => setSelectedVideoRegion(reg.id)}
                 className={`px-2 py-0.5 rounded-[3px] text-[10px] font-mono whitespace-nowrap transition-all cursor-pointer font-semibold ${
                   isActive
                     ? isSpecial
@@ -525,7 +695,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 }`}
                 style={{ height: '22px' }}
               >
-                {cat}
+                {reg.label}
               </button>
             );
           })}
@@ -1033,155 +1203,52 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             {/* 2. Compact Scrollable Channel & Briefing Directory */}
             <div className="divide-y divide-white/[0.06] flex-1">
               {filteredVideos.length === 0 ? (
-                <div className="text-center py-10 px-4 text-xs font-mono text-[var(--text-muted)]">
+                <div className="text-center py-12 px-4 text-xs font-mono text-[var(--text-muted)]">
                   No video dispatches or channels found matching criteria.
                 </div>
+              ) : selectedVideoRegion !== 'ALL' && selectedVideoRegion !== 'all' ? (
+                // Direct list when filtered by specific region
+                filteredVideos.map((item) => renderVideoRow(item))
               ) : (
-                filteredVideos.map((item) => {
-                  const isSelected = activeVideo.id === item.id;
+                // Grouped by Clean Collapsible Region Headers when viewing ALL
+                VIDEO_REGION_GROUPS.filter((g) => g.id !== 'ALL').map((group) => {
+                  const groupItems = filteredVideos.filter((v) => v.regionGroup === group.id);
+                  if (groupItems.length === 0) return null;
+                  const isCollapsed = !!collapsedVideoSections[group.id];
+
                   return (
-                    <div
-                      key={item.id}
-                      draggable="true"
-                      onDragStart={(e) =>
-                        handleDragStartItem(e, {
-                          id: item.id,
-                          type: 'video',
-                          title: item.title,
-                          youtubeId: item.youtubeId,
-                          channelId: item.channelId,
-                          uploadsPlaylistId: item.uploadsPlaylistId,
-                          isLive: item.isLive,
-                          channel: item.channel,
-                          externalUrl: item.externalUrl,
-                          tags: item.tags,
-                          countryCode: item.countryCode,
-                          description: item.description
-                        })
-                      }
-                      onDoubleClick={() => {
-                        if (onOpenInWorkspace) {
-                          onOpenInWorkspace({
-                            id: item.id,
-                            type: 'video',
-                            title: item.title,
-                            youtubeId: item.youtubeId,
-                            channelId: item.channelId,
-                            uploadsPlaylistId: item.uploadsPlaylistId,
-                            isLive: item.isLive,
-                            channel: item.channel,
-                            externalUrl: item.externalUrl,
-                            tags: item.tags,
-                            countryCode: item.countryCode,
-                            description: item.description
-                          });
-                        }
-                      }}
-                      onClick={() => setSelectedVideoId(item.id)}
-                      className="group cursor-pointer transition-colors relative"
-                      style={{
-                        padding: '10px 14px',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                        borderLeft: isSelected ? '3px solid #38BDF8' : '3px solid transparent',
-                        background: isSelected ? 'rgba(56, 189, 248, 0.08)' : 'transparent'
-                      }}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
-                          <GripVertical size={12} />
+                    <div key={group.id} className="border-b border-white/[0.06]">
+                      <div
+                        onClick={() => toggleVideoSection(group.id)}
+                        className="sticky top-0 z-10 px-3 py-1.5 flex items-center justify-between cursor-pointer select-none text-[10.5px] font-mono font-bold tracking-wider hover:bg-slate-900/60 transition-colors"
+                        style={{
+                          background: 'rgba(8, 12, 20, 0.95)',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                          color: group.color
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <ChevronRight
+                            size={12}
+                            className={`transition-transform duration-200 text-slate-400 ${
+                              !isCollapsed ? 'rotate-90' : ''
+                            }`}
+                          />
+                          <span>{group.title}</span>
+                          <span className="text-[10px] text-slate-400 font-normal">
+                            ({groupItems.length})
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-slate-500 font-mono">
+                          {isCollapsed ? '[ Expand + ]' : '[ Collapse – ]'}
                         </span>
-
-                        {/* Compact 36x24px Monogram / Beacon Badge */}
-                        <div
-                          className="relative shrink-0 flex items-center justify-center font-mono font-bold text-[10px] rounded-[3px] border transition-all"
-                          style={{
-                            width: '36px',
-                            height: '24px',
-                            background: item.isSpecialAnalyst
-                              ? 'rgba(245, 158, 11, 0.12)'
-                              : item.isLive
-                              ? 'rgba(244, 63, 94, 0.12)'
-                              : 'rgba(56, 189, 248, 0.1)',
-                            borderColor: item.isSpecialAnalyst
-                              ? 'rgba(245, 158, 11, 0.35)'
-                              : item.isLive
-                              ? 'rgba(244, 63, 94, 0.35)'
-                              : 'rgba(56, 189, 248, 0.25)',
-                            color: item.isSpecialAnalyst
-                              ? '#F59E0B'
-                              : item.isLive
-                              ? '#F43F5E'
-                              : '#38BDF8'
-                          }}
-                        >
-                          {item.isSpecialAnalyst ? (
-                            <span className="text-[11px] leading-none">★</span>
-                          ) : item.isLive ? (
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
-                          ) : (
-                            <span className="text-[9px] tracking-tight">{item.monogram}</span>
-                          )}
-                        </div>
-
-                        {/* Center Title, Focus Tags, and Region */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <h4 className="text-[12.5px] font-semibold truncate leading-tight text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
-                              {item.title}
-                            </h4>
-                            <span className="text-[10px] font-mono text-sky-400/80 font-bold shrink-0">
-                              [{item.countryCode}]
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-[#94A3B8] truncate leading-tight mt-0.5">
-                            {item.tags.join(' • ')}
-                          </p>
-                        </div>
-
-                        {/* Right Action / State Indicator */}
-                        <div className="shrink-0 flex items-center gap-1.5">
-                          {onOpenInWorkspace && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onOpenInWorkspace({
-                                  id: item.id,
-                                  type: 'video',
-                                  title: item.title,
-                                  youtubeId: item.youtubeId,
-                                  channelId: item.channelId,
-                                  uploadsPlaylistId: item.uploadsPlaylistId,
-                                  isLive: item.isLive,
-                                  channel: item.channel,
-                                  externalUrl: item.externalUrl,
-                                  tags: item.tags,
-                                  countryCode: item.countryCode,
-                                  description: item.description
-                                });
-                              }}
-                              className="p-1 rounded text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-colors cursor-pointer"
-                              title="Mount in Workspace Drawer Canvas"
-                            >
-                              <PlusSquare size={13} />
-                            </button>
-                          )}
-
-                          {isSelected ? (
-                            <span className="text-[9.5px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-[2px] animate-pulse">
-                              PLAYING
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className="text-[10px] font-mono font-semibold text-[var(--text-muted)] group-hover:text-sky-400 flex items-center gap-1 transition-colors"
-                            >
-                              <span>PLAY</span>
-                              <Play size={8} className="fill-current" />
-                            </button>
-                          )}
-                        </div>
                       </div>
+
+                      {!isCollapsed && (
+                        <div className="divide-y divide-white/[0.04]">
+                          {groupItems.map((item) => renderVideoRow(item))}
+                        </div>
+                      )}
                     </div>
                   );
                 })
