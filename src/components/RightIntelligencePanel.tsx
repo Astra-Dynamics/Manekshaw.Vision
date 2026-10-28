@@ -16,7 +16,10 @@ import {
   Play,
   PlaySquare,
   Minimize2,
-  Maximize2
+  Maximize2,
+  GripVertical,
+  PlusSquare,
+  ArrowUpRight
 } from 'lucide-react';
 import {
   IntelHotspot,
@@ -26,9 +29,42 @@ import {
   StrategicFeature,
   GpsJammingZone,
   AdizZoneFeature,
-  FortifiedBorderFeature
+  FortifiedBorderFeature,
+  WorkspaceDrawerItem
 } from '../types';
 import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
+
+// Canva-style compact tactical drag ghost token
+export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
+  const ghost = document.createElement('div');
+  ghost.style.position = 'absolute';
+  ghost.style.top = '-1000px';
+  ghost.style.left = '-1000px';
+  ghost.style.width = '140px';
+  ghost.style.height = '36px';
+  ghost.style.background = '#0EA5E9';
+  ghost.style.color = '#080C14';
+  ghost.style.border = '1px solid #F8FAFC';
+  ghost.style.borderRadius = '4px';
+  ghost.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.7)';
+  ghost.style.fontFamily = 'monospace';
+  ghost.style.fontSize = '11px';
+  ghost.style.fontWeight = '700';
+  ghost.style.display = 'flex';
+  ghost.style.alignItems = 'center';
+  ghost.style.gap = '6px';
+  ghost.style.padding = '0 10px';
+  ghost.style.zIndex = '99999';
+  ghost.style.pointerEvents = 'none';
+  ghost.innerHTML = `<span style="background:rgba(0,0,0,0.25);padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
+  document.body.appendChild(ghost);
+  e.dataTransfer.setDragImage(ghost, 70, 18);
+  setTimeout(() => {
+    if (document.body.contains(ghost)) {
+      document.body.removeChild(ghost);
+    }
+  }, 0);
+};
 
 interface RightIntelligencePanelProps {
   isOpen: boolean;
@@ -40,6 +76,8 @@ interface RightIntelligencePanelProps {
   selectedFeature: StrategicFeature | null;
   onSelectFeature: (feature: StrategicFeature) => void;
   onCenterMap: (coords: [number, number]) => void;
+  onOpenInWorkspace?: (item: WorkspaceDrawerItem) => void;
+  onDragStartItem?: (e: React.DragEvent, item: WorkspaceDrawerItem) => void;
 }
 
 export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
@@ -51,7 +89,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   news,
   selectedFeature,
   onSelectFeature,
-  onCenterMap
+  onCenterMap,
+  onOpenInWorkspace,
+  onDragStartItem
 }) => {
   const [activeTab, setActiveTab] = useState<'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +104,15 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   const [selectedVideoRegion, setSelectedVideoRegion] = useState<string>('all');
   const [selectedVideoCategory, setSelectedVideoCategory] = useState<string>('ALL');
   const [videoPlayerMode, setVideoPlayerMode] = useState<'embed' | 'briefing'>('embed');
+
+  const handleDragStartItem = (e: React.DragEvent, drawerItem: WorkspaceDrawerItem) => {
+    const tokenType = drawerItem.type === 'video' ? '▶ VID' : drawerItem.type === 'hotspot' ? '🔥 HOT' : '📄 INTEL';
+    createCanvaDragGhost(e, tokenType, drawerItem.title);
+    e.dataTransfer.setData('application/json', JSON.stringify({ item: drawerItem }));
+    if (onDragStartItem) {
+      onDragStartItem(e, drawerItem);
+    }
+  };
 
   // Switch to dossier tab automatically when an item is selected
   useEffect(() => {
@@ -362,6 +411,33 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               filteredNews.map((item) => (
                 <div
                   key={item.id}
+                  draggable="true"
+                  onDragStart={(e) =>
+                    handleDragStartItem(e, {
+                      id: item.id,
+                      type: 'news',
+                      title: item.title,
+                      summary: item.summary,
+                      source: item.source,
+                      timestamp: item.timeAgo,
+                      severity: item.severity,
+                      coordinates: item.coordinates
+                    })
+                  }
+                  onDoubleClick={() => {
+                    if (onOpenInWorkspace) {
+                      onOpenInWorkspace({
+                        id: item.id,
+                        type: 'news',
+                        title: item.title,
+                        summary: item.summary,
+                        source: item.source,
+                        timestamp: item.timeAgo,
+                        severity: item.severity,
+                        coordinates: item.coordinates
+                      });
+                    }
+                  }}
                   onClick={() => {
                     if (item.coordinates) {
                       onSelectFeature({
@@ -376,7 +452,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       });
                     }
                   }}
-                  className="palantir-feed-card cursor-pointer group"
+                  className="palantir-feed-card cursor-pointer group relative"
                   style={{
                     padding: '16px 22px',
                     boxSizing: 'border-box',
@@ -385,37 +461,42 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-[6px]">
-                    <span
-                      className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
-                      style={{
-                        background:
-                          item.severity === 'critical'
-                            ? 'var(--badge-bg-critical)'
-                            : item.severity === 'high'
-                            ? 'var(--badge-bg-high)'
-                            : 'var(--badge-bg-info)',
-                        color:
-                          item.severity === 'critical'
-                            ? 'var(--badge-text-critical)'
-                            : item.severity === 'high'
-                            ? 'var(--badge-text-high)'
-                            : 'var(--badge-text-info)',
-                        border:
-                          item.severity === 'critical'
-                            ? '1px solid var(--badge-border-critical)'
-                            : item.severity === 'high'
-                            ? '1px solid var(--badge-border-high)'
-                            : '1px solid var(--badge-border-info)',
-                        textShadow:
-                          item.severity === 'critical'
-                            ? '0 0 6px rgba(244, 63, 94, 0.35)'
-                            : item.severity === 'high'
-                            ? '0 0 6px rgba(245, 158, 11, 0.35)'
-                            : 'none'
-                      }}
-                    >
-                      {item.category} • {item.severity}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0" title="Drag into Intel Workspace Drawer">
+                        <GripVertical size={13} />
+                      </span>
+                      <span
+                        className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
+                        style={{
+                          background:
+                            item.severity === 'critical'
+                              ? 'var(--badge-bg-critical)'
+                              : item.severity === 'high'
+                              ? 'var(--badge-bg-high)'
+                              : 'var(--badge-bg-info)',
+                          color:
+                            item.severity === 'critical'
+                              ? 'var(--badge-text-critical)'
+                              : item.severity === 'high'
+                              ? 'var(--badge-text-high)'
+                              : 'var(--badge-text-info)',
+                          border:
+                            item.severity === 'critical'
+                              ? '1px solid var(--badge-border-critical)'
+                              : item.severity === 'high'
+                              ? '1px solid var(--badge-border-high)'
+                              : '1px solid var(--badge-border-info)',
+                          textShadow:
+                            item.severity === 'critical'
+                              ? '0 0 6px rgba(244, 63, 94, 0.35)'
+                              : item.severity === 'high'
+                              ? '0 0 6px rgba(245, 158, 11, 0.35)'
+                              : 'none'
+                        }}
+                      >
+                        {item.category} • {item.severity}
+                      </span>
+                    </div>
                     <span className="text-[10.5px] font-mono text-[var(--text-muted)]">{item.timeAgo}</span>
                   </div>
 
@@ -470,6 +551,29 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         <span>To Source</span>
                         <ExternalLink size={10} />
                       </button>
+
+                      {onOpenInWorkspace && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenInWorkspace({
+                              id: item.id,
+                              type: 'news',
+                              title: item.title,
+                              summary: item.summary,
+                              source: item.source,
+                              timestamp: item.timeAgo,
+                              severity: item.severity,
+                              coordinates: item.coordinates
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 transition-colors shrink-0 text-[10px] cursor-pointer"
+                          title="Mount into Rightmost Workspace Canvas"
+                        >
+                          <PlusSquare size={10} />
+                          <span>+ Workspace</span>
+                        </button>
+                      )}
                     </div>
 
                     <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform font-bold text-[10.5px] shrink-0">
@@ -688,6 +792,35 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   return (
                     <div
                       key={item.id}
+                      draggable="true"
+                      onDragStart={(e) =>
+                        handleDragStartItem(e, {
+                          id: item.id,
+                          type: 'video',
+                          title: item.title,
+                          youtubeId: item.youtubeId,
+                          channel: item.channel,
+                          externalUrl: item.externalUrl,
+                          tags: item.tags,
+                          countryCode: item.countryCode,
+                          description: item.description
+                        })
+                      }
+                      onDoubleClick={() => {
+                        if (onOpenInWorkspace) {
+                          onOpenInWorkspace({
+                            id: item.id,
+                            type: 'video',
+                            title: item.title,
+                            youtubeId: item.youtubeId,
+                            channel: item.channel,
+                            externalUrl: item.externalUrl,
+                            tags: item.tags,
+                            countryCode: item.countryCode,
+                            description: item.description
+                          });
+                        }
+                      }}
                       onClick={() => setSelectedVideoId(item.id)}
                       className="group cursor-pointer transition-colors relative"
                       style={{
@@ -698,6 +831,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                     >
                       <div className="flex items-center gap-2.5">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
+                          <GripVertical size={12} />
+                        </span>
+
                         {/* Compact 36x24px Monogram / Beacon Badge */}
                         <div
                           className="relative shrink-0 flex items-center justify-center font-mono font-bold text-[10px] rounded-[3px] border transition-all"
@@ -747,6 +884,30 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                         {/* Right Action / State Indicator */}
                         <div className="shrink-0 flex items-center gap-1.5">
+                          {onOpenInWorkspace && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenInWorkspace({
+                                  id: item.id,
+                                  type: 'video',
+                                  title: item.title,
+                                  youtubeId: item.youtubeId,
+                                  channel: item.channel,
+                                  externalUrl: item.externalUrl,
+                                  tags: item.tags,
+                                  countryCode: item.countryCode,
+                                  description: item.description
+                                });
+                              }}
+                              className="p-1 rounded text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-colors cursor-pointer"
+                              title="Mount in Workspace Drawer Canvas"
+                            >
+                              <PlusSquare size={13} />
+                            </button>
+                          )}
+
                           {isSelected ? (
                             <span className="text-[9.5px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-[2px] animate-pulse">
                               PLAYING
@@ -776,6 +937,31 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             {filteredHotspots.map((hs) => (
               <div
                 key={hs.id}
+                draggable="true"
+                onDragStart={(e) =>
+                  handleDragStartItem(e, {
+                    id: hs.id,
+                    type: 'hotspot',
+                    title: hs.name,
+                    description: hs.description,
+                    summary: hs.whyItMatters,
+                    coordinates: hs.coordinates,
+                    severity: hs.escalationScore >= 4 ? 'critical' : 'high'
+                  })
+                }
+                onDoubleClick={() => {
+                  if (onOpenInWorkspace) {
+                    onOpenInWorkspace({
+                      id: hs.id,
+                      type: 'hotspot',
+                      title: hs.name,
+                      description: hs.description,
+                      summary: hs.whyItMatters,
+                      coordinates: hs.coordinates,
+                      severity: hs.escalationScore >= 4 ? 'critical' : 'high'
+                    });
+                  }
+                }}
                 onClick={() => onSelectFeature(hs)}
                 className="palantir-feed-card cursor-pointer group"
                 style={{
@@ -787,6 +973,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
+                      <GripVertical size={13} />
+                    </span>
                     <Flame size={13} className="text-orange-500" />
                     <span
                       className="text-[13px] font-semibold group-hover:text-orange-500 font-sans"
@@ -837,6 +1026,31 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             {filteredConflicts.map((c) => (
               <div
                 key={c.id}
+                draggable="true"
+                onDragStart={(e) =>
+                  handleDragStartItem(e, {
+                    id: c.id,
+                    type: 'conflict',
+                    title: c.name,
+                    description: c.description,
+                    parties: c.parties,
+                    coordinates: c.center,
+                    severity: c.intensity
+                  })
+                }
+                onDoubleClick={() => {
+                  if (onOpenInWorkspace) {
+                    onOpenInWorkspace({
+                      id: c.id,
+                      type: 'conflict',
+                      title: c.name,
+                      description: c.description,
+                      parties: c.parties,
+                      coordinates: c.center,
+                      severity: c.intensity
+                    });
+                  }
+                }}
                 onClick={() => onSelectFeature(c)}
                 className="palantir-feed-card cursor-pointer group"
                 style={{
@@ -847,12 +1061,17 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span
-                    className="text-[13px] font-semibold group-hover:text-rose-500 font-sans"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {c.name}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
+                      <GripVertical size={13} />
+                    </span>
+                    <span
+                      className="text-[13px] font-semibold group-hover:text-rose-500 font-sans"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {c.name}
+                    </span>
+                  </div>
                   <span
                     className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold tracking-[0.05em]"
                     style={{
@@ -900,6 +1119,29 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             {filteredInfra.map((f) => (
               <div
                 key={f.id}
+                draggable="true"
+                onDragStart={(e) =>
+                  handleDragStartItem(e, {
+                    id: f.id,
+                    type: 'feature',
+                    title: f.name,
+                    description: f.description,
+                    coordinates: f.coordinates,
+                    severity: f.severity
+                  })
+                }
+                onDoubleClick={() => {
+                  if (onOpenInWorkspace) {
+                    onOpenInWorkspace({
+                      id: f.id,
+                      type: 'feature',
+                      title: f.name,
+                      description: f.description,
+                      coordinates: f.coordinates,
+                      severity: f.severity
+                    });
+                  }
+                }}
                 onClick={() => onSelectFeature(f)}
                 className="palantir-feed-card cursor-pointer group"
                 style={{
@@ -910,12 +1152,17 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 }}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span
-                    className="text-[13px] font-semibold group-hover:text-sky-500 font-sans"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {f.name}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
+                      <GripVertical size={13} />
+                    </span>
+                    <span
+                      className="text-[13px] font-semibold group-hover:text-sky-500 font-sans"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {f.name}
+                    </span>
+                  </div>
                   <span
                     className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase"
                     style={{

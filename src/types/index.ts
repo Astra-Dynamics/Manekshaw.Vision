@@ -158,3 +158,32 @@ export interface WorkspaceTab {
   selectedCountryCode?: string | null;
   selectedCountryName?: string | null;
 }
+
+export type IntelDrawerItemType = 'video' | 'news' | 'hotspot' | 'conflict' | 'feature';
+
+export interface WorkspaceDrawerItem {
+  id: string;
+  type: IntelDrawerItemType;
+  title: string;
+  subtitle?: string;
+  tags?: string[];
+  countryCode?: string;
+  timestamp?: string;
+  severity?: string;
+  youtubeId?: string;
+  channel?: string;
+  externalUrl?: string;
+  summary?: string;
+  source?: string;
+  link?: string;
+  coordinates?: [number, number];
+  description?: string;
+  parties?: string[];
+  raw?: any;
+}
+
+export interface WorkspaceDrawerTab {
+  id: string;
+  title: string;
+  items: WorkspaceDrawerItem[];
+}

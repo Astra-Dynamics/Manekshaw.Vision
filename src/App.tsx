@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Radio } from 'lucide-react';
 import { Header } from './components/Header';
 import { AlertTicker } from './components/AlertTicker';
 import { MapComponent } from './components/MapComponent';
@@ -8,6 +9,7 @@ import { CountryBriefModal } from './components/CountryBriefModal';
 import { CommandPalette } from './components/CommandPalette';
 import { LandingPage } from './components/LandingPage';
 import { WorkspaceTabBar } from './components/WorkspaceTabBar';
+import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -18,7 +20,9 @@ import {
   StrategicFeature,
   IntelNewsItem,
   ThemeMode,
-  WorkspaceTab
+  WorkspaceTab,
+  WorkspaceDrawerItem,
+  WorkspaceDrawerTab
 } from './types';
 
 // Curated Datasets
@@ -432,6 +436,146 @@ export const App: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState<StrategicFeature | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryIntelDetails | null>(null);
 
+  // -------------------------------------------------------------
+  // Rightmost Intel Workspace Drawer State & Multi-Tab Logic
+  // -------------------------------------------------------------
+  const [isWorkspaceDrawerOpen, setIsWorkspaceDrawerOpen] = useState<boolean>(false);
+  const [isWorkspaceDrawerMinimized, setIsWorkspaceDrawerMinimized] = useState<boolean>(false);
+  const [workspaceDrawerWidth, setWorkspaceDrawerWidth] = useState<number>(440); // 440 or 640
+  const [isDraggingIntel, setIsDraggingIntel] = useState<boolean>(false);
+
+  const [workspaceDrawerTabs, setWorkspaceDrawerTabs] = useState<WorkspaceDrawerTab[]>(() => {
+    try {
+      const saved = sessionStorage.getItem('manvis_intel_drawer_tabs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [
+      {
+        id: 'drawer_tab_1',
+        title: 'Tactical Watch',
+        items: []
+      }
+    ];
+  });
+
+  const [activeWorkspaceDrawerTabId, setActiveWorkspaceDrawerTabId] = useState<string>(() => {
+    try {
+      const saved = sessionStorage.getItem('manvis_intel_drawer_active_tab');
+      if (saved) return saved;
+    } catch (e) {}
+    return 'drawer_tab_1';
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('manvis_intel_drawer_tabs', JSON.stringify(workspaceDrawerTabs));
+      sessionStorage.setItem('manvis_intel_drawer_active_tab', activeWorkspaceDrawerTabId);
+    } catch (e) {}
+  }, [workspaceDrawerTabs, activeWorkspaceDrawerTabId]);
+
+  // Reset drag state on window dragend
+  useEffect(() => {
+    const handleDragEnd = () => setIsDraggingIntel(false);
+    window.addEventListener('dragend', handleDragEnd);
+    return () => window.removeEventListener('dragend', handleDragEnd);
+  }, []);
+
+  const handleOpenInWorkspace = useCallback((item: WorkspaceDrawerItem) => {
+    setIsWorkspaceDrawerOpen(true);
+    setIsWorkspaceDrawerMinimized(false);
+
+    setWorkspaceDrawerTabs((prevTabs) => {
+      let targetTabId = activeWorkspaceDrawerTabId;
+      let targetTab = prevTabs.find((t) => t.id === targetTabId);
+
+      if (!targetTab) {
+        targetTab = prevTabs[0];
+        targetTabId = targetTab ? targetTab.id : 'drawer_tab_1';
+      }
+
+      if (!targetTab) {
+        const newTab: WorkspaceDrawerTab = {
+          id: 'drawer_tab_1',
+          title: item.type === 'video' ? 'Live Stream' : 'Intel Brief',
+          items: [item]
+        };
+        return [newTab];
+      }
+
+      const alreadyExists = targetTab.items.some((i) => i.id === item.id);
+      if (alreadyExists) return prevTabs;
+
+      return prevTabs.map((t) =>
+        t.id === targetTabId
+          ? {
+              ...t,
+              title:
+                t.title === 'Tactical Watch' && t.items.length === 0
+                  ? item.type === 'video'
+                    ? 'Live Stream'
+                    : 'Intel Brief'
+                  : t.title,
+              items: [...t.items, item]
+            }
+          : t
+      );
+    });
+  }, [activeWorkspaceDrawerTabId]);
+
+  const handleNewDrawerTab = useCallback(() => {
+    const nextNum = workspaceDrawerTabs.length + 1;
+    const newTabId = `drawer_tab_${Date.now()}`;
+    const newTab: WorkspaceDrawerTab = {
+      id: newTabId,
+      title: `Workspace ${nextNum}`,
+      items: []
+    };
+    setWorkspaceDrawerTabs((prev) => [...prev, newTab]);
+    setActiveWorkspaceDrawerTabId(newTabId);
+  }, [workspaceDrawerTabs]);
+
+  const handleCloseDrawerTab = useCallback(
+    (tabId: string) => {
+      setWorkspaceDrawerTabs((prev) => {
+        if (prev.length <= 1) {
+          return [{ id: prev[0].id, title: 'Tactical Watch', items: [] }];
+        }
+        const remaining = prev.filter((t) => t.id !== tabId);
+        if (tabId === activeWorkspaceDrawerTabId) {
+          setActiveWorkspaceDrawerTabId(remaining[0].id);
+        }
+        return remaining;
+      });
+    },
+    [activeWorkspaceDrawerTabId]
+  );
+
+  const handleRenameDrawerTab = useCallback((tabId: string, newTitle: string) => {
+    setWorkspaceDrawerTabs((prev) =>
+      prev.map((t) => (t.id === tabId ? { ...t, title: newTitle } : t))
+    );
+  }, []);
+
+  const handleRemoveDrawerItem = useCallback((tabId: string, itemId: string) => {
+    setWorkspaceDrawerTabs((prev) =>
+      prev.map((t) =>
+        t.id === tabId
+          ? { ...t, items: t.items.filter((i) => i.id !== itemId) }
+          : t
+      )
+    );
+  }, []);
+
+  const handleDropDrawerItem = useCallback(
+    (tabId: string, item: WorkspaceDrawerItem) => {
+      handleOpenInWorkspace(item);
+    },
+    [handleOpenInWorkspace]
+  );
+
   // Live dynamic feeds
   const [liveEarthquakes, setLiveEarthquakes] = useState<MapFeatureItem[]>([]);
   const [liveEonet, setLiveEonet] = useState<MapFeatureItem[]>([]);
@@ -732,14 +876,19 @@ export const App: React.FC = () => {
           className="absolute z-30 flex flex-col animate-fade-in"
           style={{
             top: '76px',
-            right: 0,
+            right: isWorkspaceDrawerOpen
+              ? isWorkspaceDrawerMinimized
+                ? '36px'
+                : `${workspaceDrawerWidth}px`
+              : '0px',
             bottom: 0,
             width: '380px',
             maxWidth: '100vw',
             background: 'var(--bg-surface)',
             borderLeft: '1px solid var(--border-medium)',
             boxShadow: '-12px 0 24px rgba(0, 0, 0, 0.6)',
-            borderRadius: 0
+            borderRadius: 0,
+            transition: 'right 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           <RightIntelligencePanel
@@ -755,7 +904,74 @@ export const App: React.FC = () => {
               setMapCenter(c);
               setMapZoom(6.5);
             }}
+            onOpenInWorkspace={handleOpenInWorkspace}
+            onDragStartItem={() => setIsDraggingIntel(true)}
           />
+        </div>
+      )}
+
+      {/* Rightmost: Intel Workspace Drawer */}
+      <IntelWorkspaceDrawer
+        isOpen={isWorkspaceDrawerOpen}
+        isMinimized={isWorkspaceDrawerMinimized}
+        width={workspaceDrawerWidth}
+        tabs={workspaceDrawerTabs}
+        activeTabId={activeWorkspaceDrawerTabId}
+        theme={theme}
+        onClose={() => setIsWorkspaceDrawerOpen(false)}
+        onToggleMinimize={() => setIsWorkspaceDrawerMinimized((prev) => !prev)}
+        onToggleWidth={() => setWorkspaceDrawerWidth((prev) => (prev === 440 ? 640 : 440))}
+        onSelectTab={setActiveWorkspaceDrawerTabId}
+        onNewTab={handleNewDrawerTab}
+        onCloseTab={handleCloseDrawerTab}
+        onRenameTab={handleRenameDrawerTab}
+        onRemoveItem={handleRemoveDrawerItem}
+        onDropItem={handleDropDrawerItem}
+        onCenterMap={(c) => {
+          setMapCenter(c);
+          setMapZoom(6.5);
+        }}
+      />
+
+      {/* Auto-Open Drop Target on Right Edge (When dragging and drawer is closed) */}
+      {isDraggingIntel && !isWorkspaceDrawerOpen && (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDraggingIntel(false);
+            try {
+              const rawData = e.dataTransfer.getData('application/json');
+              if (rawData) {
+                const parsed = JSON.parse(rawData);
+                if (parsed && parsed.item) {
+                  handleOpenInWorkspace(parsed.item);
+                }
+              }
+            } catch (err) {
+              console.warn('Failed to drop into target:', err);
+            }
+          }}
+          className="absolute top-[76px] bottom-0 right-0 z-40 flex items-center justify-center p-3 animate-fade-in select-none"
+          style={{
+            width: '260px',
+            background: 'rgba(8, 12, 20, 0.94)',
+            borderLeft: '2px dashed #38BDF8',
+            boxShadow: '-10px 0 30px rgba(14, 165, 233, 0.25)'
+          }}
+        >
+          <div className="flex flex-col items-center gap-2 text-center text-sky-400 font-mono text-xs">
+            <Radio size={24} className="animate-pulse" />
+            <span className="font-bold tracking-wider text-[11px]">
+              + DROP INTEL TO OPEN IN WORKSPACE
+            </span>
+            <span className="text-[10px] text-slate-400">
+              Mounts directly into multi-tab canvas
+            </span>
+          </div>
         </div>
       )}
 

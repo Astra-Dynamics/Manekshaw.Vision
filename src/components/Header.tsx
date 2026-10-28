@@ -148,7 +148,10 @@ export const Header: React.FC<HeaderProps> = ({
   const lonDisplay = `${Math.abs(lon).toFixed(2)}°${lon >= 0 ? 'E' : 'W'}`;
 
   return (
-    <header className="w-full h-11 bg-[var(--hud-bg)] border-b border-[var(--hud-border)] px-3 flex items-center justify-between select-none z-30 relative backdrop-blur-xl shrink-0 transition-colors shadow-xs">
+    <header
+      className="w-full h-11 bg-[var(--hud-bg)] border-b border-[var(--hud-border)] px-3 flex items-center justify-between select-none relative backdrop-blur-xl shrink-0 transition-colors shadow-xs"
+      style={{ zIndex: 2000 }}
+    >
       {/* 1. Left Cluster: Emblem, Theater Selector, Time Range */}
       <div className="flex items-center gap-2 shrink-0">
         {/* Brand Emblem (Click to return to Home) */}
@@ -179,7 +182,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div ref={theaterDropdownRef} className="relative">
           <button
             onClick={() => setIsTheaterOpen(!isTheaterOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 rounded-md font-mono text-[11px] text-[var(--text-primary)] transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 rounded-md font-mono text-[11px] text-[var(--text-primary)] transition-all cursor-pointer"
             title="Operational Theater View"
           >
             <span className="font-semibold tracking-wide truncate max-w-[90px] sm:max-w-none">
@@ -189,8 +192,25 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {isTheaterOpen && (
-            <div className="absolute left-0 top-full mt-1.5 w-52 hud-panel-elevated p-1.5 font-mono text-[11px] rounded-lg animate-fade-in z-50 space-y-0.5">
-              <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--hud-border)] mb-1">
+            <div
+              className="absolute left-0 top-full mt-1.5 animate-fade-in"
+              style={{
+                zIndex: 3000,
+                backgroundColor: theme === 'dark' ? '#0B101B' : '#FFFFFF',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                borderRadius: '4px',
+                padding: '6px',
+                minWidth: '170px',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+              }}
+            >
+              <div
+                className="px-2 py-1 text-[9px] font-mono font-bold uppercase tracking-wider mb-1"
+                style={{
+                  color: theme === 'dark' ? '#64748B' : '#94A3B8',
+                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0'
+                }}
+              >
                 Select Theater
               </div>
               {theaters.map((th) => {
@@ -202,11 +222,41 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectView(th.id);
                       setIsTheaterOpen(false);
                     }}
-                    className={`px-2.5 py-1.5 rounded cursor-pointer transition-colors flex items-center justify-between ${
-                      isSelected
-                        ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
-                    }`}
+                    className="transition-colors"
+                    style={{
+                      padding: '7px 12px',
+                      borderRadius: '3px',
+                      fontFamily: 'monospace',
+                      fontSize: '11.5px',
+                      color: isSelected
+                        ? '#38BDF8'
+                        : theme === 'dark'
+                        ? '#CBD5E1'
+                        : '#334155',
+                      backgroundColor: isSelected
+                        ? 'rgba(14, 165, 233, 0.2)'
+                        : 'transparent',
+                      border: isSelected
+                        ? '1px solid rgba(56, 189, 248, 0.4)'
+                        : '1px solid transparent',
+                      fontWeight: isSelected ? 600 : 400,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.12)';
+                        e.currentTarget.style.color = '#F8FAFC';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = theme === 'dark' ? '#CBD5E1' : '#334155';
+                      }
+                    }}
                   >
                     <span>{th.label}</span>
                     {isSelected && <span className="text-[10px] text-sky-400">●</span>}
