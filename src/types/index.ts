@@ -39,6 +39,8 @@ export interface MapFeatureItem {
   details?: Record<string, any>;
   source?: string;
   link?: string;
+  operatorCode?: string;
+  assetCategory?: 'NAVAL CSGs' | 'AIRBASES & BOMBER WINGS' | 'NUCLEAR & MISSILE SITES' | 'SPACE & RADAR ARRAYS' | string;
 }
 
 export interface ConflictZoneFeature {
@@ -105,8 +107,17 @@ export interface IntelHotspot {
   id: string;
   name: string;
   coordinates: [number, number]; // [lon, lat]
-  escalationScore: 1 | 2 | 3 | 4 | 5; // 1=stable, 5=critical
+  escalationScore: number; // 0-100 scale (or 1-5 legacy)
   escalationTrend: 'escalating' | 'stable' | 'de-escalating';
+  escalationDelta?: string; // e.g. '▲ +4.2', '▼ -1.5', '— 0.0'
+  region?: string;
+  countryCode?: string;
+  telemetry?: {
+    airActivity?: string;
+    navalDensity?: string;
+    gnssJamming?: string;
+    adizIncursions?: string;
+  };
   description: string;
   whyItMatters: string;
   agencies?: string[];

@@ -19,7 +19,14 @@ import {
   Maximize2,
   GripVertical,
   PlusSquare,
-  ArrowUpRight
+  ArrowUpRight,
+  Shield,
+  Target,
+  Activity,
+  Anchor,
+  Plane,
+  Layers,
+  Compass
 } from 'lucide-react';
 import {
   IntelHotspot,
@@ -34,6 +41,7 @@ import {
 } from '../types';
 import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
 import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeResolver';
+import { classifySourceTier } from '../services/osintFeedService';
 
 // Canva-style compact tactical drag ghost token
 export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
@@ -273,36 +281,60 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
     }
   }, [activeVideo?.id, activeVideo?.channelId]);
 
+  const [selectedAssetCategory, setSelectedAssetCategory] = useState<string>('ALL');
+
   const filteredHotspots = useMemo(() => {
-    return hotspots.filter((hs) => {
-      return (
-        hs.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hs.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hs.whyItMatters.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
+    return hotspots
+      .filter((hs) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          hs.name.toLowerCase().includes(q) ||
+          hs.description.toLowerCase().includes(q) ||
+          hs.whyItMatters.toLowerCase().includes(q) ||
+          (hs.countryCode && hs.countryCode.toLowerCase().includes(q)) ||
+          (hs.region && hs.region.toLowerCase().includes(q))
+        );
+      })
+      .sort((a, b) => {
+        const scoreA = a.escalationScore > 5 ? a.escalationScore : a.escalationScore * 20;
+        const scoreB = b.escalationScore > 5 ? b.escalationScore : b.escalationScore * 20;
+        return scoreB - scoreA;
+      });
   }, [hotspots, searchQuery]);
 
   const filteredConflicts = useMemo(() => {
     return conflicts.filter((c) => {
+      const q = searchQuery.toLowerCase();
       return (
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.parties.some((p) => p.toLowerCase().includes(searchQuery.toLowerCase()))
+        c.name.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        c.parties.some((p) => p.toLowerCase().includes(q))
       );
     });
   }, [conflicts, searchQuery]);
 
   const filteredInfra = useMemo(() => {
     return features.filter((f) => {
+      if (selectedAssetCategory !== 'ALL') {
+        const cat = (f.assetCategory || f.category || '').toLowerCase();
+        if (!cat.includes(selectedAssetCategory.toLowerCase())) {
+          return false;
+        }
+      }
+      const q = searchQuery.toLowerCase();
       const matchQuery =
-        f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        f.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (f.category && f.category.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchSev = selectedSeverity === 'all' || f.severity === selectedSeverity;
+        f.name.toLowerCase().includes(q) ||
+        f.description.toLowerCase().includes(q) ||
+        (f.category && f.category.toLowerCase().includes(q)) ||
+        (f.operatorCode && f.operatorCode.toLowerCase().includes(q)) ||
+        (f.status && f.status.toLowerCase().includes(q));
+      const matchSev =
+        selectedSeverity === 'ALL' ||
+        selectedSeverity === 'all' ||
+        f.severity?.toLowerCase() === selectedSeverity.toLowerCase();
       return matchQuery && matchSev;
     });
-  }, [features, searchQuery, selectedSeverity]);
+  }, [features, searchQuery, selectedSeverity, selectedAssetCategory]);
 
   if (!isOpen) return null;
 
@@ -563,7 +595,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-[6px]">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0" title="Drag into Intel Workspace Drawer">
                         <GripVertical size={13} />
                       </span>
@@ -598,8 +630,55 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       >
                         {item.category} • {item.severity}
                       </span>
+
+                      {(() => {
+                        const tier = classifySourceTier(item.source);
+                        const tierBg =
+                          tier === 'OFFICIAL MOD'
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : tier === 'OSINT SENSOR'
+                            ? 'rgba(16, 185, 129, 0.15)'
+                            : tier === 'STATE MEDIA - FLAGGED'
+                            ? 'rgba(239, 68, 68, 0.15)'
+                            : 'rgba(56, 189, 248, 0.12)';
+                        const tierColor =
+                          tier === 'OFFICIAL MOD'
+                            ? '#f59e0b'
+                            : tier === 'OSINT SENSOR'
+                            ? '#10b981'
+                            : tier === 'STATE MEDIA - FLAGGED'
+                            ? '#ef4444'
+                            : '#38bdf8';
+                        const tierBorder =
+                          tier === 'OFFICIAL MOD'
+                            ? 'rgba(245, 158, 11, 0.35)'
+                            : tier === 'OSINT SENSOR'
+                            ? 'rgba(16, 185, 129, 0.35)'
+                            : tier === 'STATE MEDIA - FLAGGED'
+                            ? 'rgba(239, 68, 68, 0.35)'
+                            : 'rgba(56, 189, 248, 0.3)';
+
+                        return (
+                          <span
+                            className="text-[9.5px] font-mono px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-wider"
+                            style={{
+                              background: tierBg,
+                              color: tierColor,
+                              border: `1px solid ${tierBorder}`
+                            }}
+                          >
+                            [{tier}]
+                          </span>
+                        );
+                      })()}
+
+                      {item.countryCode && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-slate-300 border border-slate-700/60 font-semibold">
+                          {item.countryCode}
+                        </span>
+                      )}
                     </div>
-                    <span className="text-[10.5px] font-mono text-[var(--text-muted)]">{item.timeAgo}</span>
+                    <span className="text-[10.5px] font-mono text-[var(--text-muted)] shrink-0">{item.timeAgo}</span>
                   </div>
 
                   <h3
@@ -641,6 +720,30 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       >
                         {item.source}
                       </span>
+
+                      {item.coordinates && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCenterMap(item.coordinates!);
+                            onSelectFeature({
+                              id: item.id,
+                              layer: 'military',
+                              name: item.title,
+                              coordinates: item.coordinates!,
+                              category: item.category,
+                              severity: item.severity,
+                              description: item.summary,
+                              source: item.source
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[9.5px] font-mono transition-colors shrink-0"
+                          title="Fly to Coordinates on Map"
+                        >
+                          <Crosshair size={9} />
+                          <span>{item.coordinates[1].toFixed(1)}°, {item.coordinates[0].toFixed(1)}°</span>
+                        </button>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1087,116 +1190,252 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           </div>
         )}
 
-        {/* 3. Hotspots Tab */}
+        {/* 3. Hotspots Tab (Actionable Flashpoint Matrix) */}
         {activeTab === 'hotspots' && (
           <div className="space-y-0">
-            {filteredHotspots.map((hs) => (
-              <div
-                key={hs.id}
-                draggable="true"
-                onDragStart={(e) =>
-                  handleDragStartItem(e, {
-                    id: hs.id,
-                    type: 'hotspot',
-                    title: hs.name,
-                    description: hs.description,
-                    summary: hs.whyItMatters,
-                    coordinates: hs.coordinates,
-                    severity: hs.escalationScore >= 4 ? 'critical' : 'high'
-                  })
-                }
-                onDoubleClick={() => {
-                  if (onOpenInWorkspace) {
-                    onOpenInWorkspace({
-                      id: hs.id,
-                      type: 'hotspot',
-                      title: hs.name,
-                      description: hs.description,
-                      summary: hs.whyItMatters,
-                      coordinates: hs.coordinates,
-                      severity: hs.escalationScore >= 4 ? 'critical' : 'high'
-                    });
-                  }
-                }}
-                onClick={() => onSelectFeature(hs)}
-                className="palantir-feed-card cursor-pointer group"
-                style={{
-                  padding: '16px 22px',
-                  boxSizing: 'border-box',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface-elevated)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
-                      <GripVertical size={13} />
-                    </span>
-                    <Flame size={13} className="text-orange-500" />
-                    <span
-                      className="text-[13px] font-semibold group-hover:text-orange-500 font-sans"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {hs.name}
-                    </span>
-                  </div>
-                  <span
-                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
+            {filteredHotspots.length === 0 ? (
+              <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
+                No active hotspots match query.
+              </div>
+            ) : (
+              filteredHotspots.map((hs) => {
+                const score = hs.escalationScore > 5 ? hs.escalationScore : hs.escalationScore * 20;
+                const scoreColor =
+                  score >= 85 ? '#ef4444' : score >= 70 ? '#f97316' : score >= 50 ? '#eab308' : '#10b981';
+                const scoreBg =
+                  score >= 85
+                    ? 'rgba(239, 68, 68, 0.15)'
+                    : score >= 70
+                    ? 'rgba(249, 115, 22, 0.15)'
+                    : score >= 50
+                    ? 'rgba(234, 179, 8, 0.15)'
+                    : 'rgba(16, 185, 129, 0.15)';
+                const deltaColor = hs.escalationDelta?.startsWith('▲')
+                  ? '#f43f5e'
+                  : hs.escalationDelta?.startsWith('▼')
+                  ? '#10b981'
+                  : 'var(--text-muted)';
+
+                return (
+                  <div
+                    key={hs.id}
+                    draggable="true"
+                    onDragStart={(e) =>
+                      handleDragStartItem(e, {
+                        id: hs.id,
+                        type: 'hotspot',
+                        title: hs.name,
+                        description: hs.description,
+                        summary: hs.whyItMatters,
+                        coordinates: hs.coordinates,
+                        severity: score >= 75 ? 'critical' : 'high'
+                      })
+                    }
+                    onDoubleClick={() => {
+                      if (onOpenInWorkspace) {
+                        onOpenInWorkspace({
+                          id: hs.id,
+                          type: 'hotspot',
+                          title: hs.name,
+                          description: hs.description,
+                          summary: hs.whyItMatters,
+                          coordinates: hs.coordinates,
+                          severity: score >= 75 ? 'critical' : 'high'
+                        });
+                      }
+                    }}
+                    onClick={() => onSelectFeature(hs)}
+                    className="palantir-feed-card cursor-pointer group"
                     style={{
-                      background: hs.escalationScore >= 5 ? 'var(--badge-bg-critical)' : hs.escalationScore >= 4 ? 'var(--badge-bg-high)' : 'var(--badge-bg-info)',
-                      color: hs.escalationScore >= 5 ? 'var(--badge-text-critical)' : hs.escalationScore >= 4 ? 'var(--badge-text-high)' : 'var(--badge-text-info)',
-                      border: hs.escalationScore >= 5 ? '1px solid var(--badge-border-critical)' : hs.escalationScore >= 4 ? '1px solid var(--badge-border-high)' : '1px solid var(--badge-border-info)',
-                      textShadow: hs.escalationScore >= 5 ? '0 0 6px rgba(244, 63, 94, 0.35)' : hs.escalationScore >= 4 ? '0 0 6px rgba(245, 158, 11, 0.35)' : 'none'
+                      padding: '16px 20px',
+                      boxSizing: 'border-box',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-surface-elevated)'
                     }}
                   >
-                    LEVEL {hs.escalationScore}/5 • {hs.escalationTrend}
-                  </span>
-                </div>
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1"
+                          title="Drag to Workspace Drawer"
+                        >
+                          <GripVertical size={13} />
+                        </span>
+                        <Flame size={14} className="text-orange-500 shrink-0 animate-pulse" />
+                        <span
+                          className="text-[13.5px] font-semibold group-hover:text-orange-400 font-sans truncate"
+                          style={{ color: 'var(--text-primary)' }}
+                          title={hs.name}
+                        >
+                          {hs.name}
+                        </span>
+                        {hs.countryCode && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-slate-300 border border-slate-700/60 font-bold shrink-0">
+                            {hs.countryCode}
+                          </span>
+                        )}
+                      </div>
 
-                <p
-                  className="text-[12px] leading-[1.5] font-sans mb-2"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  {hs.description}
-                </p>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {hs.escalationDelta && (
+                          <span
+                            className="text-[10px] font-mono font-bold"
+                            style={{ color: deltaColor }}
+                            title="24h Escalation Delta"
+                          >
+                            {hs.escalationDelta}
+                          </span>
+                        )}
+                        <span
+                          className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
+                          style={{
+                            background: scoreBg,
+                            color: scoreColor,
+                            border: `1px solid ${scoreColor}40`,
+                            textShadow: score >= 75 ? `0 0 6px ${scoreColor}40` : 'none'
+                          }}
+                        >
+                          {score >= 85 ? 'CRITICAL' : score >= 70 ? 'ACUTE' : 'WATCH'} {score}/100
+                        </span>
+                      </div>
+                    </div>
 
-                <div
-                  className="p-2.5 rounded-[2px] border text-[11px]"
-                  style={{
-                    background: 'var(--bg-surface)',
-                    borderColor: 'var(--border-subtle)',
-                    color: 'var(--text-muted)'
-                  }}
-                >
-                  <span className="text-orange-500 font-mono font-semibold">Strategic Impact:</span>{' '}
-                  <span style={{ color: 'var(--text-secondary)' }}>{hs.whyItMatters}</span>
-                </div>
-              </div>
-            ))}
+                    {/* Segmented Escalation Index Bar */}
+                    <div className="mb-2.5">
+                      <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden border border-slate-700/40 relative">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, Math.max(5, score))}%`,
+                            background: `linear-gradient(90deg, #10b981 0%, #eab308 45%, ${scoreColor} 100%)`,
+                            boxShadow: `0 0 8px ${scoreColor}60`
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-1 text-[9px] font-mono text-[var(--text-muted)]">
+                        <span>ESCALATION INDEX: {score}/100</span>
+                        <span className="uppercase tracking-wider font-semibold" style={{ color: scoreColor }}>
+                          TREND: {hs.escalationTrend}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Structured Telemetry Grid */}
+                    {hs.telemetry && (
+                      <div className="grid grid-cols-2 gap-1.5 mb-2.5">
+                        {hs.telemetry.airActivity && (
+                          <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
+                            <span className="text-sky-500 font-bold">AIR:</span> {hs.telemetry.airActivity}
+                          </div>
+                        )}
+                        {hs.telemetry.navalDensity && (
+                          <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
+                            <span className="text-indigo-400 font-bold">NAVAL:</span> {hs.telemetry.navalDensity}
+                          </div>
+                        )}
+                        {hs.telemetry.gnssJamming && (
+                          <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
+                            <span className="text-amber-500 font-bold">EW/GNSS:</span> {hs.telemetry.gnssJamming}
+                          </div>
+                        )}
+                        {hs.telemetry.adizIncursions && (
+                          <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
+                            <span className="text-rose-500 font-bold">ADIZ:</span> {hs.telemetry.adizIncursions}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <p
+                      className="text-[12px] leading-[1.5] font-sans mb-2"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {hs.description}
+                    </p>
+
+                    <div
+                      className="p-2.5 rounded-[2px] border text-[11px] mb-2.5"
+                      style={{
+                        background: 'var(--bg-surface)',
+                        borderColor: 'var(--border-subtle)',
+                        color: 'var(--text-muted)'
+                      }}
+                    >
+                      <span className="text-orange-500 font-mono font-semibold">Strategic Impact:</span>{' '}
+                      <span style={{ color: 'var(--text-secondary)' }}>{hs.whyItMatters}</span>
+                    </div>
+
+                    {/* Bottom Quick Action Strip */}
+                    <div
+                      className="pt-2 text-[11px] font-mono flex items-center justify-between"
+                      style={{
+                        borderTop: '1px solid var(--border-subtle)',
+                        color: 'var(--text-muted)'
+                      }}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCenterMap(hs.coordinates);
+                            onSelectFeature(hs);
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-mono font-semibold transition-colors"
+                          title="Fly to Sector on Map"
+                        >
+                          <Target size={10} />
+                          <span>Fly to Sector</span>
+                        </button>
+
+                        {onOpenInWorkspace && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenInWorkspace({
+                                id: hs.id,
+                                type: 'hotspot',
+                                title: hs.name,
+                                description: hs.description,
+                                summary: hs.whyItMatters,
+                                coordinates: hs.coordinates,
+                                severity: score >= 75 ? 'critical' : 'high'
+                              });
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                            title="Open Brief in Rightmost Workspace Drawer"
+                          >
+                            <PlusSquare size={10} />
+                            <span>+ Workspace</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                        {hs.coordinates[1].toFixed(2)}°N, {hs.coordinates[0].toFixed(2)}°E
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
-        {/* 4. Conflicts Tab */}
+        {/* 4. Conflicts / Wars Tab */}
         {activeTab === 'conflicts' && (
           <div className="space-y-0">
-            {filteredConflicts.map((c) => (
-              <div
-                key={c.id}
-                draggable="true"
-                onDragStart={(e) =>
-                  handleDragStartItem(e, {
-                    id: c.id,
-                    type: 'conflict',
-                    title: c.name,
-                    description: c.description,
-                    parties: c.parties,
-                    coordinates: c.center,
-                    severity: c.intensity
-                  })
-                }
-                onDoubleClick={() => {
-                  if (onOpenInWorkspace) {
-                    onOpenInWorkspace({
+            {filteredConflicts.length === 0 ? (
+              <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
+                No active theaters match query.
+              </div>
+            ) : (
+              filteredConflicts.map((c) => (
+                <div
+                  key={c.id}
+                  draggable="true"
+                  onDragStart={(e) =>
+                    handleDragStartItem(e, {
                       id: c.id,
                       type: 'conflict',
                       title: c.name,
@@ -1204,145 +1443,348 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       parties: c.parties,
                       coordinates: c.center,
                       severity: c.intensity
-                    });
+                    })
                   }
-                }}
-                onClick={() => onSelectFeature(c)}
-                className="palantir-feed-card cursor-pointer group"
-                style={{
-                  padding: '16px 22px',
-                  boxSizing: 'border-box',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface-elevated)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
-                      <GripVertical size={13} />
-                    </span>
-                    <span
-                      className="text-[13px] font-semibold group-hover:text-rose-500 font-sans"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {c.name}
-                    </span>
-                  </div>
-                  <span
-                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold tracking-[0.05em]"
-                    style={{
-                      background: 'var(--badge-bg-critical)',
-                      color: 'var(--badge-text-critical)',
-                      border: '1px solid var(--badge-border-critical)',
-                      textShadow: '0 0 6px rgba(244, 63, 94, 0.35)'
-                    }}
-                  >
-                    {c.intensity}
-                  </span>
-                </div>
-
-                <div className="text-[10.5px] font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
-                  Belligerents: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{c.parties.join(' vs ')}</span>
-                </div>
-
-                <p
-                  className="text-[12px] leading-[1.5] mb-2 font-sans"
-                  style={{ color: 'var(--text-secondary)' }}
+                  onDoubleClick={() => {
+                    if (onOpenInWorkspace) {
+                      onOpenInWorkspace({
+                        id: c.id,
+                        type: 'conflict',
+                        title: c.name,
+                        description: c.description,
+                        parties: c.parties,
+                        coordinates: c.center,
+                        severity: c.intensity
+                      });
+                    }
+                  }}
+                  onClick={() => onSelectFeature(c)}
+                  className="palantir-feed-card cursor-pointer group"
+                  style={{
+                    padding: '16px 20px',
+                    boxSizing: 'border-box',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-surface-elevated)'
+                  }}
                 >
-                  {c.description}
-                </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <span
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1"
+                        title="Drag to Workspace Drawer"
+                      >
+                        <GripVertical size={13} />
+                      </span>
+                      <span
+                        className="text-[13px] font-semibold group-hover:text-rose-400 font-sans truncate"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {c.name}
+                      </span>
+                    </div>
+                    <span
+                      className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold tracking-[0.05em] shrink-0"
+                      style={{
+                        background: 'var(--badge-bg-critical)',
+                        color: 'var(--badge-text-critical)',
+                        border: '1px solid var(--badge-border-critical)',
+                        textShadow: '0 0 6px rgba(244, 63, 94, 0.35)'
+                      }}
+                    >
+                      {c.intensity}
+                    </span>
+                  </div>
 
-                {c.casualties && (
+                  <div className="text-[10.5px] font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Belligerents: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{c.parties.join(' vs ')}</span>
+                  </div>
+
+                  <p
+                    className="text-[12px] leading-[1.5] mb-2.5 font-sans"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {c.description}
+                  </p>
+
+                  {c.casualties && (
+                    <div
+                      className="text-[10px] font-mono px-2.5 py-1.5 rounded-[2px] border mb-2.5"
+                      style={{
+                        background: 'rgba(245, 158, 11, 0.08)',
+                        borderColor: 'rgba(245, 158, 11, 0.3)',
+                        color: '#d97706'
+                      }}
+                    >
+                      <span className="font-bold">Casualty Est:</span> {c.casualties}
+                    </div>
+                  )}
+
+                  {/* Quick Action Strip */}
                   <div
-                    className="text-[10.5px] font-mono px-2.5 py-1 rounded-[2px] border"
+                    className="pt-2 text-[11px] font-mono flex items-center justify-between"
                     style={{
-                      background: 'rgba(245, 158, 11, 0.08)',
-                      borderColor: 'rgba(245, 158, 11, 0.3)',
-                      color: '#d97706'
+                      borderTop: '1px solid var(--border-subtle)',
+                      color: 'var(--text-muted)'
                     }}
                   >
-                    Est. Casualties: {c.casualties}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCenterMap(c.center);
+                          onSelectFeature(c);
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-mono font-semibold transition-colors"
+                        title="Fly to Theater Center"
+                      >
+                        <Target size={10} />
+                        <span>Fly to Front</span>
+                      </button>
+
+                      {onOpenInWorkspace && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenInWorkspace({
+                              id: c.id,
+                              type: 'conflict',
+                              title: c.name,
+                              description: c.description,
+                              parties: c.parties,
+                              coordinates: c.center,
+                              severity: c.intensity
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                          title="Mount into Workspace Drawer Canvas"
+                        >
+                          <PlusSquare size={10} />
+                          <span>+ Workspace</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                      {c.center[1].toFixed(2)}°N, {c.center[0].toFixed(2)}°E
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        {/* 5. Assets Tab */}
+        {/* 5. Assets Tab (Global Order of Battle & Strategic Asset Tracker) */}
         {activeTab === 'infra' && (
-          <div className="space-y-0">
-            {filteredInfra.map((f) => (
-              <div
-                key={f.id}
-                draggable="true"
-                onDragStart={(e) =>
-                  handleDragStartItem(e, {
-                    id: f.id,
-                    type: 'feature',
-                    title: f.name,
-                    description: f.description,
-                    coordinates: f.coordinates,
-                    severity: f.severity
-                  })
-                }
-                onDoubleClick={() => {
-                  if (onOpenInWorkspace) {
-                    onOpenInWorkspace({
-                      id: f.id,
-                      type: 'feature',
-                      title: f.name,
-                      description: f.description,
-                      coordinates: f.coordinates,
-                      severity: f.severity
-                    });
-                  }
-                }}
-                onClick={() => onSelectFeature(f)}
-                className="palantir-feed-card cursor-pointer group"
-                style={{
-                  padding: '16px 22px',
-                  boxSizing: 'border-box',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface-elevated)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1" title="Drag to Workspace Drawer">
-                      <GripVertical size={13} />
-                    </span>
-                    <span
-                      className="text-[13px] font-semibold group-hover:text-sky-500 font-sans"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {f.name}
-                    </span>
-                  </div>
-                  <span
-                    className="text-[9.5px] font-mono px-2 py-0.5 rounded-[2px] uppercase"
+          <div className="flex flex-col min-h-full">
+            {/* Category Filter Pills Strip */}
+            <div
+              className="sticky top-0 z-10 p-2 border-b flex items-center gap-1 overflow-x-auto scrollbar-none"
+              style={{
+                background: 'var(--bg-surface-subtle)',
+                borderColor: 'var(--border-subtle)'
+              }}
+            >
+              {[
+                { id: 'ALL', label: 'ALL' },
+                { id: 'NAVAL CSGs', label: '⚓ NAVAL CSGs' },
+                { id: 'AIRBASES & BOMBER WINGS', label: '✈ AIRBASES' },
+                { id: 'NUCLEAR & MISSILE SITES', label: '☢ NUCLEAR' },
+                { id: 'SPACE & RADAR ARRAYS', label: '🛰 SPACE RADAR' }
+              ].map((cat) => {
+                const isActive = selectedAssetCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedAssetCategory(cat.id)}
+                    className="px-2 py-1 rounded-[3px] text-[10px] font-mono font-semibold transition-all shrink-0 cursor-pointer"
                     style={{
-                      background: 'var(--bg-surface)',
-                      color: 'var(--text-secondary)',
-                      border: '1px solid var(--border-subtle)'
+                      background: isActive ? 'rgba(14, 165, 233, 0.2)' : 'var(--bg-surface)',
+                      color: isActive ? '#38bdf8' : 'var(--text-secondary)',
+                      border: isActive ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid var(--border-subtle)'
                     }}
                   >
-                    {f.layer}
-                  </span>
-                </div>
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
 
-                <div className="text-[10.5px] font-mono mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                  {f.category} • <span className="text-emerald-500 font-semibold">{f.status || 'Active'}</span>
+            <div className="space-y-0 flex-1">
+              {filteredInfra.length === 0 ? (
+                <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
+                  No strategic military assets match query.
                 </div>
+              ) : (
+                filteredInfra.map((f) => {
+                  const isNaval = (f.assetCategory || f.category || '').toLowerCase().includes('naval') || (f.assetCategory || f.category || '').toLowerCase().includes('carrier');
+                  const isAir = (f.assetCategory || f.category || '').toLowerCase().includes('airbase') || (f.assetCategory || f.category || '').toLowerCase().includes('bomber');
+                  const isNuclear = (f.assetCategory || f.category || '').toLowerCase().includes('nuclear') || (f.assetCategory || f.category || '').toLowerCase().includes('missile');
+                  const isSpace = (f.assetCategory || f.category || '').toLowerCase().includes('space') || (f.assetCategory || f.category || '').toLowerCase().includes('radar');
 
-                <p
-                  className="text-[12px] leading-[1.5] font-sans"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  {f.description}
-                </p>
-              </div>
-            ))}
+                  return (
+                    <div
+                      key={f.id}
+                      draggable="true"
+                      onDragStart={(e) =>
+                        handleDragStartItem(e, {
+                          id: f.id,
+                          type: 'feature',
+                          title: f.name,
+                          description: f.description,
+                          coordinates: f.coordinates,
+                          severity: f.severity
+                        })
+                      }
+                      onDoubleClick={() => {
+                        if (onOpenInWorkspace) {
+                          onOpenInWorkspace({
+                            id: f.id,
+                            type: 'feature',
+                            title: f.name,
+                            description: f.description,
+                            coordinates: f.coordinates,
+                            severity: f.severity
+                          });
+                        }
+                      }}
+                      onClick={() => onSelectFeature(f)}
+                      className="palantir-feed-card cursor-pointer group"
+                      style={{
+                        padding: '16px 20px',
+                        boxSizing: 'border-box',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-surface-elevated)'
+                      }}
+                    >
+                      {/* Top Header Row */}
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                          <span
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 cursor-grab shrink-0 -ml-1"
+                            title="Drag to Workspace Drawer"
+                          >
+                            <GripVertical size={13} />
+                          </span>
+                          {isNaval ? (
+                            <Anchor size={13} className="text-sky-400 shrink-0" />
+                          ) : isAir ? (
+                            <Plane size={13} className="text-cyan-400 shrink-0" />
+                          ) : isNuclear ? (
+                            <Activity size={13} className="text-rose-400 shrink-0" />
+                          ) : isSpace ? (
+                            <Target size={13} className="text-amber-400 shrink-0" />
+                          ) : (
+                            <Shield size={13} className="text-sky-400 shrink-0" />
+                          )}
+                          <span
+                            className="text-[13px] font-semibold group-hover:text-sky-400 font-sans truncate"
+                            style={{ color: 'var(--text-primary)' }}
+                            title={f.name}
+                          >
+                            {f.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {f.operatorCode && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-sky-400 border border-slate-700 font-bold">
+                              {f.operatorCode}
+                            </span>
+                          )}
+                          <span
+                            className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] font-semibold uppercase tracking-wider"
+                            style={{
+                              background: 'rgba(16, 185, 129, 0.12)',
+                              color: '#10b981',
+                              border: '1px solid rgba(16, 185, 129, 0.3)'
+                            }}
+                          >
+                            ● {f.status || 'Active'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Classification Subtitle */}
+                      <div className="text-[10px] font-mono mb-1.5 text-sky-500 font-semibold truncate">
+                        {f.assetCategory || f.category}
+                      </div>
+
+                      {/* Description */}
+                      <p
+                        className="text-[12px] leading-[1.5] font-sans mb-2"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        {f.description}
+                      </p>
+
+                      {/* Hardware Specifications Pills (if details present) */}
+                      {f.details && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {Object.entries(f.details).slice(0, 3).map(([key, val]) => (
+                            <span
+                              key={key}
+                              className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] truncate max-w-[280px]"
+                            >
+                              <strong className="text-[var(--text-secondary)]">{key}:</strong> {String(val)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Bottom Quick Action Strip */}
+                      <div
+                        className="pt-2 text-[11px] font-mono flex items-center justify-between"
+                        style={{
+                          borderTop: '1px solid var(--border-subtle)',
+                          color: 'var(--text-muted)'
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCenterMap(f.coordinates);
+                              onSelectFeature(f);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                            title="Locate Asset on Map"
+                          >
+                            <Target size={10} />
+                            <span>Locate on Map</span>
+                          </button>
+
+                          {onOpenInWorkspace && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenInWorkspace({
+                                  id: f.id,
+                                  type: 'feature',
+                                  title: f.name,
+                                  description: f.description,
+                                  coordinates: f.coordinates,
+                                  severity: f.severity
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                              title="Mount into Workspace Drawer Canvas"
+                            >
+                              <PlusSquare size={10} />
+                              <span>+ Workspace</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                          {f.coordinates[1].toFixed(2)}°N, {f.coordinates[0].toFixed(2)}°E
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         )}
 

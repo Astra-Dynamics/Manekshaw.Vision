@@ -50,6 +50,7 @@ import { fetchLiveEarthquakes } from './services/earthquakes';
 import { fetchNasaEonetEvents } from './services/nasaEonet';
 import { fetchWeatherAlerts } from './services/weatherAlerts';
 import { BREAKING_INTEL_DISPATCHES } from './services/newsService';
+import { getAggregatedOsintFeed } from './services/osintFeedService';
 
 const ALL_LAYER_KEYS: LayerKey[] = [
   'iranAttacks',
@@ -701,7 +702,7 @@ export const App: React.FC = () => {
   const [liveWeather, setLiveWeather] = useState<MapFeatureItem[]>([]);
   const [newsFeed, setNewsFeed] = useState<IntelNewsItem[]>(BREAKING_INTEL_DISPATCHES);
 
-  // Load Real-Time Public APIs
+  // Load Real-Time Public APIs & OSINT Feed
   useEffect(() => {
     let mounted = true;
 
@@ -717,8 +718,25 @@ export const App: React.FC = () => {
       if (mounted) setLiveWeather(w);
     });
 
+    // Initial Live OSINT Feed fetch
+    getAggregatedOsintFeed().then((feed) => {
+      if (mounted && feed && feed.length > 0) {
+        setNewsFeed(feed);
+      }
+    });
+
+    // 3-minute recurring refresh for live USGS quakes and OSINT dispatches
+    const osintInterval = setInterval(() => {
+      getAggregatedOsintFeed().then((feed) => {
+        if (mounted && feed && feed.length > 0) {
+          setNewsFeed(feed);
+        }
+      });
+    }, 3 * 60 * 1000);
+
     return () => {
       mounted = false;
+      clearInterval(osintInterval);
     };
   }, []);
 
