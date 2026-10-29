@@ -29,19 +29,25 @@ export const PersistentPlayerHost: React.FC<PersistentPlayerHostProps> = ({ isVi
   if (!isPlaying && !activeStream && isVisible) {
     return (
       <div
-        className="relative aspect-video w-full rounded-[4px] flex flex-col items-center justify-center p-4 text-center font-mono shadow-lg"
-        style={{
-          background: isLight ? '#F8FAFC' : '#05080F',
-          border: isLight ? '1px solid #CBD5E1' : '1px solid rgba(56, 189, 248, 0.25)'
-        }}
+        className={`relative aspect-video w-full flex flex-col items-center justify-center p-4 text-center font-mono shadow-md ${
+          isLight
+            ? 'rounded-[12px] bg-[var(--bg-panel)] border border-[var(--border-subtle)]'
+            : 'rounded-[4px] bg-[#05080F] border border-sky-500/25'
+        }`}
       >
-        <div className="w-10 h-10 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-2">
+        <div
+          className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+            isLight
+              ? 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)]'
+              : 'bg-sky-500/10 border border-sky-500/30 text-sky-400'
+          }`}
+        >
           <Play size={16} className="fill-current ml-0.5" />
         </div>
-        <div className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+        <div className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-[var(--text-primary)] font-serif' : 'text-slate-200'}`}>
           LIVE DEFENSE STREAM DESK
         </div>
-        <div className="text-[10px] text-slate-400 mt-1 max-w-[85%] font-sans">
+        <div className={`text-[10px] mt-1 max-w-[85%] font-sans ${isLight ? 'text-[var(--text-secondary)]' : 'text-slate-400'}`}>
           Select any 24/7 geopolitical channel below to initiate instant live video feed.
         </div>
       </div>
@@ -52,22 +58,27 @@ export const PersistentPlayerHost: React.FC<PersistentPlayerHostProps> = ({ isVi
     <div
       className={
         isVisible
-          ? 'relative aspect-video w-full overflow-hidden rounded-[4px] shadow-lg'
+          ? `relative aspect-video w-full overflow-hidden shadow-lg ${
+              isLight ? 'rounded-[12px] border border-[var(--border-subtle)]' : 'rounded-[4px] border border-sky-500/35'
+            }`
           : 'fixed -top-[9999px] -left-[9999px] w-[1px] h-[1px] opacity-0 pointer-events-none'
       }
       style={{
-        background: '#05080F',
-        border: isVisible ? '1px solid rgba(56, 189, 248, 0.35)' : 'none'
+        background: '#05080F'
       }}
     >
       {/* 1. Loading Overlay */}
       {playerState === 'loading' && isVisible && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 font-mono text-center p-4">
-          <Loader2 size={24} className="text-sky-400 animate-spin mb-2" />
-          <div className="text-[11px] text-sky-400 font-bold uppercase tracking-wider">
+        <div
+          className={`absolute inset-0 z-10 flex flex-col items-center justify-center font-mono text-center p-4 ${
+            isLight ? 'bg-[#FAF9F5]/90 backdrop-blur-[2px]' : 'bg-black/85'
+          }`}
+        >
+          <Loader2 size={24} className={`animate-spin mb-2 ${isLight ? 'text-[var(--accent)]' : 'text-sky-400'}`} />
+          <div className={`text-[11px] font-bold uppercase tracking-wider ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400'}`}>
             [ACQUIRING SATELLITE BROADCAST]
           </div>
-          <div className="text-[10px] text-slate-400 mt-1 truncate max-w-[85%]">
+          <div className={`text-[10px] mt-1 truncate max-w-[85%] ${isLight ? 'text-[var(--text-secondary)] font-sans' : 'text-slate-400'}`}>
             {activeStream?.channel || activeStream?.title}
           </div>
         </div>
@@ -77,13 +88,23 @@ export const PersistentPlayerHost: React.FC<PersistentPlayerHostProps> = ({ isVi
       {isAutoplayBlocked && isVisible && (
         <div
           onClick={unmuteAndPlay}
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] cursor-pointer group p-4 text-center transition-all"
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group p-4 text-center transition-all"
+          style={{
+            background: isLight ? 'rgba(31, 30, 29, 0.72)' : 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(2px)'
+          }}
         >
-          <div className="px-3.5 py-2 rounded-[4px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-transform group-hover:scale-105">
+          <div
+            className={`px-3.5 py-2 flex items-center gap-2 shadow-lg transition-transform group-hover:scale-105 ${
+              isLight
+                ? 'rounded-[8px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-sans text-xs font-semibold'
+                : 'rounded-[4px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs shadow-[0_0_20px_rgba(245,158,11,0.5)]'
+            }`}
+          >
             <VolumeX size={16} />
             <span>CLICK TO UNMUTE AUDIO</span>
           </div>
-          <div className="text-[10px] text-amber-200/90 font-mono mt-2">
+          <div className={`text-[10px] font-mono mt-2 ${isLight ? 'text-stone-300' : 'text-amber-200/90'}`}>
             Browser policy required user interaction for sound
           </div>
         </div>

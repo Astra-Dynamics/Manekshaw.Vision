@@ -275,7 +275,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'country-boundaries',
         paint: {
-          'line-color': theme === 'light' ? '#0284C7' : '#38bdf8',
+          'line-color': theme === 'light' ? '#C6613F' : '#38bdf8',
           'line-width': 1.6,
           'line-opacity': 0.85
         },
@@ -299,7 +299,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'india-soi-source',
         paint: {
-          'fill-color': isLight ? '#0284C7' : '#0ea5e9',
+          'fill-color': isLight ? '#C6613F' : '#0ea5e9',
           'fill-opacity': isLight ? 0.06 : 0.05
         }
       });
@@ -310,7 +310,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': isLight ? '#0284C7' : '#38bdf8',
+          'line-color': isLight ? '#C6613F' : '#38bdf8',
           'line-width': isLight ? 3 : 5,
           'line-blur': isLight ? 2 : 3,
           'line-opacity': isLight ? 0.35 : 0.6
@@ -323,7 +323,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': isLight ? '#0284C7' : '#38bdf8',
+          'line-color': isLight ? '#C6613F' : '#38bdf8',
           'line-width': isLight ? 1.75 : 2.2,
           'line-opacity': 0.95
         }
@@ -650,19 +650,19 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     features.forEach((feat) => {
       if (!activeLayers[feat.layer]) return;
 
-      let color = isLight ? '#0284C7' : '#38bdf8';
+      let color = isLight ? '#C6613F' : '#38bdf8';
       if (feat.layer === 'iranAttacks') color = isLight ? '#E11D48' : '#ef4444';
-      else if (feat.layer === 'bases') color = isLight ? '#0284C7' : '#3b82f6';
+      else if (feat.layer === 'bases') color = isLight ? '#475569' : '#3b82f6';
       else if (feat.layer === 'nuclear') color = isLight ? '#D97706' : '#eab308';
       else if (feat.layer === 'military') color = isLight ? '#EA580C' : '#06b6d4';
-      else if (feat.layer === 'weather') color = isLight ? '#0284C7' : '#60a5fa';
+      else if (feat.layer === 'weather') color = isLight ? '#475569' : '#60a5fa';
       else if (feat.layer === 'canadaAlerts') color = isLight ? '#E11D48' : '#f43f5e';
       else if (feat.layer === 'outages') color = isLight ? '#059669' : '#a855f7';
       else if (feat.layer === 'natural') color = isLight ? '#EA580C' : '#ea580c';
-      else if (feat.layer === 'waterways') color = isLight ? '#0284C7' : '#14b8a6';
+      else if (feat.layer === 'waterways') color = isLight ? '#0D9488' : '#14b8a6';
       else if (feat.layer === 'economic') color = isLight ? '#059669' : '#10b981';
       else if (feat.layer === 'sanctions') color = isLight ? '#BE185D' : '#ec4899';
-      else if (feat.layer === 'gpsJamming') color = isLight ? '#0284C7' : '#06b6d4';
+      else if (feat.layer === 'gpsJamming') color = isLight ? '#D97706' : '#06b6d4';
 
       allPointFeatures.push({
         type: 'Feature',

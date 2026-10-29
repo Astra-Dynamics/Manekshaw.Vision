@@ -1807,6 +1807,7 @@ const AppContent: React.FC = () => {
         }}
         relatedNews={countryNews}
         relatedAssets={countryAssets}
+        isLight={theme === 'light'}
       />
 
       {/* 5. Tactical Command Palette (Cmd+K / Search) */}

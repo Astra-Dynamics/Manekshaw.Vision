@@ -459,10 +459,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           padding: '9px 14px',
           borderBottom: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.05)',
           borderLeft: isSelected
-            ? (isLight ? '3px solid #0284C7' : '3px solid #38BDF8')
+            ? (isLight ? '3px solid var(--accent)' : '3px solid #38BDF8')
             : '3px solid transparent',
           background: isSelected
-            ? (isLight ? 'rgba(2, 132, 199, 0.08)' : 'rgba(56, 189, 248, 0.08)')
+            ? (isLight ? 'var(--accent-soft)' : 'rgba(56, 189, 248, 0.08)')
             : 'transparent'
         }}
       >
@@ -506,14 +506,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           {/* Center Title, Focus Tags, and Region */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <h4 className="text-[12px] font-semibold truncate leading-tight text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
+              <h4 className={`text-[12px] font-semibold truncate leading-tight text-[var(--text-primary)] ${isLight ? 'group-hover:text-[var(--accent-text)]' : 'group-hover:text-sky-400'} transition-colors`}>
                 {item.title}
               </h4>
-              <span className={`text-[9.5px] font-mono font-bold shrink-0 ${isLight ? 'text-[#0284C7]' : 'text-sky-400/80'}`}>
+              <span className={`text-[9.5px] font-mono font-bold shrink-0 ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400/80'}`}>
                 [{item.countryCode}]
               </span>
             </div>
-            <p className={`text-[10.5px] truncate leading-tight mt-0.5 ${isLight ? 'text-[#64748B]' : 'text-[#94A3B8]'}`}>
+            <p className={`text-[10.5px] truncate leading-tight mt-0.5 ${isLight ? 'text-[var(--text-tertiary)]' : 'text-[#94A3B8]'}`}>
               {item.tags.join(' • ')}
             </p>
           </div>
@@ -540,7 +540,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     description: item.description
                   });
                 }}
-                className="p-1 rounded text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-colors cursor-pointer"
+                className={`p-1 rounded transition-colors cursor-pointer ${isLight ? 'text-stone-500 hover:text-[var(--accent-text)] hover:bg-[var(--accent-soft)]' : 'text-slate-500 hover:text-sky-400 hover:bg-sky-500/10'}`}
                 title="Mount in Workspace Drawer Canvas"
               >
                 <PlusSquare size={13} />
@@ -548,13 +548,13 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             )}
 
             {isSelected ? (
-              <span className="text-[9px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded-[2px] animate-pulse">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-[2px] animate-pulse ${isLight ? 'text-[var(--accent-text)] bg-[var(--accent-soft)] border border-[var(--accent)]/30' : 'text-sky-400 bg-sky-500/15 border border-sky-500/30'}`}>
                 PLAYING
               </span>
             ) : (
               <button
                 type="button"
-                className="text-[9.5px] font-mono font-semibold text-[var(--text-muted)] group-hover:text-sky-400 flex items-center gap-1 transition-colors"
+                className={`text-[9.5px] font-mono font-semibold text-[var(--text-muted)] ${isLight ? 'group-hover:text-[var(--accent-text)]' : 'group-hover:text-sky-400'} flex items-center gap-1 transition-colors`}
               >
                 <span>PLAY</span>
                 <Play size={8} className="fill-current" />
@@ -593,8 +593,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <Radio size={14} className="text-sky-500" />
-          <h2 className="hud-micro-header" style={{ color: 'var(--text-primary)' }}>
+          <Radio size={14} className={isLight ? "text-[var(--accent-text)]" : "text-sky-500"} />
+          <h2 className={isLight ? "text-[13px] font-serif font-semibold text-[var(--text-primary)]" : "hud-micro-header"} style={{ color: 'var(--text-primary)' }}>
             INTELLIGENCE DESK
           </h2>
         </div>
@@ -637,9 +637,21 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     : 'hover:bg-[var(--bg-surface-hover)]'
                 }`}
                 style={{
-                  background: isActive ? 'rgba(14, 165, 233, 0.15)' : 'transparent',
-                  color: isActive ? '#0284c7' : 'var(--text-secondary)',
-                  border: isActive ? '1px solid rgba(14, 165, 233, 0.4)' : '1px solid transparent',
+                  background: isActive
+                    ? isLight
+                      ? 'var(--accent-soft)'
+                      : 'rgba(14, 165, 233, 0.15)'
+                    : 'transparent',
+                  color: isActive
+                    ? isLight
+                      ? 'var(--accent-text)'
+                      : '#0284c7'
+                    : 'var(--text-secondary)',
+                  border: isActive
+                    ? isLight
+                      ? '1px solid rgba(198, 97, 63, 0.3)'
+                      : '1px solid rgba(14, 165, 233, 0.4)'
+                    : '1px solid transparent',
                   padding: '4px 6px',
                   fontSize: '11.5px',
                   whiteSpace: 'nowrap'
@@ -664,7 +676,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           background: 'var(--bg-surface-subtle)'
         }}
       >
-        <div className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-[2px] bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] focus-within:border-sky-500 transition-colors shadow-2xs">
+        <div className={`flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--bg-surface-elevated)] border transition-colors shadow-2xs ${
+          isLight
+            ? 'border-[var(--border-strong)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--focus-ring)]'
+            : 'border-[var(--border-subtle)] focus-within:border-sky-500'
+        }`}>
           <Search size={13} className="text-[var(--text-muted)] shrink-0" />
           <input
             type="text"
@@ -689,7 +705,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500 cursor-pointer"
+            className={`bg-[var(--bg-surface-elevated)] border rounded-lg px-2 py-1.5 text-[11px] focus:outline-none cursor-pointer ${
+              isLight
+                ? 'border-[var(--border-strong)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--focus-ring)] font-sans'
+                : 'border-[var(--border-subtle)] focus:border-sky-500 font-mono'
+            }`}
             style={{ color: 'var(--text-secondary)' }}
           >
             <option value="all">All Levels</option>
@@ -701,7 +721,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           <select
             value={selectedVideoRegion}
             onChange={(e) => setSelectedVideoRegion(e.target.value)}
-            className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-[2px] px-2 py-1.5 text-[11px] font-mono focus:outline-none focus:border-sky-500 shrink-0 cursor-pointer"
+            className={`bg-[var(--bg-surface-elevated)] border rounded-lg px-2 py-1.5 text-[11px] focus:outline-none shrink-0 cursor-pointer ${
+              isLight
+                ? 'border-[var(--border-strong)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--focus-ring)] font-sans'
+                : 'border-[var(--border-subtle)] focus:border-sky-500 font-mono'
+            }`}
             style={{ width: '135px', color: 'var(--text-secondary)' }}
           >
             {VIDEO_REGION_GROUPS.map((g) => (
@@ -727,13 +751,17 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 key={reg.id}
                 type="button"
                 onClick={() => setSelectedVideoRegion(reg.id)}
-                className={`px-2 py-0.5 rounded-[3px] text-[10px] font-mono whitespace-nowrap transition-all cursor-pointer font-semibold ${
+                className={`px-2 py-0.5 rounded-[4px] text-[10px] whitespace-nowrap transition-all cursor-pointer font-semibold ${
                   isActive
                     ? isSpecial
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                      : isLight
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/30 shadow-none'
                       : 'bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-[0_0_8px_rgba(56,189,248,0.25)]'
+                    : isLight
+                    ? 'bg-transparent text-[var(--text-tertiary)] border border-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-sunken)]'
                     : 'bg-white/[0.03] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)] hover:bg-white/[0.06]'
-                }`}
+                } ${isLight ? 'font-sans' : 'font-mono'}`}
                 style={{ height: '22px' }}
               >
                 {reg.label}
@@ -761,7 +789,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       <div className="flex-1 overflow-y-auto feed-scrollbar">
         {/* 1. Feed Tab */}
         {activeTab === 'feed' && (
-          <div className="cq-bento-grid">
+          <div className={isLight ? "cq-bento-grid p-3 bg-[var(--bg-panel)]" : "cq-bento-grid"}>
             {filteredNews.length === 0 ? (
               <div className="text-center py-16 text-xs text-[var(--text-muted)] font-mono">
                 No intelligence reports match query.
@@ -814,10 +842,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   }}
                   className="palantir-feed-card cursor-pointer group relative"
                   style={{
-                    padding: '16px 22px',
+                    padding: isLight ? '16px' : '16px 22px',
                     boxSizing: 'border-box',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-surface-elevated)'
+                    borderBottom: isLight ? undefined : '1px solid var(--border-subtle)',
+                    background: isLight ? 'var(--surface)' : 'var(--bg-surface-elevated)'
                   }}
                 >
                   <div className="flex items-center justify-between gap-2 mb-[6px]">
@@ -826,7 +854,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         <GripVertical size={13} />
                       </span>
                       <span
-                        className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-[0.05em]"
+                        className={`px-2 py-0.5 font-bold uppercase tracking-[0.05em] ${
+                          isLight
+                            ? 'text-[11px] font-sans rounded-[6px] font-semibold'
+                            : 'text-[10px] font-mono rounded-[2px]'
+                        }`}
                         style={{
                           background:
                             item.severity === 'critical'
@@ -847,7 +879,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                               ? '1px solid var(--badge-border-high)'
                               : '1px solid var(--badge-border-info)',
                           textShadow:
-                            item.severity === 'critical'
+                            isLight
+                              ? 'none'
+                              : item.severity === 'critical'
                               ? '0 0 6px rgba(244, 63, 94, 0.35)'
                               : item.severity === 'high'
                               ? '0 0 6px rgba(245, 158, 11, 0.35)'
@@ -886,7 +920,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                         return (
                           <span
-                            className="text-[9.5px] font-mono px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-wider"
+                            className={`px-1.5 py-0.5 uppercase tracking-wider ${
+                              isLight
+                                ? 'text-[10px] font-sans rounded-[6px] font-semibold'
+                                : 'text-[9.5px] font-mono rounded-[2px] font-bold'
+                            }`}
                             style={{
                               background: tierBg,
                               color: tierColor,
@@ -899,7 +937,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       })()}
 
                       {item.countryCode && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-slate-300 border border-slate-700/60 font-semibold">
+                        <span className={`px-1.5 py-0.5 ${isLight ? 'rounded-[6px] bg-[var(--bg-sunken)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-sans text-[10px]' : 'rounded-[2px] bg-slate-800 text-slate-300 border border-slate-700/60 font-mono text-[9px]'} font-semibold`}>
                           {item.countryCode}
                         </span>
                       )}
@@ -908,7 +946,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </div>
 
                   <h3
-                    className="text-[13.5px] font-semibold group-hover:text-sky-500 leading-[1.35] mb-[6px] font-sans"
+                    className={
+                      isLight
+                        ? "text-[14px] font-serif font-semibold group-hover:text-[var(--accent-text)] leading-[1.25] mb-[6px] tracking-tight"
+                        : "text-[13.5px] font-semibold group-hover:text-sky-500 leading-[1.35] mb-[6px] font-sans"
+                    }
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {item.title}
@@ -935,7 +977,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                       <span
-                        className="truncate text-[10.5px] cursor-pointer hover:underline hover:text-sky-400 transition-colors"
+                        className={`truncate text-[10.5px] cursor-pointer hover:underline transition-colors ${
+                          isLight ? 'hover:text-[var(--accent-text)]' : 'hover:text-sky-400'
+                        }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           const rawUrl = (item as any).link || (item as any).sourceUrl;
@@ -970,7 +1014,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                               source: item.source
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[9.5px] font-mono transition-colors shrink-0"
+                          className={`inline-flex items-center gap-1 px-2 py-1 transition-colors shrink-0 ${
+                            isLight
+                              ? 'rounded-lg bg-transparent hover:bg-[var(--bg-sunken)] text-[var(--accent-text)] border border-[var(--border-subtle)] text-[10px] font-sans'
+                              : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[9.5px] font-mono'
+                          }`}
                           title="Fly to Coordinates on Map"
                         >
                           <Crosshair size={9} />
@@ -996,7 +1044,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-2xs shrink-0 text-[10px]"
+                            className={`inline-flex items-center gap-1 px-2 py-1 transition-colors shadow-2xs shrink-0 text-[10px] ${
+                              isLight
+                                ? 'rounded-lg bg-transparent hover:bg-[var(--bg-sunken)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] font-sans'
+                                : 'rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40'
+                            }`}
                             title={`Source: ${publisherName}`}
                           >
                             <span>{publisherName}</span>
@@ -1020,7 +1072,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                               coordinates: item.coordinates
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 transition-colors shrink-0 text-[10px] cursor-pointer"
+                          className={`inline-flex items-center gap-1 px-2 py-1 transition-colors shrink-0 text-[10px] cursor-pointer ${
+                            isLight
+                              ? 'rounded-lg bg-transparent hover:bg-[var(--bg-sunken)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] font-sans'
+                              : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                          }`}
                           title="Mount into Rightmost Workspace Canvas"
                         >
                           <PlusSquare size={10} />
@@ -1029,7 +1085,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       )}
                     </div>
 
-                    <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform font-bold text-[10.5px] shrink-0">
+                    <span className={`flex items-center gap-1 group-hover:translate-x-0.5 transition-transform font-bold text-[10.5px] shrink-0 ${
+                      isLight ? 'text-[var(--accent-text)]' : 'text-sky-600 dark:text-sky-400'
+                    }`}>
                       Inspect & Map <ChevronRight size={11} />
                     </span>
                   </div>
@@ -1074,7 +1132,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         ? (isLight ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-amber-500/20 text-amber-400 border border-amber-500/35')
                         : activeVideo.isLive
                         ? (isLight ? 'bg-rose-100 text-rose-700 border border-rose-300 animate-pulse' : 'bg-rose-500/20 text-rose-400 border border-rose-500/35 animate-pulse')
-                        : (isLight ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-sky-500/20 text-sky-400 border border-sky-500/35')
+                        : (isLight ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/35')
                     }`}
                   >
                     {activeVideo.category}
@@ -1082,7 +1140,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   <span className="font-semibold text-[11.5px] truncate text-[var(--text-primary)]">
                     {activeVideo.channel}
                   </span>
-                  <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-[#0284C7]' : 'text-sky-400/80'}`}>
+                  <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400/80'}`}>
                     [{activeVideo.countryCode}]
                   </span>
                 </div>
@@ -1101,7 +1159,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'embed' && embedStreamType === 'auto' && !isPlayerMinimized
-                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          ? (isLight ? 'bg-[var(--accent)] text-white font-medium' : 'bg-sky-500 text-slate-950 font-bold')
                           : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Direct Latest Video Stream"
@@ -1117,7 +1175,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'embed' && embedStreamType === 'playlist' && !isPlayerMinimized
-                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          ? (isLight ? 'bg-[var(--accent)] text-white font-medium' : 'bg-sky-500 text-slate-950 font-bold')
                           : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Channel Uploads Queue (UU Playlist)"
@@ -1132,7 +1190,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }}
                       className={`px-1.5 py-0.5 text-[9.5px] font-mono rounded-[2px] transition-colors cursor-pointer ${
                         videoPlayerMode === 'briefing' && !isPlayerMinimized
-                          ? (isLight ? 'bg-[#0284C7] text-white font-bold' : 'bg-sky-500 text-slate-950 font-bold')
+                          ? (isLight ? 'bg-[var(--accent)] text-white font-medium' : 'bg-sky-500 text-slate-950 font-bold')
                           : (isLight ? 'text-slate-600 hover:text-slate-900' : 'text-[var(--text-muted)] hover:text-white')
                       }`}
                       title="Tactical Briefing Card View"
@@ -1145,7 +1203,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     type="button"
                     onClick={() => setIsPlayerMinimized(!isPlayerMinimized)}
                     className={`text-[10px] font-mono transition-colors flex items-center gap-1 cursor-pointer select-none ${
-                      isLight ? 'text-[#0284C7] hover:text-[#0369A1]' : 'text-[var(--text-muted)] hover:text-sky-400'
+                      isLight ? 'text-[var(--accent-text)] hover:text-[var(--accent-hover)]' : 'text-[var(--text-muted)] hover:text-sky-400'
                     }`}
                     title={isPlayerMinimized ? 'Expand Video Frame' : 'Collapse Video Frame to 32px bar'}
                   >
@@ -1167,7 +1225,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`text-[10px] font-mono font-bold flex items-center gap-0.5 group ${
-                      isLight ? 'text-[#0284C7] hover:text-[#0369A1]' : 'text-sky-400 hover:text-sky-300'
+                      isLight ? 'text-[var(--accent-text)] hover:text-[var(--accent-hover)]' : 'text-sky-400 hover:text-sky-300'
                     }`}
                     title="Open on Source Platform"
                   >
@@ -1277,16 +1335,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   onClick={() => setIsPlayerMinimized(false)}
                   className={`w-full h-8 px-2.5 rounded-[3px] border flex items-center justify-between text-xs font-mono cursor-pointer transition-colors ${
                     isLight
-                      ? 'bg-[#EFF6FF] border-[#93C5FD] text-[#0F172A] hover:bg-[#DBEAFE]'
+                      ? 'bg-[var(--surface)] border-[var(--border-subtle)] text-[var(--text-primary)] hover:bg-[var(--bg-sunken)] shadow-sm'
                       : 'bg-[#05080F] border-sky-500/30 text-white hover:border-sky-400'
                   }`}
                   title="Click to expand player"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Play size={10} className={`${isLight ? 'text-[#0284C7] fill-[#0284C7]' : 'text-sky-400 fill-sky-400'} shrink-0`} />
-                    <span className={`text-[11px] truncate font-medium ${isLight ? 'text-[#0F172A]' : 'text-white'}`}>{activeVideo.title}</span>
+                    <Play size={10} className={`${isLight ? 'text-[var(--accent-text)] fill-[var(--accent-text)]' : 'text-sky-400 fill-sky-400'} shrink-0`} />
+                    <span className={`text-[11px] truncate font-medium ${isLight ? 'text-[var(--text-primary)]' : 'text-white'}`}>{activeVideo.title}</span>
                   </div>
-                  <span className={`text-[9.5px] font-mono font-bold shrink-0 ml-2 ${isLight ? 'text-[#0284C7]' : 'text-sky-400'}`}>
+                  <span className={`text-[9.5px] font-mono font-bold shrink-0 ml-2 ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400'}`}>
                     MONITOR ACTIVE ↗
                   </span>
                 </div>
@@ -1416,8 +1474,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       }
                     }}
                     onClick={() => onSelectFeature(hs)}
-                    className="palantir-feed-card cursor-pointer group"
-                    style={{
+                    className={`palantir-feed-card cursor-pointer group ${isLight ? 'rounded-[12px] p-4 mb-3 border border-[var(--border-subtle)] bg-[var(--surface)] shadow-sm hover:shadow-md transition-all' : ''}`}
+                    style={isLight ? undefined : {
                       padding: '16px 20px',
                       boxSizing: 'border-box',
                       borderBottom: '1px solid var(--border-subtle)',
@@ -1435,14 +1493,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         </span>
                         <Flame size={14} className="text-orange-500 shrink-0 animate-pulse" />
                         <span
-                          className="text-[13.5px] font-semibold group-hover:text-orange-400 font-sans truncate"
+                          className={`text-[13.5px] font-semibold group-hover:text-orange-400 truncate ${isLight ? 'font-serif text-[14px]' : 'font-sans'}`}
                           style={{ color: 'var(--text-primary)' }}
                           title={hs.name}
                         >
                           {hs.name}
                         </span>
                         {hs.countryCode && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-slate-300 border border-slate-700/60 font-bold shrink-0">
+                          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] font-bold shrink-0 ${isLight ? 'bg-stone-200 text-stone-700 border border-stone-300' : 'bg-slate-800 text-slate-300 border border-slate-700/60'}`}>
                             {hs.countryCode}
                           </span>
                         )}
@@ -1474,7 +1532,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                     {/* Segmented Escalation Index Bar */}
                     <div className="mb-2.5">
-                      <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden border border-slate-700/40 relative">
+                      <div className={`w-full h-1.5 rounded-full overflow-hidden relative ${isLight ? 'bg-stone-200 border border-stone-300' : 'bg-slate-800/80 border border-slate-700/40'}`}>
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
@@ -1497,22 +1555,22 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       <div className="grid grid-cols-2 gap-1.5 mb-2.5">
                         {hs.telemetry.airActivity && (
                           <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
-                            <span className="text-sky-500 font-bold">AIR:</span> {hs.telemetry.airActivity}
+                            <span className={`${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'} font-bold`}>AIR:</span> {hs.telemetry.airActivity}
                           </div>
                         )}
                         {hs.telemetry.navalDensity && (
                           <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
-                            <span className="text-indigo-400 font-bold">NAVAL:</span> {hs.telemetry.navalDensity}
+                            <span className={`${isLight ? 'text-indigo-600' : 'text-indigo-400'} font-bold`}>NAVAL:</span> {hs.telemetry.navalDensity}
                           </div>
                         )}
                         {hs.telemetry.gnssJamming && (
                           <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
-                            <span className="text-amber-500 font-bold">EW/GNSS:</span> {hs.telemetry.gnssJamming}
+                            <span className={`${isLight ? 'text-amber-600' : 'text-amber-500'} font-bold`}>EW/GNSS:</span> {hs.telemetry.gnssJamming}
                           </div>
                         )}
                         {hs.telemetry.adizIncursions && (
                           <div className="text-[9.5px] font-mono px-2 py-1 rounded-[2px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] truncate text-[var(--text-secondary)]">
-                            <span className="text-rose-500 font-bold">ADIZ:</span> {hs.telemetry.adizIncursions}
+                            <span className={`${isLight ? 'text-rose-600' : 'text-rose-500'} font-bold`}>ADIZ:</span> {hs.telemetry.adizIncursions}
                           </div>
                         )}
                       </div>
@@ -1526,9 +1584,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     </p>
 
                     <div
-                      className="p-2.5 rounded-[2px] border text-[11px] mb-2.5"
+                      className={`p-2.5 border text-[11px] mb-2.5 ${isLight ? 'rounded-[8px]' : 'rounded-[2px]'}`}
                       style={{
-                        background: 'var(--bg-surface)',
+                        background: isLight ? 'var(--bg-sunken)' : 'var(--bg-surface)',
                         borderColor: 'var(--border-subtle)',
                         color: 'var(--text-muted)'
                       }}
@@ -1552,7 +1610,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                             onCenterMap(hs.coordinates);
                             onSelectFeature(hs);
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-mono font-semibold transition-colors"
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                            isLight
+                              ? 'rounded-[6px] bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300'
+                              : 'rounded-[2px] bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          }`}
                           title="Fly to Sector on Map"
                         >
                           <Target size={10} />
@@ -1573,7 +1635,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                                 severity: score >= 75 ? 'critical' : 'high'
                               });
                             }}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                              isLight
+                                ? 'rounded-[6px] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft-hover)] text-[var(--accent-text)] border border-[var(--accent)]/30'
+                                : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                            }`}
                             title="Open Brief in Rightmost Workspace Drawer"
                           >
                             <PlusSquare size={10} />
@@ -1630,8 +1696,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     }
                   }}
                   onClick={() => onSelectFeature(c)}
-                  className="palantir-feed-card cursor-pointer group"
-                  style={{
+                  className={`palantir-feed-card cursor-pointer group ${isLight ? 'rounded-[12px] p-4 mb-3 border border-[var(--border-subtle)] bg-[var(--surface)] shadow-sm hover:shadow-md transition-all' : ''}`}
+                  style={isLight ? undefined : {
                     padding: '16px 20px',
                     boxSizing: 'border-box',
                     borderBottom: '1px solid var(--border-subtle)',
@@ -1647,7 +1713,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         <GripVertical size={13} />
                       </span>
                       <span
-                        className="text-[13px] font-semibold group-hover:text-rose-400 font-sans truncate"
+                        className={`text-[13px] font-semibold group-hover:text-rose-400 truncate ${isLight ? 'font-serif text-[14px]' : 'font-sans'}`}
                         style={{ color: 'var(--text-primary)' }}
                       >
                         {c.name}
@@ -1679,7 +1745,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                   {c.casualties && (
                     <div
-                      className="text-[10px] font-mono px-2.5 py-1.5 rounded-[2px] border mb-2.5"
+                      className={`text-[10px] font-mono px-2.5 py-1.5 border mb-2.5 ${isLight ? 'rounded-[6px]' : 'rounded-[2px]'}`}
                       style={{
                         background: 'rgba(245, 158, 11, 0.08)',
                         borderColor: 'rgba(245, 158, 11, 0.3)',
@@ -1705,7 +1771,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           onCenterMap(c.center);
                           onSelectFeature(c);
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-mono font-semibold transition-colors"
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                          isLight
+                            ? 'rounded-[6px] bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300'
+                            : 'rounded-[2px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        }`}
                         title="Fly to Theater Center"
                       >
                         <Target size={10} />
@@ -1726,7 +1796,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                               severity: c.intensity
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                            isLight
+                              ? 'rounded-[6px] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft-hover)] text-[var(--accent-text)] border border-[var(--accent)]/30'
+                              : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                          }`}
                           title="Mount into Workspace Drawer Canvas"
                         >
                           <PlusSquare size={10} />
@@ -1770,9 +1844,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     onClick={() => setSelectedAssetCategory(cat.id)}
                     className="px-2 py-1 rounded-[3px] text-[10px] font-mono font-semibold transition-all shrink-0 cursor-pointer"
                     style={{
-                      background: isActive ? 'rgba(14, 165, 233, 0.2)' : 'var(--bg-surface)',
-                      color: isActive ? '#38bdf8' : 'var(--text-secondary)',
-                      border: isActive ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid var(--border-subtle)'
+                      background: isActive ? (isLight ? 'var(--accent-soft)' : 'rgba(14, 165, 233, 0.2)') : (isLight ? 'var(--surface)' : 'var(--bg-surface)'),
+                      color: isActive ? (isLight ? 'var(--accent-text)' : '#38bdf8') : 'var(--text-secondary)',
+                      border: isActive ? (isLight ? '1px solid rgba(198, 97, 63, 0.3)' : '1px solid rgba(56, 189, 248, 0.5)') : '1px solid var(--border-subtle)'
                     }}
                   >
                     {cat.label}
@@ -1820,8 +1894,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         }
                       }}
                       onClick={() => onSelectFeature(f)}
-                      className="palantir-feed-card cursor-pointer group"
-                      style={{
+                      className={`palantir-feed-card cursor-pointer group ${isLight ? 'rounded-[12px] p-4 mb-3 border border-[var(--border-subtle)] bg-[var(--surface)] shadow-sm hover:shadow-md transition-all' : ''}`}
+                      style={isLight ? undefined : {
                         padding: '16px 20px',
                         boxSizing: 'border-box',
                         borderBottom: '1px solid var(--border-subtle)',
@@ -1838,18 +1912,18 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                             <GripVertical size={13} />
                           </span>
                           {isNaval ? (
-                            <Anchor size={13} className="text-sky-400 shrink-0" />
+                            <Anchor size={13} className={`${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400'} shrink-0`} />
                           ) : isAir ? (
-                            <Plane size={13} className="text-cyan-400 shrink-0" />
+                            <Plane size={13} className={`${isLight ? 'text-[var(--accent-text)]' : 'text-cyan-400'} shrink-0`} />
                           ) : isNuclear ? (
                             <Activity size={13} className="text-rose-400 shrink-0" />
                           ) : isSpace ? (
                             <Target size={13} className="text-amber-400 shrink-0" />
                           ) : (
-                            <Shield size={13} className="text-sky-400 shrink-0" />
+                            <Shield size={13} className={`${isLight ? 'text-[var(--accent-text)]' : 'text-sky-400'} shrink-0`} />
                           )}
                           <span
-                            className="text-[13px] font-semibold group-hover:text-sky-400 font-sans truncate"
+                            className={`text-[13px] font-semibold truncate ${isLight ? 'font-serif text-[14px] group-hover:text-[var(--accent-text)]' : 'font-sans group-hover:text-sky-400'}`}
                             style={{ color: 'var(--text-primary)' }}
                             title={f.name}
                           >
@@ -1859,7 +1933,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
                         <div className="flex items-center gap-1.5 shrink-0">
                           {f.operatorCode && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] bg-slate-800 text-sky-400 border border-slate-700 font-bold">
+                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-[2px] font-bold ${isLight ? 'bg-stone-200 text-stone-700 border border-stone-300' : 'bg-slate-800 text-sky-400 border border-slate-700'}`}>
                               {f.operatorCode}
                             </span>
                           )}
@@ -1877,7 +1951,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       </div>
 
                       {/* Classification Subtitle */}
-                      <div className="text-[10px] font-mono mb-1.5 text-sky-500 font-semibold truncate">
+                      <div className={`text-[10px] font-mono mb-1.5 font-semibold truncate ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'}`}>
                         {f.assetCategory || f.category}
                       </div>
 
@@ -1918,7 +1992,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                               onCenterMap(f.coordinates);
                               onSelectFeature(f);
                             }}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                              isLight
+                                ? 'rounded-[6px] bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300'
+                                : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                            }`}
                             title="Locate Asset on Map"
                           >
                             <Target size={10} />
@@ -1938,7 +2016,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                                   severity: f.severity
                                 });
                               }}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono font-semibold transition-colors"
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                                isLight
+                                  ? 'rounded-[6px] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft-hover)] text-[var(--accent-text)] border border-[var(--accent)]/30'
+                                  : 'rounded-[2px] bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                              }`}
                               title="Mount into Workspace Drawer Canvas"
                             >
                               <PlusSquare size={10} />
@@ -1977,7 +2059,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 {/* Back button */}
                 <button
                   onClick={() => setActiveTab('feed')}
-                  className="flex items-center gap-1 text-[11px] font-mono text-sky-500 hover:underline mb-1"
+                  className={`flex items-center gap-1 text-[11px] font-mono ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'} hover:underline mb-1`}
                 >
                   <ChevronLeft size={13} /> Back to Live Feed
                 </button>
@@ -2002,12 +2084,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       </span>
                     )}
                     {isAdiz && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] bg-sky-500/15 text-sky-500 border border-sky-500/30 uppercase font-bold">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold ${isLight ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/30' : 'bg-sky-500/15 text-sky-500 border border-sky-500/30'}`}>
                         Air Defense Zone (ADIZ)
                       </span>
                     )}
                     {isGpsJamming && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] bg-cyan-500/15 text-cyan-500 border border-cyan-500/30 uppercase font-bold">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold ${isLight ? 'bg-amber-500/15 text-amber-700 border border-amber-500/30' : 'bg-cyan-500/15 text-cyan-500 border border-cyan-500/30'}`}>
                         Electronic Warfare / Jamming
                       </span>
                     )}
@@ -2017,7 +2099,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                       </span>
                     )}
                     {isStandardFeature && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[2px] bg-sky-500/15 text-sky-500 border border-sky-500/30 uppercase font-bold">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-[2px] uppercase font-bold ${isLight ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/30' : 'bg-sky-500/15 text-sky-500 border border-sky-500/30'}`}>
                         {(selectedFeature as MapFeatureItem).layer} Layer
                       </span>
                     )}
@@ -2036,14 +2118,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </div>
 
                   <h1
-                    className="text-base font-bold font-sans tracking-tight leading-snug"
+                    className={`text-base font-bold tracking-tight leading-snug ${isLight ? 'font-serif text-[17px]' : 'font-sans'}`}
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {selectedFeature.name}
                   </h1>
 
                   {'category' in selectedFeature && selectedFeature.category && (
-                    <p className="text-xs font-mono text-sky-500">
+                    <p className={`text-xs font-mono ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'}`}>
                       {selectedFeature.category}
                     </p>
                   )}
@@ -2058,7 +2140,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   }}
                 >
                   <div className="flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
-                    <MapPin size={13} className="text-sky-500" />
+                    <MapPin size={13} className={isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'} />
                     <span>
                       {featureCoords[1].toFixed(4)}°N, {featureCoords[0].toFixed(4)}°E
                     </span>
@@ -2074,7 +2156,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     </button>
                     <button
                       onClick={() => onCenterMap(featureCoords)}
-                      className="px-2.5 py-1 rounded-[2px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-[11px] transition-colors"
+                      className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${isLight ? 'rounded-[6px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white' : 'rounded-[2px] bg-sky-500 hover:bg-sky-400 text-slate-950'}`}
                     >
                       Center
                     </button>
@@ -2180,14 +2262,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                 {isAdiz && (
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <h3 className="text-xs font-mono font-bold text-sky-500 uppercase tracking-wider">
+                      <h3 className={`text-xs font-mono font-bold uppercase tracking-wider ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'}`}>
                         COMMANDING AIR AUTHORITY
                       </h3>
                       <div
                         className="p-3 rounded-[2px] border text-xs font-mono font-bold"
                         style={{
-                          background: 'rgba(14, 165, 233, 0.08)',
-                          borderColor: 'rgba(14, 165, 233, 0.25)',
+                          background: isLight ? 'var(--accent-soft)' : 'rgba(14, 165, 233, 0.08)',
+                          borderColor: isLight ? 'rgba(198, 97, 63, 0.25)' : 'rgba(14, 165, 233, 0.25)',
                           color: 'var(--text-primary)'
                         }}
                       >
@@ -2333,7 +2415,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         href={selectedFeature.link}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1 text-sky-500 hover:underline"
+                        className={`flex items-center gap-1 ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'} hover:underline`}
                       >
                         External Briefing <ExternalLink size={12} />
                       </a>

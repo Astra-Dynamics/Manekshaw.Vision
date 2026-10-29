@@ -66,10 +66,10 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
         alignItems: 'flex-end',
         gap: '4px',
         zIndex: 30,
-        background: isDark ? 'rgba(6, 9, 15, 0.92)' : '#E2E8F0',
+        background: isDark ? 'rgba(6, 9, 15, 0.92)' : 'var(--bg-panel)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #CBD5E1',
+        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid var(--border-subtle)',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none'
       }}
@@ -84,7 +84,9 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
             onClick={() => onSelectTab(tab.id)}
             onDoubleClick={(e) => handleStartRename(e, tab)}
             title={`Workspace: ${tab.title} (Double-click to rename)`}
-            className="group relative transition-all duration-150"
+            className={`group relative transition-all duration-150 ${
+              !isDark && !isActive ? 'hover:bg-[var(--bg-sunken)]' : ''
+            }`}
             style={{
               height: '27px',
               padding: '0 8px 0 10px',
@@ -96,44 +98,44 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
               justifyContent: 'space-between',
               cursor: 'pointer',
               userSelect: 'none',
-              borderRadius: '5px 5px 0 0',
+              borderRadius: isDark ? '5px 5px 0 0' : '6px 6px 0 0',
               borderTop: isActive
                 ? isDark
                   ? '1.5px solid #38BDF8'
-                  : '1.5px solid #0284c7'
+                  : '1px solid var(--border-subtle)'
                 : isDark
                 ? '1px solid rgba(255, 255, 255, 0.07)'
-                : '1px solid rgba(148, 163, 184, 0.35)',
+                : '1px solid transparent',
               borderLeft: isActive
                 ? isDark
                   ? '1px solid rgba(56, 189, 248, 0.35)'
-                  : '1px solid rgba(2, 132, 199, 0.35)'
+                  : '1px solid var(--border-subtle)'
                 : isDark
                 ? '1px solid rgba(255, 255, 255, 0.07)'
-                : '1px solid rgba(148, 163, 184, 0.35)',
+                : '1px solid transparent',
               borderRight: isActive
                 ? isDark
                   ? '1px solid rgba(56, 189, 248, 0.35)'
-                  : '1px solid rgba(2, 132, 199, 0.35)'
+                  : '1px solid var(--border-subtle)'
                 : isDark
                 ? '1px solid rgba(255, 255, 255, 0.07)'
-                : '1px solid rgba(148, 163, 184, 0.35)',
+                : '1px solid transparent',
               borderBottom: isActive
                 ? isDark
                   ? '1px solid #0B0F17'
-                  : '1px solid #f8fafc'
+                  : '2px solid var(--accent)'
                 : 'none',
               background: isActive
                 ? isDark
                   ? 'linear-gradient(180deg, rgba(14, 165, 233, 0.14) 0%, rgba(11, 15, 23, 0.98) 100%)'
-                  : 'linear-gradient(180deg, rgba(2, 132, 199, 0.12) 0%, rgba(248, 250, 252, 0.98) 100%)'
+                  : 'var(--surface)'
                 : isDark
                 ? 'rgba(15, 23, 42, 0.45)'
-                : 'rgba(226, 232, 240, 0.5)',
+                : 'transparent',
               boxShadow: isActive
                 ? isDark
                   ? '0 -2px 10px rgba(56, 189, 248, 0.15)'
-                  : '0 -2px 8px rgba(2, 132, 199, 0.1)'
+                  : 'var(--shadow-sm)'
                 : 'none'
             }}
           >
@@ -146,8 +148,8 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
                     width: '5px',
                     height: '5px',
                     borderRadius: '50%',
-                    backgroundColor: isDark ? '#38BDF8' : '#0284c7',
-                    boxShadow: isDark ? '0 0 6px #38BDF8' : '0 0 5px #0284c7'
+                    backgroundColor: isDark ? '#38BDF8' : 'var(--accent)',
+                    boxShadow: isDark ? '0 0 6px #38BDF8' : 'none'
                   }}
                 />
               )}
@@ -161,24 +163,26 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
                   onBlur={() => handleSaveRename(tab.id)}
                   onKeyDown={(e) => handleKeyDown(e, tab.id)}
                   onClick={(e) => e.stopPropagation()}
-                  className="font-mono text-[11px] font-semibold bg-transparent outline-none w-full border-b border-sky-400 px-0.5 text-white"
+                  className={`text-[11px] font-semibold bg-transparent outline-none w-full border-b px-0.5 ${
+                    isDark ? 'font-mono border-sky-400 text-white' : 'font-sans border-[var(--accent)] text-[var(--text-primary)]'
+                  }`}
                   style={{
-                    color: isDark ? '#38BDF8' : '#0284c7',
+                    color: isDark ? '#38BDF8' : 'var(--accent-text)',
                     lineHeight: '14px'
                   }}
                 />
               ) : (
                 <span
-                  className="font-mono text-[11px] truncate tracking-wide"
+                  className={`text-[11px] truncate tracking-wide ${isDark ? 'font-mono' : 'font-sans'}`}
                   style={{
                     fontWeight: isActive ? 600 : 500,
                     color: isActive
                       ? isDark
                         ? '#38BDF8'
-                        : '#0284c7'
+                        : 'var(--text-primary)'
                       : isDark
                       ? '#64748B'
-                      : '#64748b'
+                      : 'var(--text-secondary)'
                   }}
                 >
                   {tab.title}
@@ -199,15 +203,15 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
                 style={{
                   width: '14px',
                   height: '14px',
-                  color: isDark ? '#64748B' : '#94A3B8'
+                  color: isDark ? '#64748B' : 'var(--text-tertiary)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
-                  e.currentTarget.style.color = '#F43F5E';
+                  e.currentTarget.style.backgroundColor = isDark ? 'rgba(244, 63, 94, 0.2)' : 'var(--sev-critical-bg)';
+                  e.currentTarget.style.color = isDark ? '#F43F5E' : 'var(--sev-critical)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = isDark ? '#64748B' : '#94A3B8';
+                  e.currentTarget.style.color = isDark ? '#64748B' : 'var(--text-tertiary)';
                 }}
               >
                 <X size={10} strokeWidth={2.5} />
@@ -229,22 +233,22 @@ export const WorkspaceTabBar: React.FC<WorkspaceTabBarProps> = ({
           marginBottom: '2px',
           marginLeft: '2px',
           borderRadius: '4px',
-          border: isDark ? '1px dashed rgba(255, 255, 255, 0.18)' : '1px dashed rgba(100, 116, 139, 0.4)',
-          background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
-          color: isDark ? '#94A3B8' : '#64748B',
+          border: isDark ? '1px dashed rgba(255, 255, 255, 0.18)' : '1px dashed var(--border-strong)',
+          background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+          color: isDark ? '#94A3B8' : 'var(--text-secondary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = isDark ? '#38BDF8' : '#0284c7';
-          e.currentTarget.style.color = isDark ? '#38BDF8' : '#0284c7';
-          e.currentTarget.style.background = isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 132, 199, 0.08)';
+          e.currentTarget.style.borderColor = isDark ? '#38BDF8' : 'var(--accent)';
+          e.currentTarget.style.color = isDark ? '#38BDF8' : 'var(--accent-text)';
+          e.currentTarget.style.background = isDark ? 'rgba(56, 189, 248, 0.08)' : 'var(--accent-soft)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(100, 116, 139, 0.4)';
-          e.currentTarget.style.color = isDark ? '#94A3B8' : '#64748B';
-          e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)';
+          e.currentTarget.style.borderColor = isDark ? 'rgba(255, 255, 255, 0.18)' : 'var(--border-strong)';
+          e.currentTarget.style.color = isDark ? '#94A3B8' : 'var(--text-secondary)';
+          e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.02)' : 'transparent';
         }}
       >
         <Plus size={13} strokeWidth={2.2} />

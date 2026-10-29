@@ -25,7 +25,7 @@ export const NowPlayingMiniBar: React.FC<NowPlayingMiniBarProps> = ({ onOpenVide
     <div
       className={`shrink-0 border-b flex items-center justify-between px-3 py-1.5 text-xs font-mono transition-colors ${
         isLight
-          ? 'bg-[#EFF6FF] border-[#BFDBFE] text-[#0F172A]'
+          ? 'bg-[var(--surface)] border-[var(--border-subtle)] text-[var(--text-primary)] shadow-sm'
           : 'bg-[#05080F]/95 border-sky-500/30 text-slate-200'
       }`}
       style={{ minHeight: '34px' }}
@@ -36,8 +36,11 @@ export const NowPlayingMiniBar: React.FC<NowPlayingMiniBarProps> = ({ onOpenVide
         className="flex items-center gap-2 truncate cursor-pointer hover:opacity-85 transition-opacity min-w-0 flex-1 mr-2"
         title="Click to view stream in full 16:9 view"
       >
-        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-        <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-sky-700' : 'text-sky-400'}`}>
+        <span
+          className="w-2 h-2 rounded-full animate-pulse shrink-0"
+          style={{ background: isLight ? 'var(--sev-ok)' : '#f43f5e' }}
+        />
+        <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-[var(--text-tertiary)] tracking-wider' : 'text-sky-400'}`}>
           NOW PLAYING:
         </span>
         <span className="truncate font-semibold text-[11px]">
@@ -65,14 +68,14 @@ export const NowPlayingMiniBar: React.FC<NowPlayingMiniBarProps> = ({ onOpenVide
           type="button"
           onClick={toggleMute}
           className={`p-1 rounded transition-colors cursor-pointer ${
-            isLight ? 'hover:bg-slate-200 text-slate-700' : 'hover:bg-white/10 text-slate-300'
+            isLight ? 'hover:bg-[var(--bg-sunken)] text-[var(--text-secondary)]' : 'hover:bg-white/10 text-slate-300'
           }`}
           title={isMuted ? 'Unmute Audio (Full Volume)' : 'Mute Audio'}
         >
           {isMuted ? (
-            <VolumeX size={13} className="text-amber-400" />
+            <VolumeX size={13} className="text-amber-500" />
           ) : (
-            <Volume2 size={13} className="text-emerald-400" />
+            <Volume2 size={13} className={isLight ? 'text-[var(--sev-ok)]' : 'text-emerald-400'} />
           )}
         </button>
 
@@ -80,7 +83,11 @@ export const NowPlayingMiniBar: React.FC<NowPlayingMiniBarProps> = ({ onOpenVide
         <button
           type="button"
           onClick={stopStream}
-          className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+          className={`p-1 rounded transition-colors cursor-pointer ${
+            isLight
+              ? 'text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-50'
+              : 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+          }`}
           title="Stop Playback"
         >
           <Square size={11} className="fill-current" />
