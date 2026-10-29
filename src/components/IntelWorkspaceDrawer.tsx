@@ -33,6 +33,7 @@ import {
   ThemeMode
 } from '../types';
 import { getYouTubeEmbedUrl } from '../utils/youtubeResolver';
+import { LiveStreamCard } from './LiveStreamCard';
 
 interface IntelWorkspaceDrawerProps {
   isOpen: boolean;
@@ -1675,33 +1676,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           >
                             {/* VIDEO PLAYER ITEM */}
                             {isVideo && (item.youtubeId || item.channelId || item.uploadsPlaylistId) ? (
-                              <div className="flex-1 flex flex-col">
-                                <div
-                                  className="relative w-full flex-1 overflow-hidden rounded-[3px] shadow-inner mb-2 min-h-[140px]"
-                                  style={{
-                                    background: '#05080F',
-                                    border: '1px solid rgba(56, 189, 248, 0.25)'
-                                  }}
-                                >
-                                  <iframe
-                                    src={getYouTubeEmbedUrl({
-                                      youtubeId: item.youtubeId,
-                                      channelId: item.channelId,
-                                      uploadsPlaylistId: item.uploadsPlaylistId,
-                                      isLive: item.isLive
-                                    })}
-                                    title={item.title}
-                                    className="w-full h-full border-0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                    referrerPolicy="strict-origin-when-cross-origin"
-                                    allowFullScreen
-                                  />
-                                </div>
-                                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
-                                  <span className="truncate">{item.channel || 'Live Broadcast'}</span>
-                                  <span className="text-emerald-400 font-bold">● ACTIVE STREAM</span>
-                                </div>
-                              </div>
+                              <LiveStreamCard item={item} />
                             ) : (
                               /* INTEL / REPORT ITEM */
                               <div className="space-y-2">
