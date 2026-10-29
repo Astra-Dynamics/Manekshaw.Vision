@@ -155,8 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   };
 
-  const role = profile?.role ?? null;
-  const isAdmin = role === 'admin';
+  const role = (user?.app_metadata?.role as 'individual' | 'admin') || profile?.role || null;
+  const isAdmin = role === 'admin' || user?.app_metadata?.role === 'admin';
 
   return (
     <AuthContext.Provider

@@ -58,7 +58,7 @@ function ytLiveDevPlugin(): Plugin {
                 channelId,
                 videoId: item.id.videoId,
                 title: item.snippet?.title || '',
-                embedUrl: `https://www.youtube.com/embed/${item.id.videoId}?autoplay=1&mute=1&playsinline=1&enablejsapi=1`,
+                embedUrl: `https://www.youtube.com/embed/${item.id.videoId}?autoplay=1&playsinline=1&enablejsapi=1`,
                 fallbackEmbedUrl
               }));
             }

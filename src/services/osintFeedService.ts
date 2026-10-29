@@ -5,6 +5,12 @@ import { getLiveIntelDispatches } from './liveFeedAdapter';
 const OSINT_CACHE_KEY = 'manvis_osint_feed_cache';
 const OSINT_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
 
+export function clearOsintCache(): void {
+  try {
+    sessionStorage.removeItem(OSINT_CACHE_KEY);
+  } catch (e) {}
+}
+
 export interface OsintFeedSource {
   id: string;
   name: string;

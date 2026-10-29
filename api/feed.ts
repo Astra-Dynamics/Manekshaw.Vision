@@ -20,6 +20,8 @@ export interface IntelNewsItem {
   title: string;
   summary: string;
   source: string;
+  sourceName?: string;   // publisher display name e.g. "Reuters"
+  sourceUrl?: string;    // canonical article URL (no google/search fallback)
   timeAgo: string;
   publishedAt?: string;
   category: 'military' | 'geopolitical' | 'cyber' | 'natural' | 'economic';
@@ -28,7 +30,7 @@ export interface IntelNewsItem {
   relatedHotspot?: string;
   region?: string;
   countryCode?: string;
-  link?: string;
+  link?: string;         // same as sourceUrl – kept for backwards compat
 }
 
 export interface IntelHotspot {
@@ -87,7 +89,7 @@ const BASELINE_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'YE',
     coordinates: [43.1, 13.5],
     relatedHotspot: 'red_sea_bab_el_mandeb',
-    link: 'https://news.google.com/search?q=CENTCOM+Red+Sea+missiles'
+    link: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/'
   },
   {
     id: 'base_me_2',
@@ -102,7 +104,7 @@ const BASELINE_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IR',
     coordinates: [56.35, 26.55],
     relatedHotspot: 'strait_of_hormuz',
-    link: 'https://news.google.com/search?q=Strait+of+Hormuz+tanker+escort'
+    link: 'https://www.ukmto.org/indian-ocean-region/recent-incidents'
   },
   {
     id: 'base_tw_1',
@@ -117,7 +119,7 @@ const BASELINE_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'TW',
     coordinates: [119.5, 23.5],
     relatedHotspot: 'taiwan_strait',
-    link: 'https://news.google.com/search?q=Taiwan+MND+PLA+aircraft+ADIZ'
+    link: 'https://www.mnd.gov.tw/english/'
   },
   {
     id: 'base_in_1',
@@ -132,7 +134,7 @@ const BASELINE_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IN',
     coordinates: [78.1, 35.2],
     relatedHotspot: 'ladakh_line_of_actual_control',
-    link: 'https://news.google.com/search?q=Indian+Army+PLA+Depsang+Demchok+patrol'
+    link: 'https://www.pib.gov.in/PressReleasePage.aspx?PRID=2080000'
   },
   {
     id: 'base_eu_1',
@@ -147,7 +149,7 @@ const BASELINE_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'UA',
     coordinates: [35.38, 45.03],
     relatedHotspot: 'crimea_black_sea',
-    link: 'https://news.google.com/search?q=Ukraine+Feodosia+oil+depot+strike'
+    link: 'https://www.mil.gov.ua/en/news/'
   }
 ];
 
@@ -320,23 +322,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (artRes.status === 'fulfilled' && artRes.value.ok) {
           const raw = await artRes.value.json();
           if (Array.isArray(raw) && raw.length > 0) {
-            articles = raw.map((a: any) => ({
-              id: String(a.id || Math.random().toString(36).slice(2)),
-              title: a.title,
-              summary: a.summary || a.title,
-              source: a.source || a.source_domain || 'OSINT Wire',
-              timeAgo: formatRelativeTime(a.published_at),
-              publishedAt: a.published_at,
-              category: a.category || 'geopolitical',
-              severity: a.severity || 'medium',
-              coordinates: Array.isArray(a.coordinates) && a.coordinates.length === 2
-                ? [Number(a.coordinates[0]), Number(a.coordinates[1])]
-                : [86.35, 25.06],
-              relatedHotspot: a.related_hotspot || undefined,
-              region: a.region || undefined,
-              countryCode: a.country_code || undefined,
-              link: a.link || undefined
-            }));
+            articles = raw.map((a: any) => {
+              // Determine a clean canonical article URL – never return a Google/search URL
+              const rawLink: string = a.link || a.url || a.source_url || '';
+              const isGoodUrl = rawLink
+                && !rawLink.includes('news.google.com')
+                && !rawLink.includes('/search?q=')
+                && !rawLink.includes('/search?hl=');
+              const canonicalUrl = isGoodUrl ? rawLink : undefined;
+              const publisherName: string = a.source_name || a.source_domain
+                || (() => {
+                  try { return canonicalUrl ? new URL(canonicalUrl).hostname.replace(/^www\./, '') : (a.source || 'OSINT Wire'); }
+                  catch { return a.source || 'OSINT Wire'; }
+                })();
+              return {
+                id: String(a.id || Math.random().toString(36).slice(2)),
+                title: a.title,
+                summary: a.summary || a.title,
+                source: publisherName,
+                sourceName: publisherName,
+                sourceUrl: canonicalUrl,
+                timeAgo: formatRelativeTime(a.published_at),
+                publishedAt: a.published_at,
+                category: a.category || 'geopolitical',
+                severity: a.severity || 'medium',
+                coordinates: Array.isArray(a.coordinates) && a.coordinates.length === 2
+                  ? [Number(a.coordinates[0]), Number(a.coordinates[1])]
+                  : [86.35, 25.06],
+                relatedHotspot: a.related_hotspot || undefined,
+                region: a.region || undefined,
+                countryCode: a.country_code || undefined,
+                link: canonicalUrl   // same as sourceUrl for backward compat
+              };
+            });
             fetchedFromSupabase = true;
           }
         }

@@ -2,7 +2,7 @@ name: Headless Intel Ingestion Pipeline
 
 on:
   schedule:
-    # Run every 30 minutes (48 runs/day - well below all free tier ceilings)
+    # Run every 30 minutes (48 runs/day - writes strictly to Supabase with zero repo commits)
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
@@ -15,8 +15,6 @@ jobs:
     name: Ingest, Classify & Cluster Defense OSINT
     runs-on: ubuntu-24.04
     timeout-minutes: 8
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
@@ -42,17 +40,3 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python scripts/ingest.py
-
-      - name: Commit and Push if Changed
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain)" ]; then
-            git add -A
-            # We use [skip actions] instead of [skip ci] so Vercel can still deploy if needed,
-            # while preventing recursive GitHub Actions workflow execution.
-            git commit -m "chore(intel): update ingested telemetry data [skip actions]"
-            git push
-          else
-            echo "Working tree clean. No changes to commit (skipping empty commit to avoid redundant Vercel builds)."
-          fi

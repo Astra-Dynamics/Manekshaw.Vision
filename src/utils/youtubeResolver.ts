@@ -109,9 +109,9 @@ export function getYouTubeEmbedUrl(params: {
     return `https://www.youtube-nocookie.com/embed/videoseries?list=${playlistId}&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`;
   }
 
-  // 3. Direct 11-character video ID (validated)
+  // 3. Direct 11-character video ID (validated) - Full volume by default (no mute parameter)
   if (youtubeId && youtubeId.length === 11 && !youtubeId.includes('videoseries')) {
-    return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(origin)}&mute=1&playsinline=1`;
+    return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(origin)}&playsinline=1`;
   }
 
   // 4. Fallback to live_stream channel endpoint if channelId is available

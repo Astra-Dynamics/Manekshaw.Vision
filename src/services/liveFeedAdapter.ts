@@ -14,8 +14,23 @@ interface CachedFeedPayload {
   hotspots: any[];
 }
 
+import { clearOsintCache } from './osintFeedService';
+
 let inMemoryPayload: CachedFeedPayload | null = null;
 let inFlightPromise: Promise<CachedFeedPayload> | null = null;
+
+/**
+ * Invalidates client-side feed cache so subsequent requests immediately refetch fresh data from /api/feed.
+ */
+export function invalidateFeedCache(): void {
+  inMemoryPayload = null;
+  inFlightPromise = null;
+  clearOsintCache();
+  try {
+    localStorage.removeItem(FEED_CACHE_KEY);
+    localStorage.removeItem(ETAG_CACHE_KEY);
+  } catch (e) {}
+}
 
 function formatRelativeTime(isoString?: string): string {
   if (!isoString) return '12m ago';

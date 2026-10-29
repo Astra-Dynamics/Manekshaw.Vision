@@ -45,6 +45,7 @@ import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeR
 import { classifySourceTier } from '../services/osintFeedService';
 import { NowPlayingMiniBar } from './NowPlayingMiniBar';
 import { PersistentPlayerHost } from './PersistentPlayerHost';
+import { AdminRefreshButton } from './AdminRefreshButton';
 
 export const VIDEO_REGION_GROUPS = [
   { id: 'ALL', label: `ALL (${VIDEO_CATALOGUE.length})`, title: 'ALL GLOBAL BROADCASTERS & OSINT', color: '#38BDF8' },
@@ -102,6 +103,7 @@ interface RightIntelligencePanelProps {
   onCenterMap: (coords: [number, number]) => void;
   onOpenInWorkspace?: (item: WorkspaceDrawerItem) => void;
   onDragStartItem?: (e: React.DragEvent, item: WorkspaceDrawerItem) => void;
+  onRefreshFeed?: () => void;
 
   // Isolated Per-Tab Desk State Props:
   activeSubTab?: 'feed' | 'videos' | 'hotspots' | 'conflicts' | 'infra' | 'dossier';
@@ -135,6 +137,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   onCenterMap,
   onOpenInWorkspace,
   onDragStartItem,
+  onRefreshFeed,
   activeSubTab: propsActiveSubTab,
   onChangeSubTab,
   searchQuery: propsSearchQuery,
@@ -595,13 +598,16 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             INTELLIGENCE DESK
           </h2>
         </div>
-        <button
-          onClick={onClose}
-          title="Collapse Panel"
-          className="p-1 rounded hover:bg-[var(--bg-surface-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-        >
-          <X size={15} />
-        </button>
+        <div className="flex items-center gap-2">
+          <AdminRefreshButton onRefreshSuccess={onRefreshFeed} />
+          <button
+            onClick={onClose}
+            title="Collapse Panel"
+            className="p-1 rounded hover:bg-[var(--bg-surface-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <X size={15} />
+          </button>
+        </div>
       </div>
 
       {/* NOW PLAYING mini bar – always mounted outside tab panels so audio survives tab switches */}
@@ -932,8 +938,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         className="truncate text-[10.5px] cursor-pointer hover:underline hover:text-sky-400 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const url = (item as any).link || `https://news.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}`;
-                          window.open(url, '_blank', 'noopener,noreferrer');
+                          const rawUrl = (item as any).link || (item as any).sourceUrl;
+                          if (rawUrl && !rawUrl.includes('news.google.com') && !rawUrl.includes('/search?')) {
+                            window.open(rawUrl, '_blank', 'noopener,noreferrer');
+                          }
                         }}
                         style={{
                           overflow: 'hidden',
@@ -941,7 +949,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           whiteSpace: 'nowrap',
                           minWidth: 0
                         }}
-                        title={`Open source: ${item.source}`}
+                        title={`Source: ${item.source}`}
                       >
                         {item.source}
                       </span>
@@ -969,18 +977,33 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                           <span>{item.coordinates[1].toFixed(1)}°, {item.coordinates[0].toFixed(1)}°</span>
                         </button>
                       )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const url = (item as any).link || `https://news.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}`;
-                          window.open(url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-2xs shrink-0 text-[10px]"
-                        title="Open source report in new tab"
-                      >
-                        <span>To Source</span>
-                        <ExternalLink size={10} />
-                      </button>
+                      {/* "To Source" – only renders when a real article URL is available; never builds a search fallback */}
+                      {(() => {
+                        const rawUrl = (item as any).link || (item as any).sourceUrl;
+                        // Reject Google News wrappers, search pages, and blank/homepage-only URLs
+                        const isBadUrl = !rawUrl
+                          || rawUrl.includes('news.google.com')
+                          || rawUrl.includes('/search?q=')
+                          || rawUrl.includes('/search?hl=')
+                          || new URL(rawUrl, 'https://x').pathname === '/'
+                          || new URL(rawUrl, 'https://x').pathname === '';
+                        if (isBadUrl) return null;
+                        const publisherName = (item as any).sourceName || (item as any).source_name
+                          || (() => { try { return new URL(rawUrl).hostname.replace(/^www\./, ''); } catch { return item.source; } })();
+                        return (
+                          <a
+                            href={rawUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[var(--bg-surface)] hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-[var(--border-subtle)] hover:border-sky-500/40 transition-colors shadow-2xs shrink-0 text-[10px]"
+                            title={`Source: ${publisherName}`}
+                          >
+                            <span>{publisherName}</span>
+                            <ExternalLink size={10} />
+                          </a>
+                        );
+                      })()}
 
                       {onOpenInWorkspace && (
                         <button

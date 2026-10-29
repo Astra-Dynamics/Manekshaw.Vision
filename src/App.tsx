@@ -12,6 +12,7 @@ import { LandingPage } from './components/LandingPage';
 import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { PlayerProvider } from './context/PlayerContext';
 import { AuthModal } from './components/AuthModal';
 import { AuthPage } from './components/AuthPage';
 import { StatusDiag } from './pages/StatusDiag';
@@ -1218,6 +1219,19 @@ const AppContent: React.FC = () => {
     };
   }, []);
 
+  const handleRefreshFeed = useCallback(async () => {
+    try {
+      const [feed, hs] = await Promise.all([
+        getAggregatedOsintFeed(),
+        getLiveHotspots()
+      ]);
+      if (feed && feed.length > 0) setNewsFeed(feed);
+      if (hs && hs.length > 0) setLiveHotspots(hs);
+    } catch (e) {
+      console.warn('[App] Feed refresh error:', e);
+    }
+  }, []);
+
   // Maintain clean address bar: strictly '/Dashboard' without query strings
   useEffect(() => {
     if (!isDashboard) return;
@@ -1684,6 +1698,7 @@ const AppContent: React.FC = () => {
             }}
             onOpenInWorkspace={handleOpenInWorkspace}
             onDragStartItem={() => setIsDraggingIntel(true)}
+            onRefreshFeed={handleRefreshFeed}
             activeSubTab={activeIntelDesk.activeSubTab}
             onChangeSubTab={(subTab) => updateActiveTabIntelDesk({ activeSubTab: subTab })}
             searchQuery={activeIntelDesk.searchQuery}
@@ -1836,7 +1851,9 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => (
   <AuthProvider>
-    <AppContent />
+    <PlayerProvider>
+      <AppContent />
+    </PlayerProvider>
   </AuthProvider>
 );
 

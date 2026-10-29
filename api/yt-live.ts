@@ -33,12 +33,33 @@ interface CacheRecord {
 }
 
 // In-memory cache across serverless warm invocations
-// Successful lookups cached 25 min; offline / errors cached 5 min
 const memoryCache = new Map<string, CacheRecord>();
 const inflightRequests = new Map<string, Promise<YTLiveResponsePayload>>();
+// Track last known active video ID per channel for 1-unit videos.list verification
+const lastKnownVideoIds = new Map<string, string>();
 
 const LIVE_CACHE_TTL_MS = 25 * 60 * 1000;   // 25 minutes
 const OFFLINE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Decodes HTML entities in titles (e.g. &#39; -> ', &amp; -> &)
+ */
+function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&apos;/g, "'")
+    .replace(/&#([0-9]{1,5});/gi, (_, num) => {
+      const code = parseInt(num, 10);
+      return !isNaN(code) ? String.fromCharCode(code) : _;
+    });
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS & Security Headers
@@ -55,33 +76,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rawChannelId = req.query?.channelId;
   const channelId = Array.isArray(rawChannelId) ? rawChannelId[0] : (rawChannelId || '').trim();
 
-  // Validate format
-  if (!channelId || !channelId.startsWith('UC') || channelId.length < 15) {
+  // Validate channelId format
+  if (!channelId || !channelId.startsWith('UC') || channelId.length !== 24) {
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=120');
     return res.status(400).json({
       success: false,
       live: false,
       status: 'error',
       channelId: channelId || '',
       fallbackEmbedUrl: '',
-      error: 'Invalid channelId parameter. Must be a valid YouTube channel ID starting with "UC" (e.g. UCZFMm1mMw0F81Z37aaEzTUA).',
+      error: 'Invalid channelId parameter. Must be a valid 24-character YouTube channel ID starting with "UC".',
       timestamp: new Date().toISOString()
     });
   }
 
   const fallbackEmbedUrl = `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(channelId)}`;
 
-  // 1. Check in-memory cache
+  // 1. In-memory warm instance cache check
   const cached = memoryCache.get(channelId);
   const now = Date.now();
   if (cached && now < cached.expiresAt) {
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    if (cached.data.live) {
+      res.setHeader('Cache-Control', 'public, s-maxage=1500, stale-while-revalidate=300');
+    } else {
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=120');
+    }
     return res.status(200).json({
       ...cached.data,
       cached: true
     });
   }
 
-  // 2. Request deduplication (prevent concurrent spikes for the same channel ID)
+  // 2. Request deduplication
   let requestPromise = inflightRequests.get(channelId);
   if (!requestPromise) {
     requestPromise = (async (): Promise<YTLiveResponsePayload> => {
@@ -96,7 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           channelId,
           embedUrl: fallbackEmbedUrl,
           fallbackEmbedUrl,
-          message: 'YOUTUBE_API_KEY is not configured in environment. Using live_stream embed fallback.',
+          message: 'YOUTUBE_API_KEY not configured. Using live_stream embed fallback.',
           timestamp: new Date().toISOString()
         };
         memoryCache.set(channelId, { data: payload, expiresAt: Date.now() + OFFLINE_CACHE_TTL_MS });
@@ -107,22 +133,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        const ytEndpoint = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${encodeURIComponent(channelId)}&eventType=live&type=video&maxResults=1&key=${encodeURIComponent(apiKey)}`;
-        const ytRes = await fetch(ytEndpoint, {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json'
+        // QUOTA OPTIMIZATION: Check last known active video ID first (1 unit)
+        const lastKnownId = lastKnownVideoIds.get(channelId);
+        if (lastKnownId) {
+          try {
+            const verifyUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${encodeURIComponent(lastKnownId)}&key=${encodeURIComponent(apiKey)}`;
+            const verifyRes = await fetch(verifyUrl, { signal: controller.signal });
+            if (verifyRes.ok) {
+              const verifyData = await verifyRes.json();
+              const vItem = verifyData.items?.[0];
+              const isStillLive = vItem && (
+                vItem.snippet?.liveBroadcastContent === 'live' ||
+                (vItem.liveStreamingDetails?.actualStartTime && !vItem.liveStreamingDetails?.actualEndTime)
+              );
+
+              if (isStillLive) {
+                clearTimeout(timeoutId);
+                const title = decodeHtmlEntities(vItem.snippet?.title || '');
+                // Full volume by default: NO mute=1
+                const embedUrl = `https://www.youtube.com/embed/${lastKnownId}?autoplay=1&playsinline=1&enablejsapi=1`;
+
+                const payload: YTLiveResponsePayload = {
+                  success: true,
+                  live: true,
+                  status: 'live',
+                  channelId,
+                  videoId: lastKnownId,
+                  title,
+                  embedUrl,
+                  fallbackEmbedUrl,
+                  timestamp: new Date().toISOString()
+                };
+                memoryCache.set(channelId, { data: payload, expiresAt: Date.now() + LIVE_CACHE_TTL_MS });
+                return payload;
+              }
+            }
+          } catch (vErr) {
+            // Proceed to search.list
           }
+        }
+
+        // Search.list (100 units) - executed only when no active stream ID is cached or old stream ended
+        const searchEndpoint = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${encodeURIComponent(channelId)}&eventType=live&type=video&maxResults=1&key=${encodeURIComponent(apiKey)}`;
+        const ytRes = await fetch(searchEndpoint, {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json' }
         });
         clearTimeout(timeoutId);
 
+        // Handle 403 quotaExceeded by falling back to live_stream embed instead of erroring
         if (!ytRes.ok) {
           const errData = await ytRes.json().catch(() => ({}));
-          const errMsg = errData?.error?.message || `YouTube API responded with status ${ytRes.status}`;
+          const isQuota = ytRes.status === 403 ||
+            errData?.error?.errors?.[0]?.reason === 'quotaExceeded' ||
+            String(errData?.error?.message).includes('quota');
+
+          const errMsg = isQuota
+            ? 'YouTube API daily quota exceeded. Falling back to live_stream channel embed.'
+            : (errData?.error?.message || `YouTube API responded with status ${ytRes.status}`);
+
           console.warn(`[API/yt-live] YouTube API warning for ${channelId}:`, errMsg);
 
           const payload: YTLiveResponsePayload = {
-            success: false,
+            success: isQuota,
             live: false,
             status: 'fallback',
             channelId,
@@ -131,7 +204,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             error: errMsg,
             timestamp: new Date().toISOString()
           };
-          // Cache error for 5 minutes to avoid quota burning
           memoryCache.set(channelId, { data: payload, expiresAt: Date.now() + OFFLINE_CACHE_TTL_MS });
           return payload;
         }
@@ -141,8 +213,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (liveItem && liveItem.id && liveItem.id.videoId) {
           const videoId = liveItem.id.videoId;
-          const title = liveItem.snippet?.title || '';
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&enablejsapi=1`;
+          const title = decodeHtmlEntities(liveItem.snippet?.title || '');
+          // Full volume by default: NO mute=1
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1`;
+
+          // Track for future 1-unit verifications
+          lastKnownVideoIds.set(channelId, videoId);
 
           const payload: YTLiveResponsePayload = {
             success: true,
@@ -156,12 +232,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             timestamp: new Date().toISOString()
           };
 
-          // Cache verified live video ID for 25 minutes
           memoryCache.set(channelId, { data: payload, expiresAt: Date.now() + LIVE_CACHE_TTL_MS });
           return payload;
         }
 
-        // Channel is currently offline
+        // Channel offline
+        lastKnownVideoIds.delete(channelId);
         const payload: YTLiveResponsePayload = {
           success: true,
           live: false,
@@ -173,7 +249,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           timestamp: new Date().toISOString()
         };
 
-        // Cache offline status for 5 minutes
         memoryCache.set(channelId, { data: payload, expiresAt: Date.now() + OFFLINE_CACHE_TTL_MS });
         return payload;
       } catch (fetchErr: any) {
@@ -198,7 +273,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const result = await requestPromise;
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // Edge CDN caching: 1500s on live, 300s on offline
+    if (result.live) {
+      res.setHeader('Cache-Control', 'public, s-maxage=1500, stale-while-revalidate=300');
+    } else {
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=120');
+    }
+
     return res.status(200).json({
       ...result,
       cached: false

@@ -95,6 +95,73 @@ def clean_url(url: str) -> str:
     new_query = urllib.parse.urlencode(clean_params)
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, ''))
 
+# Domains known to be Google News wrappers / search pages – always reject these
+_BAD_URL_HOSTS = {
+    'news.google.com', 'www.news.google.com',
+}
+_BAD_URL_PATTERNS = ['/search?q=', '/search?hl=', 'news.google.com/rss/', 'news.google.com/articles/']
+
+def is_valid_article_url(url: str) -> bool:
+    """
+    Returns True only if url is a real article URL:
+    - Has http/https scheme
+    - Not a Google News wrapper or search page
+    - Has a non-empty path (not just '/')
+    """
+    if not url:
+        return False
+    try:
+        p = urllib.parse.urlparse(url)
+        if p.scheme not in ('http', 'https'):
+            return False
+        if p.netloc.lower() in _BAD_URL_HOSTS:
+            return False
+        for bad in _BAD_URL_PATTERNS:
+            if bad in url:
+                return False
+        # Reject bare homepages (path is empty or just '/')
+        if not p.path or p.path == '/':
+            return False
+        return True
+    except Exception:
+        return False
+
+def resolve_article_url(raw_link: str) -> tuple:
+    """
+    Follows up to one redirect to get the canonical article URL.
+    Returns (canonical_url_or_None, publisher_domain).
+    Uses a short 4s timeout; never blocks the whole run on a slow host.
+    """
+    if not raw_link:
+        return None, ''
+    # If already a clean direct URL – no need to follow redirects
+    if is_valid_article_url(raw_link) and 'news.google.com' not in raw_link:
+        parsed = urllib.parse.urlparse(raw_link)
+        domain = parsed.netloc.lower().lstrip('www.')
+        return clean_url(raw_link), domain
+    # Google News / other redirect – follow HEAD to get the real URL
+    try:
+        req = urllib.request.Request(
+            raw_link,
+            method='HEAD',
+            headers={'User-Agent': USER_AGENT}
+        )
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            final = resp.geturl()
+    except Exception:
+        # HEAD failed – try GET with a very small buffer
+        try:
+            req = urllib.request.Request(raw_link, headers={'User-Agent': USER_AGENT})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                final = resp.geturl()
+        except Exception:
+            return None, ''
+    final = clean_url(final)
+    if not is_valid_article_url(final):
+        return None, ''
+    domain = urllib.parse.urlparse(final).netloc.lower().lstrip('www.')
+    return final, domain
+
 def clean_html_text(raw_html: str) -> str:
     """Removes HTML tags, strips script and style blocks with contents, and normalizes whitespace."""
     if not raw_html:
@@ -410,6 +477,10 @@ def parse_feed_xml(xml_content: bytes, source_meta: Dict[str, Any]) -> List[Dict
             if not link:
                 continue
 
+            # Validate article URL: strictly reject Google News wrappers, search pages, or empty paths
+            if not is_valid_article_url(link):
+                continue
+
             # Description / Summary
             d_node = elem.find('description')
             if d_node is None:
@@ -435,6 +506,8 @@ def parse_feed_xml(xml_content: bytes, source_meta: Dict[str, Any]) -> List[Dict
                 "title": title,
                 "summary": desc[:280],
                 "link": link,
+                "source_url": link,
+                "source_name": source_meta.get("name", "OSINT Wire"),
                 "published_at": published_at,
                 "source": source_meta.get("name", "OSINT Wire"),
                 "source_domain": source_meta.get("domain", ""),
@@ -880,7 +953,8 @@ def run_pipeline():
                         "title": it['title'],
                         "summary": it['summary'],
                         "source": it['source'],
-                        "source_name": it['source'],
+                        "source_name": it.get('source_name', it['source']),
+                        "source_url": norm_url,
                         "source_domain": it['source_domain'],
                         "tier": it['tier'],
                         "source_tier": it['tier'],

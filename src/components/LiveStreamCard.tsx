@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, ExternalLink, Radio, AlertCircle, Loader2 } from 'lucide-react';
-import { fetchLiveStream, getYouTubeEmbedUrl, YTLiveClientResult } from '../utils/youtubeResolver';
+import React from 'react';
+import { Play, Volume2, VolumeX, Square, ExternalLink, Radio, AlertCircle, Loader2 } from 'lucide-react';
+import { usePlayer } from '../context/PlayerContext';
 
 export interface LiveStreamItem {
   id?: string;
@@ -19,91 +19,50 @@ interface LiveStreamCardProps {
 }
 
 export const LiveStreamCard: React.FC<LiveStreamCardProps> = ({ item, className = '' }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [streamData, setStreamData] = useState<YTLiveClientResult | null>(null);
-  const [streamState, setStreamState] = useState<'loading' | 'live' | 'offline' | 'fallback' | 'error'>('loading');
-  const timerRef = useRef<any>(null);
+  const {
+    activeStream,
+    isPlaying,
+    isMuted,
+    playerState,
+    isAutoplayBlocked,
+    playStream,
+    stopStream,
+    toggleMute,
+    unmuteAndPlay
+  } = usePlayer();
+
+  const isCurrentActive = activeStream && (
+    (item.channelId && activeStream.channelId === item.channelId) ||
+    activeStream.id === item.id
+  );
 
   const channelId = item.channelId;
   const externalWatchUrl = item.externalUrl || (channelId ? `https://www.youtube.com/channel/${channelId}/live` : 'https://www.youtube.com');
 
-  const resolveStream = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-
-    // If channelId is present and valid
-    if (channelId && channelId.startsWith('UC')) {
-      try {
-        const res = await fetchLiveStream(channelId);
-        setStreamData(res);
-
-        if (res.live && res.videoId) {
-          setStreamState('live');
-        } else if (res.status === 'offline') {
-          setStreamState('offline');
-        } else if (res.status === 'fallback') {
-          // If fallback embed is provided, we can either embed fallback or show offline card
-          setStreamState('fallback');
-        } else {
-          setStreamState('offline');
-        }
-      } catch (err) {
-        setStreamState('error');
-      } finally {
-        setLoading(false);
-      }
-    } else if (item.youtubeId && item.youtubeId.length === 11) {
-      // Fallback to static ID if no channelId exists
-      setStreamState('live');
-      setLoading(false);
-    } else {
-      setStreamState('offline');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    resolveStream(true);
-
-    // Poll strictly every 10 minutes (respects YouTube Data API quota ceiling)
-    const intervalMs = 10 * 60 * 1000;
-    timerRef.current = setInterval(() => {
-      resolveStream(false);
-    }, intervalMs);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [channelId, item.youtubeId]);
-
-  // Compute active embed URL
-  let activeEmbedUrl = '';
-  if (streamData?.embedUrl) {
-    activeEmbedUrl = streamData.embedUrl;
-  } else if (streamData?.videoId) {
-    activeEmbedUrl = getYouTubeEmbedUrl({ youtubeId: streamData.videoId });
-  } else if (streamState === 'fallback' && streamData?.fallbackEmbedUrl) {
-    activeEmbedUrl = streamData.fallbackEmbedUrl;
-  } else if (item.youtubeId) {
-    activeEmbedUrl = getYouTubeEmbedUrl({
-      youtubeId: item.youtubeId,
+  const handleTuneIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    playStream({
+      id: item.id || item.channelId || 'stream',
+      title: item.title,
+      channel: item.channel || item.title,
       channelId: item.channelId,
-      uploadsPlaylistId: item.uploadsPlaylistId,
+      videoId: item.youtubeId,
+      externalUrl: item.externalUrl,
       isLive: item.isLive
     });
-  }
+  };
 
   return (
     <div className={`flex-1 flex flex-col ${className}`}>
       {/* Video Container Frame */}
       <div
-        className="relative w-full flex-1 overflow-hidden rounded-[3px] shadow-inner mb-2 min-h-[140px]"
+        className="relative w-full flex-1 overflow-hidden rounded-[3px] shadow-inner mb-2 min-h-[140px] flex flex-col justify-between"
         style={{
-          background: '#05080F',
-          border: '1px solid rgba(56, 189, 248, 0.25)'
+          background: isCurrentActive ? 'radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.15) 0%, rgba(5, 8, 15, 0.98) 100%)' : '#05080F',
+          border: isCurrentActive ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid rgba(56, 189, 248, 0.25)'
         }}
       >
-        {loading ? (
-          /* Sleek Tactical Radar / Scan Line Loading State */
+        {isCurrentActive && playerState === 'loading' ? (
           <div className="w-full h-full min-h-[140px] flex flex-col items-center justify-center p-4 text-center bg-black/80 font-mono">
             <Loader2 size={18} className="text-sky-400 animate-spin mb-2" />
             <div className="text-[10px] text-sky-400 uppercase tracking-wider font-bold">
@@ -113,73 +72,94 @@ export const LiveStreamCard: React.FC<LiveStreamCardProps> = ({ item, className 
               {item.channel || item.title}
             </div>
           </div>
-        ) : streamState === 'offline' ? (
-          /* Clean "Stream Offline / Watch on YouTube" Card */
-          <div
-            className="w-full h-full min-h-[140px] flex flex-col items-center justify-center p-3 text-center"
-            style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.7) 0%, rgba(5, 8, 15, 0.98) 100%)'
-            }}
-          >
-            <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-2">
-              <Radio size={14} className="opacity-80" />
+        ) : isCurrentActive ? (
+          <div className="w-full h-full min-h-[140px] flex flex-col justify-between p-3 font-mono">
+            <div className="flex items-center justify-between">
+              <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-bold animate-pulse flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                TUNED IN (GLOBAL DESK)
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="p-1 rounded hover:bg-white/10 text-slate-300 transition-colors"
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? <VolumeX size={12} className="text-amber-400" /> : <Volume2 size={12} className="text-emerald-400" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={stopStream}
+                  className="p-1 rounded hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-colors"
+                  title="Stop Stream"
+                >
+                  <Square size={10} className="fill-current" />
+                </button>
+              </div>
             </div>
-            <div className="text-[11px] font-bold text-slate-200 mb-0.5">Stream Currently Offline</div>
-            <p className="text-[9.5px] text-slate-400 mb-2.5 max-w-[85%] font-sans leading-tight">
-              Broadcaster is not transmitting a live feed right now. Watch latest coverage on YouTube.
-            </p>
-            <a
-              href={externalWatchUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[3px] bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-mono text-[9.5px] font-bold transition-colors cursor-pointer shadow-[0_0_10px_rgba(56,189,248,0.2)]"
-            >
-              <Play size={9} className="fill-current" />
-              <span>Watch on YouTube</span>
-              <ExternalLink size={9} />
-            </a>
-          </div>
-        ) : streamState === 'error' ? (
-          /* Stream Error Card */
-          <div className="w-full h-full min-h-[140px] flex flex-col items-center justify-center p-3 text-center bg-black/80 font-mono">
-            <AlertCircle size={16} className="text-rose-400 mb-1.5" />
-            <div className="text-[10px] text-rose-400 font-bold mb-1">UNABLE TO REACH FEED</div>
-            <a
-              href={externalWatchUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[9.5px] text-sky-400 hover:underline mt-1"
-            >
-              <span>Open Directly on YouTube</span>
-              <ExternalLink size={9} />
-            </a>
+
+            <div className="text-center my-2">
+              <div className="text-xs font-bold text-white truncate">{item.channel || item.title}</div>
+              <div className="text-[9.5px] text-sky-400/80 font-sans mt-0.5">Playing at full volume through global player host</div>
+              {isAutoplayBlocked && (
+                <button
+                  type="button"
+                  onClick={unmuteAndPlay}
+                  className="mt-2 px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] inline-flex items-center gap-1 animate-pulse"
+                >
+                  <VolumeX size={11} />
+                  <span>TAP TO UNMUTE AUDIO</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between text-[9px] text-slate-400 border-t border-white/10 pt-1.5">
+              <span>Single Global Player</span>
+              <a href={externalWatchUrl} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline flex items-center gap-1">
+                <span>YouTube</span>
+                <ExternalLink size={9} />
+              </a>
+            </div>
           </div>
         ) : (
-          /* Active Live Stream Player */
-          <iframe
-            src={activeEmbedUrl}
-            title={item.title || item.channel || 'Live News Broadcast'}
-            className="w-full h-full border-0"
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
+          /* Standby Card with 1-click Tune In */
+          <div className="w-full h-full min-h-[140px] flex flex-col items-center justify-center p-3 text-center font-mono">
+            <div className="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-2">
+              <Radio size={14} className="opacity-80" />
+            </div>
+            <div className="text-[11px] font-bold text-slate-200 mb-1 truncate max-w-[95%]">
+              {item.channel || item.title}
+            </div>
+            <button
+              type="button"
+              onClick={handleTuneIn}
+              className="mt-1 px-3 py-1.5 rounded-[3px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-[10px] flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(56,189,248,0.35)] transition-all hover:scale-105"
+            >
+              <Play size={10} className="fill-current" />
+              <span>TUNE IN LIVE (FULL VOLUME)</span>
+            </button>
+          </div>
         )}
       </div>
 
       {/* Dynamic Status Indicator Bar */}
       <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
         <span className="truncate">{item.channel || 'Live Broadcast'}</span>
-        {loading ? (
-          <span className="text-sky-400 font-bold animate-pulse">⟳ RESOLVING</span>
-        ) : streamState === 'live' ? (
-          <span className="text-emerald-400 font-bold">● ACTIVE STREAM</span>
-        ) : streamState === 'fallback' ? (
-          <span className="text-sky-400 font-bold">● LIVE FEED</span>
-        ) : streamState === 'offline' ? (
-          <span className="text-amber-400 font-bold">○ OFFLINE</span>
+        {isCurrentActive ? (
+          playerState === 'loading' ? (
+            <span className="text-sky-400 font-bold animate-pulse">⟳ LOADING</span>
+          ) : playerState === 'blocked-autoplay' ? (
+            <button onClick={unmuteAndPlay} className="text-amber-400 font-bold animate-pulse cursor-pointer">🔊 TAP TO UNMUTE</button>
+          ) : playerState === 'live' ? (
+            <span className="text-emerald-400 font-bold">● ACTIVE STREAM</span>
+          ) : playerState === 'offline' ? (
+            <span className="text-amber-400 font-bold">○ OFFLINE</span>
+          ) : (
+            <span className="text-rose-400 font-bold">✕ STREAM ERROR</span>
+          )
         ) : (
-          <span className="text-rose-400 font-bold">✕ STREAM ERROR</span>
+          <span className="text-slate-500 font-medium">○ STANDBY</span>
         )}
       </div>
     </div>

@@ -16,7 +16,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'YE',
     coordinates: [43.1, 13.5],
     relatedHotspot: 'red_sea_bab_el_mandeb',
-    link: 'https://news.google.com/search?q=CENTCOM+Red+Sea+missiles'
+    link: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/3710000/'
   },
   {
     id: 'news_me_2',
@@ -30,7 +30,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IR',
     coordinates: [56.35, 26.55],
     relatedHotspot: 'strait_of_hormuz',
-    link: 'https://news.google.com/search?q=Strait+of+Hormuz+tanker+escort'
+    link: 'https://www.ukmto.org/indian-ocean-region/recent-incidents'
   },
   {
     id: 'news_me_3',
@@ -44,7 +44,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IR',
     coordinates: [50.99, 34.88],
     relatedHotspot: 'iran_nuclear_facilities',
-    link: 'https://news.google.com/search?q=IAEA+Iran+Fordow+enriched'
+    link: 'https://www.iaea.org/newscenter/pressreleases'
   },
   {
     id: 'news_me_4',
@@ -58,7 +58,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'LB',
     coordinates: [36.21, 34.0],
     relatedHotspot: 'golan_heights',
-    link: 'https://news.google.com/search?q=IDF+Bekaa+Valley+airstrikes'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_me_5',
@@ -72,7 +72,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'DJ',
     coordinates: [43.25, 12.58],
     relatedHotspot: 'red_sea_bab_el_mandeb',
-    link: 'https://news.google.com/search?q=Red+Sea+undersea+cable+repair'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_me_6',
@@ -85,7 +85,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     region: 'middle-east',
     countryCode: 'SA',
     coordinates: [48.0, 12.0],
-    link: 'https://news.google.com/search?q=Brent+Crude+Red+Sea+shipping'
+    link: 'https://www.defense.gov/News/'
   },
 
   // ==========================================
@@ -103,7 +103,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'TW',
     coordinates: [119.5, 24.2],
     relatedHotspot: 'taiwan_strait',
-    link: 'https://news.google.com/search?q=Taiwan+MND+PLA+aircraft+sortie'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_ip_2',
@@ -117,7 +117,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'PH',
     coordinates: [115.85, 9.75],
     relatedHotspot: 'spratly_islands',
-    link: 'https://news.google.com/search?q=Second+Thomas+Shoal+water+cannon'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_ip_3',
@@ -131,7 +131,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'JP',
     coordinates: [127.8, 24.1],
     relatedHotspot: 'senkaku_diaoyu',
-    link: 'https://news.google.com/search?q=Japan+Miyako+Shandong+carrier'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_ip_4',
@@ -144,7 +144,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     region: 'indo-pacific',
     countryCode: 'TW',
     coordinates: [120.98, 24.78],
-    link: 'https://news.google.com/search?q=TSMC+2nm+Baoshan+Fab'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_ip_5',
@@ -158,7 +158,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'KR',
     coordinates: [129.1, 35.1],
     relatedHotspot: 'korean_demilitarized_zone',
-    link: 'https://news.google.com/search?q=US+7th+Fleet+Busan+drill'
+    link: 'https://www.defense.gov/News/'
   },
 
   // ==========================================
@@ -176,7 +176,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IN',
     coordinates: [78.1, 35.2],
     relatedHotspot: 'line_of_actual_control',
-    link: 'https://news.google.com/search?q=Indian+Army+Ladakh+LAC+drone'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_in_2',
@@ -190,7 +190,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IN',
     coordinates: [54.5, 12.8],
     relatedHotspot: 'red_sea_bab_el_mandeb',
-    link: 'https://news.google.com/search?q=Indian+Navy+INS+Kolkata+piracy'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_in_3',
@@ -204,7 +204,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IN',
     coordinates: [77.2, 32.9],
     relatedHotspot: 'line_of_actual_control',
-    link: 'https://news.google.com/search?q=Shinku+La+tunnel+BRO'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_in_4',
@@ -218,7 +218,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'IN',
     coordinates: [92.73, 11.66],
     relatedHotspot: 'malacca_strait',
-    link: 'https://news.google.com/search?q=Andaman+Nicobar+Command+radar'
+    link: 'https://www.defense.gov/News/'
   },
 
   // ==========================================
@@ -236,7 +236,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'UA',
     coordinates: [37.8, 44.7],
     relatedHotspot: 'black_sea_crimea',
-    link: 'https://news.google.com/search?q=Magura+V5+Novorossiysk+strike'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_eu_2',
@@ -250,7 +250,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'LT',
     coordinates: [23.3, 55.9],
     relatedHotspot: 'suwalki_gap',
-    link: 'https://news.google.com/search?q=Baltic+GPS+jamming+Kaliningrad'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_eu_3',
@@ -264,7 +264,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'UA',
     coordinates: [35.1, 47.5],
     relatedHotspot: 'zaporizhzhia_npp',
-    link: 'https://news.google.com/search?q=IAEA+Zaporizhzhia+rotation'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_eu_4',
@@ -278,7 +278,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'FI',
     coordinates: [24.9, 59.9],
     relatedHotspot: 'baltic_critical_infra',
-    link: 'https://news.google.com/search?q=Gulf+of+Finland+pipeline+patrol'
+    link: 'https://www.defense.gov/News/'
   },
 
   // ==========================================
@@ -295,7 +295,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     region: 'americas',
     countryCode: 'US',
     coordinates: [-166.0, 65.0],
-    link: 'https://news.google.com/search?q=NORAD+Alaska+Tu-95+intercept'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_am_2',
@@ -309,7 +309,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     countryCode: 'PA',
     coordinates: [-79.9, 9.1],
     relatedHotspot: 'panama_canal',
-    link: 'https://news.google.com/search?q=Panama+Canal+transit+slots+ACP'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_am_3',
@@ -322,7 +322,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     region: 'americas',
     countryCode: 'US',
     coordinates: [-169.0, 64.5],
-    link: 'https://news.google.com/search?q=USCG+Healy+Bering+Strait'
+    link: 'https://www.defense.gov/News/'
   },
 
   // ==========================================
@@ -352,7 +352,7 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
     region: 'global',
     countryCode: 'GLOBAL',
     coordinates: [37.6, 55.7],
-    link: 'https://news.google.com/search?q=G7+Russia+shadow+fleet+sanctions'
+    link: 'https://www.defense.gov/News/'
   },
   {
     id: 'news_gl_3',

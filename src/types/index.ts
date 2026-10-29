@@ -138,6 +138,8 @@ export interface IntelNewsItem {
   region?: string;
   countryCode?: string;
   link?: string;
+  sourceUrl?: string;
+  sourceName?: string;
 }
 
 export type TheaterView =

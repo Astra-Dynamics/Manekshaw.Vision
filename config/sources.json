@@ -8,7 +8,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:news.un.org+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "reliefweb.int",
@@ -19,7 +19,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:reliefweb.int+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "cisa.gov",
@@ -30,7 +30,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:cisa.gov+cybersecurity+advisories+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "cyber",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "defense.gov",
@@ -63,7 +63,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:pib.gov.in+\"Ministry+of+Defence\"+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "military",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "mea.gov.in",
@@ -74,7 +74,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:mea.gov.in+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "geopolitical",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "nato.int",
@@ -85,7 +85,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:nato.int+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "military",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "iaea.org",
@@ -107,7 +107,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:who.int+disease+outbreak+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "natural",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "bbci.co.uk",
@@ -135,7 +135,7 @@
     "domain": "france24.com",
     "name": "France 24 International",
     "tier": 2,
-    "owner": "France Médias Monde",
+    "owner": "France M\u00e9dias Monde",
     "region": "europe",
     "feedUrl": "https://www.france24.com/en/rss",
     "category": "geopolitical",
@@ -206,7 +206,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:reuters.com+(defense+OR+military+OR+missile+OR+diplomacy)+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "military",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "apnews.com",
@@ -217,7 +217,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:apnews.com+(military+OR+conflict+OR+geopolitics)+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "ft.com",
@@ -272,7 +272,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:tass.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "xinhuanet.com",
@@ -283,7 +283,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:xinhuanet.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "rt.com",
@@ -294,7 +294,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:rt.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "globaltimes.cn",
@@ -305,7 +305,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:globaltimes.cn+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "military",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "cgtn.com",
@@ -316,7 +316,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:cgtn.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "presstv.ir",
@@ -327,7 +327,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:presstv.ir+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": true,
-    "active": true
+    "active": false
   },
   {
     "domain": "breakingdefense.com",
@@ -415,7 +415,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:bleepingcomputer.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "cyber",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "therecord.media",
@@ -459,7 +459,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:understandingwar.org+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "military",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "gcaptain.com",
@@ -481,7 +481,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:maritime-executive.com+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "economic",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "orfonline.org",
@@ -492,7 +492,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:orfonline.org+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "geopolitical",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "idsa.in",
@@ -503,7 +503,7 @@
     "feedUrl": "https://news.google.com/rss/search?q=site:idsa.in+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "military",
     "stateFunded": false,
-    "active": true
+    "active": false
   },
   {
     "domain": "lowyinstitute.org",
