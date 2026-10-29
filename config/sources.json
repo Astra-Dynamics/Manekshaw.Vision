@@ -5,7 +5,7 @@
     "tier": 1,
     "owner": "United Nations",
     "region": "global",
-    "feedUrl": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+    "feedUrl": "https://news.google.com/rss/search?q=site:news.un.org+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": false,
     "active": true
@@ -16,7 +16,7 @@
     "tier": 1,
     "owner": "UN OCHA",
     "region": "global",
-    "feedUrl": "https://reliefweb.int/updates/rss.xml",
+    "feedUrl": "https://news.google.com/rss/search?q=site:reliefweb.int+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "geopolitical",
     "stateFunded": false,
     "active": true
@@ -27,7 +27,7 @@
     "tier": 1,
     "owner": "US Department of Homeland Security",
     "region": "americas",
-    "feedUrl": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+    "feedUrl": "https://news.google.com/rss/search?q=site:cisa.gov+cybersecurity+advisories+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "cyber",
     "stateFunded": false,
     "active": true
@@ -60,7 +60,7 @@
     "tier": 1,
     "owner": "Government of India",
     "region": "india",
-    "feedUrl": "https://pib.gov.in/RssMain.aspx?ModId=3&Lang=1",
+    "feedUrl": "https://news.google.com/rss/search?q=site:pib.gov.in+\"Ministry+of+Defence\"+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "military",
     "stateFunded": false,
     "active": true
@@ -82,7 +82,7 @@
     "tier": 1,
     "owner": "North Atlantic Treaty Organization",
     "region": "europe",
-    "feedUrl": "https://www.nato.int/cps/en/natohq/news.xml",
+    "feedUrl": "https://news.google.com/rss/search?q=site:nato.int+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "military",
     "stateFunded": false,
     "active": true
@@ -104,7 +104,7 @@
     "tier": 1,
     "owner": "World Health Organization",
     "region": "global",
-    "feedUrl": "https://www.who.int/feeds/entity/csr/don/en/rss.xml",
+    "feedUrl": "https://news.google.com/rss/search?q=site:who.int+disease+outbreak+when:7d&hl=en-US&gl=US&ceid=US:en",
     "category": "natural",
     "stateFunded": false,
     "active": true
@@ -412,7 +412,7 @@
     "tier": 3,
     "owner": "Bleeping Computer LLC",
     "region": "global",
-    "feedUrl": "https://www.bleepingcomputer.com/feed/",
+    "feedUrl": "https://news.google.com/rss/search?q=site:bleepingcomputer.com+when:2d&hl=en-US&gl=US&ceid=US:en",
     "category": "cyber",
     "stateFunded": false,
     "active": true
@@ -478,7 +478,7 @@
     "tier": 3,
     "owner": "The Maritime Executive LLC",
     "region": "global",
-    "feedUrl": "https://maritime-executive.com/rss",
+    "feedUrl": "https://news.google.com/rss/search?q=site:maritime-executive.com+when:3d&hl=en-US&gl=US&ceid=US:en",
     "category": "economic",
     "stateFunded": false,
     "active": true
@@ -489,7 +489,7 @@
     "tier": 3,
     "owner": "Observer Research Foundation",
     "region": "india",
-    "feedUrl": "https://www.orfonline.org/feed",
+    "feedUrl": "https://news.google.com/rss/search?q=site:orfonline.org+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
     "category": "geopolitical",
     "stateFunded": false,
     "active": true

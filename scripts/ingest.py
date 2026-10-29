@@ -3,10 +3,11 @@
 Manekshaw.Vision - Sovereign Situational Awareness & Defense OSINT
 Script: scripts/ingest.py
 Description: Headless ingestion engine running on a 15-minute cron.
-             Fetches allowlisted Tier 1/2/3 RSS feeds + GDELT, dedupes,
+             Fetches allowlisted Tier 1/2/3 RSS feeds, dedupes,
              runs 2-pass classification (keyword + Groq/Gemini LLM),
-             resolves live YouTube stream IDs server-side, clusters
-             breaking stories, and upserts to Supabase with 30-day retention.
+             resolves live YouTube stream IDs and UU playlists server-side,
+             clusters breaking stories with dynamic escalation scores,
+             and upserts strictly to Supabase with 30-day retention.
 """
 
 import os
@@ -14,6 +15,7 @@ import sys
 import json
 import re
 import time
+import base64
 import hashlib
 import urllib.request
 import urllib.parse
@@ -40,12 +42,15 @@ except ImportError:
 # Configuration & Constants
 # ====================================================================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+INGEST_SCRIPT = os.path.abspath(__file__)
 SOURCES_FILE = os.path.join(BASE_DIR, 'config', 'sources.json')
 GAZETTEER_FILE = os.path.join(BASE_DIR, 'config', 'gazetteer.json')
 VIDEO_CATALOGUE_FILE = os.path.join(BASE_DIR, 'src', 'data', 'videoCatalogue.ts')
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL') or os.environ.get('VITE_SUPABASE_URL') or 'https://fahbbsdgurtwmfjhtxkh.supabase.co'
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_ANON_KEY') or os.environ.get('VITE_SUPABASE_ANON_KEY') or ''
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
+SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY') or os.environ.get('VITE_SUPABASE_ANON_KEY') or ''
+SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY or os.environ.get('SUPABASE_KEY') or SUPABASE_ANON_KEY or ''
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
@@ -53,9 +58,31 @@ GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 RETENTION_DAYS = 30
 USER_AGENT = 'ManekshawVision-OSINT-Ingest/1.0 (+https://manvis.tech; contact@manvis.tech)'
 
+# Global in-memory telemetry buffers for Supabase persistence
+FEED_HEALTH_TELEMETRY: List[Dict[str, Any]] = []
+LLM_USAGE_TELEMETRY: List[Dict[str, Any]] = []
+
 # ====================================================================
 # Helper Utilities
 # ====================================================================
+def is_service_role_key(key: str) -> bool:
+    """Inspects Supabase JWT token payload to verify if role is 'service_role'."""
+    if not key:
+        return False
+    # If explicitly set as SUPABASE_SERVICE_ROLE_KEY in environment
+    if os.environ.get('SUPABASE_SERVICE_ROLE_KEY') and key == os.environ.get('SUPABASE_SERVICE_ROLE_KEY'):
+        return True
+    parts = key.split('.')
+    if len(parts) == 3:
+        try:
+            padded = parts[1] + '=' * (-len(parts[1]) % 4)
+            payload_bytes = base64.urlsafe_b64decode(padded)
+            payload = json.loads(payload_bytes.decode('utf-8'))
+            return payload.get('role') == 'service_role'
+        except Exception:
+            pass
+    return False
+
 def clean_url(url: str) -> str:
     """Strips tracking query parameters (utm_*, fbclid, etc.) from canonical links."""
     parsed = urllib.parse.urlparse(url)
@@ -68,10 +95,13 @@ def clean_url(url: str) -> str:
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, ''))
 
 def clean_html_text(raw_html: str) -> str:
-    """Removes HTML tags and normalizes whitespace."""
+    """Removes HTML tags, strips script and style blocks with contents, and normalizes whitespace."""
     if not raw_html:
         return ''
-    text = re.sub(r'<[^>]+>', ' ', raw_html)
+    # Strip script and style blocks including inner contents to prevent script/style leakage
+    text = re.sub(r'<script\b[^>]*>.*?</script>', ' ', raw_html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<style\b[^>]*>.*?</style>', ' ', text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<[^>]+>', ' ', text)
     text = re.sub(r'&[a-zA-Z]+;', ' ', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
@@ -101,6 +131,12 @@ def parse_iso_time(date_str: str) -> str:
             continue
     return now_iso
 
+def get_uploads_playlist_id(channel_id: str) -> str:
+    """Derives YouTube uploads playlist ID (UU...) from channel ID (UC...)."""
+    if channel_id and channel_id.startswith('UC'):
+        return 'UU' + channel_id[2:]
+    return channel_id
+
 # ====================================================================
 # Gazetteer & Geo-Resolution
 # ====================================================================
@@ -119,16 +155,29 @@ class Georesolver:
 
     def resolve(self, text: str) -> Tuple[List[float], str, str, Optional[str]]:
         """Returns ([lon, lat], countryCode, region, relatedHotspot)"""
+        if not text or not text.strip():
+            return ([86.35, 25.06], 'GLOBAL', 'global', None)
+
         lower = text.lower()
+        
+        # 1. Match configured entity clusters with word boundaries
         for ent in self.entities:
             for kw in ent.get('keywords', []):
                 if re.search(r'\b' + re.escape(kw) + r'\b', lower):
-                    return (
-                        ent.get('coords', [86.35, 25.06]),
-                        ent.get('countryCode', 'GLOBAL'),
-                        ent.get('region', 'global'),
-                        ent.get('hotspot')
-                    )
+                    coords = ent.get('coords') or ent.get('coordinates', [86.35, 25.06])
+                    country = ent.get('countryCode') or ent.get('country', 'GLOBAL')
+                    region = ent.get('region') or ent.get('theater', 'global')
+                    return (coords, country, region, ent.get('hotspot'))
+
+        # 2. Match hotspot aliases if not matched in entities
+        for hid, hinfo in self.hotspots.items():
+            for alias in hinfo.get('aliases', []):
+                if re.search(r'\b' + re.escape(alias) + r'\b', lower):
+                    coords = hinfo.get('coords') or hinfo.get('coordinates', [86.35, 25.06])
+                    country = hinfo.get('countryCode') or hinfo.get('country', 'GLOBAL')
+                    region = hinfo.get('region') or hinfo.get('theater', 'global')
+                    return (coords, country, region, hid)
+
         # Default fallback: Sovereign India SOI Default
         return ([86.35, 25.06], 'GLOBAL', 'global', None)
 
@@ -140,9 +189,18 @@ def classify_keyword(text: str) -> Tuple[str, str]:
     lower = text.lower()
     
     # Severity
-    critical_terms = ['nuclear', 'ballistic missile', 'hypersonic', 'airstrike', 'intercepted', 'mass casualty', 'invasion', 'sunk', 'killed in strike']
-    high_terms = ['drone strike', 'missile', 'artillery', 'warship', 'destroyer', 'adiz', 'air defense', 'sanctions', 'sabotage', 'gps jamming', 'clash']
-    medium_terms = ['patrol', 'exercise', 'deployment', 'summit', 'briefing', 'naval drills', 'warning', 'advisory']
+    critical_terms = [
+        'nuclear', 'ballistic missile', 'hypersonic', 'airstrike', 'intercepted',
+        'mass casualty', 'invasion', 'sunk', 'killed in strike'
+    ]
+    high_terms = [
+        'drone strike', 'missile', 'artillery', 'warship', 'destroyer', 'adiz',
+        'air defense', 'sanctions', 'sabotage', 'gps jamming', 'clash'
+    ]
+    medium_terms = [
+        'patrol', 'exercise', 'deployment', 'summit', 'briefing', 'naval drills',
+        'warning', 'advisory'
+    ]
     
     severity = 'low'
     if any(t in lower for t in critical_terms):
@@ -154,13 +212,13 @@ def classify_keyword(text: str) -> Tuple[str, str]:
 
     # Category
     category = 'geopolitical'
-    if any(t in lower for t in ['cyber', 'ransomware', 'cisa', 'malware', 'firewall', 'cable cut', 'spoofing', 'ddos']):
+    if any(t in lower for t in ['cyber', 'ransomware', 'cisa', 'malware', 'firewall', 'cable cut', 'spoofing', 'ddos', 'zero-day']):
         category = 'cyber'
     elif any(t in lower for t in ['earthquake', 'tsunami', 'volcano', 'wildfire', 'hurricane', 'cyclone', 'typhoon', 'seismic']):
         category = 'natural'
     elif any(t in lower for t in ['oil', 'crude', 'tanker', 'opec', 'trade', 'tariff', 'sanctions', 'lng', 'freight', 'semiconductor']):
         category = 'economic'
-    elif any(t in lower for t in ['army', 'navy', 'air force', 'missile', 'strike', 'combat', 'warhead', 'pla', 'idf', 'nato', 'centcom', 'armed forces']):
+    elif any(t in lower for t in ['army', 'navy', 'air force', 'missile', 'strike', 'combat', 'warhead', 'pla', 'idf', 'nato', 'centcom', 'armed forces', 'artillery', 'warship', 'destroyer']):
         category = 'military'
 
     return (category, severity)
@@ -173,10 +231,14 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     if not items or (not GROQ_API_KEY and not GEMINI_API_KEY):
         return items
 
+    # Sort items by Pass 1 severity (critical > high > medium > low) before slicing [:15]
+    sev_rank = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    sorted_items = sorted(items, key=lambda it: sev_rank.get(it.get('severity', 'low'), 3))
+
     # Prepare minimal payload for LLM grounding (by ID only)
     prompt_items = [
         {"id": it["id"], "title": it["title"], "summary": it["summary"][:200]}
-        for it in items[:15] # batch size max 15
+        for it in sorted_items[:15]  # batch size capped at 15 items
     ]
 
     system_prompt = (
@@ -189,8 +251,10 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     )
 
     user_content = json.dumps(prompt_items)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    today_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
-    # 1. Try Groq
+    # 1. Try Groq (Llama-3.3-70b Primary)
     if GROQ_API_KEY:
         try:
             req_data = json.dumps({
@@ -199,8 +263,7 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_content}
                 ],
-                "temperature": 0.0,
-                "response_format": {"type": "json_object"} if False else None
+                "temperature": 0.0
             }).encode('utf-8')
 
             req = urllib.request.Request(
@@ -215,7 +278,26 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
                 raw_ans = res_json['choices'][0]['message']['content']
-                # parse json
+
+                # Telemetry capture
+                usage = res_json.get('usage', {})
+                prompt_tok = usage.get('prompt_tokens', len(user_content) // 4)
+                comp_tok = usage.get('completion_tokens', 150)
+                tot_tok = usage.get('total_tokens', prompt_tok + comp_tok)
+                LLM_USAGE_TELEMETRY.append({
+                    "date": today_date,
+                    "provider": "groq",
+                    "model": "llama-3.3-70b-versatile",
+                    "request_count": 1,
+                    "token_count": tot_tok,
+                    "prompt_tokens": prompt_tok,
+                    "completion_tokens": comp_tok,
+                    "cost_estimate": 0.0,
+                    "last_called": now_iso,
+                    "timestamp": now_iso
+                })
+
+                # Parse JSON array response
                 match = re.search(r'\[.*\]', raw_ans, re.DOTALL)
                 if match:
                     classifications = json.loads(match.group(0))
@@ -233,7 +315,7 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         except Exception as e:
             print(f"[WARN] Groq LLM pass failed, testing Gemini failover: {e}")
 
-    # 2. Try Gemini Failover
+    # 2. Try Gemini 1.5 Flash Failover
     if GEMINI_API_KEY:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
@@ -252,6 +334,25 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
                 raw_ans = res_json['candidates'][0]['content']['parts'][0]['text']
+
+                # Telemetry capture
+                usage_meta = res_json.get('usageMetadata', {})
+                prompt_tok = usage_meta.get('promptTokenCount', len(user_content) // 4)
+                comp_tok = usage_meta.get('candidatesTokenCount', 150)
+                tot_tok = usage_meta.get('totalTokenCount', prompt_tok + comp_tok)
+                LLM_USAGE_TELEMETRY.append({
+                    "date": today_date,
+                    "provider": "gemini",
+                    "model": "gemini-1.5-flash",
+                    "request_count": 1,
+                    "token_count": tot_tok,
+                    "prompt_tokens": prompt_tok,
+                    "completion_tokens": comp_tok,
+                    "cost_estimate": 0.0,
+                    "last_called": now_iso,
+                    "timestamp": now_iso
+                })
+
                 match = re.search(r'\[.*\]', raw_ans, re.DOTALL)
                 if match:
                     classifications = json.loads(match.group(0))
@@ -277,6 +378,9 @@ def classify_batch_llm(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def parse_feed_xml(xml_content: bytes, source_meta: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Parses standard RSS 2.0 and Atom feeds directly using XML ElementTree."""
     items = []
+    if not xml_content:
+        return items
+
     try:
         root = ET.fromstring(xml_content)
         raw_items = root.findall('.//item')
@@ -336,7 +440,7 @@ def parse_feed_xml(xml_content: bytes, source_meta: Dict[str, Any]) -> List[Dict
                 "tier": source_meta.get("tier", 2),
                 "state_funded": source_meta.get("stateFunded", False)
             })
-    except Exception as e:
+    except Exception:
         pass
     return items
 
@@ -359,13 +463,15 @@ def resolve_youtube_streams() -> List[Dict[str, Any]]:
             content
         )
 
-        # Sample top 8 key channels for live inspection
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        # Sample top 10 channels for live inspection
         for item in channels_raw[:10]:
             cid, title, channel, channel_id, uploads_id, cat, reg, reg_group, country = item
             active_live_id = None
             is_live = False
 
-            # Query channel /live endpoint
+            # Query channel /live endpoint server-side
             live_url = f"https://www.youtube.com/channel/{channel_id}/live"
             try:
                 req = urllib.request.Request(
@@ -390,20 +496,25 @@ def resolve_youtube_streams() -> List[Dict[str, Any]]:
 
             # Fallback to playlist if no active live video ID
             fallback_yt_id = active_live_id if active_live_id else "videoseries"
+            effective_uploads_id = uploads_id or get_uploads_playlist_id(channel_id)
 
             verified_streams.append({
                 "id": cid,
                 "title": title,
                 "channel": channel,
+                "channel_name": channel,
                 "channel_id": channel_id,
-                "uploads_playlist_id": uploads_id,
+                "uploads_playlist_id": effective_uploads_id,
                 "category": cat,
                 "region": reg,
                 "country_code": country,
                 "is_live": is_live,
+                "status": "live" if is_live else "offline",
                 "youtube_id": fallback_yt_id,
+                "video_id": fallback_yt_id,
                 "external_url": f"https://www.youtube.com/channel/{channel_id}",
-                "checked_at": datetime.now(timezone.utc).isoformat()
+                "checked_at": now_iso,
+                "last_checked_at": now_iso
             })
     except Exception as e:
         print(f"[WARN] YouTube resolver error: {e}")
@@ -413,12 +524,15 @@ def resolve_youtube_streams() -> List[Dict[str, Any]]:
 # ====================================================================
 # Supabase REST Client
 # ====================================================================
-def upsert_supabase(table: str, records: List[Dict[str, Any]]) -> bool:
+def upsert_supabase(table: str, records: List[Dict[str, Any]], on_conflict: Optional[str] = None) -> bool:
     """Upserts records into Supabase via REST API with merge-duplicates preference."""
     if not SUPABASE_KEY or not records:
         return False
 
     url = f"{SUPABASE_URL}/rest/v1/{table}"
+    if on_conflict:
+        url += f"?on_conflict={urllib.parse.quote(on_conflict)}"
+
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -432,33 +546,62 @@ def upsert_supabase(table: str, records: List[Dict[str, Any]]) -> bool:
         with urllib.request.urlopen(req, timeout=12) as resp:
             return resp.status in (200, 201)
     except urllib.error.HTTPError as e:
-        print(f"[WARN] Supabase HTTP {e.code} on {table}: {e.read().decode('utf-8')}")
+        err_msg = ""
+        try:
+            err_msg = e.read().decode('utf-8', errors='ignore')
+        except Exception:
+            pass
+        if e.code == 401:
+            print(f"[WARN] Supabase HTTP 401 on {table}: {err_msg}")
+        else:
+            print(f"[WARN] Supabase HTTP {e.code} on {table}: {err_msg}")
         return False
     except Exception as e:
         print(f"[WARN] Supabase error on {table}: {e}")
         return False
 
 def prune_supabase_records() -> None:
-    """Prunes articles and clusters older than 30 days via REST API."""
+    """Prunes articles and clusters older than 30 days via RPC stored procedure or REST API."""
     if not SUPABASE_KEY:
         return
 
-    cutoff_iso = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
     }
+
+    # 1. Attempt calling the prune_old_intel stored procedure first
+    rpc_success = False
+    try:
+        rpc_url = f"{SUPABASE_URL}/rest/v1/rpc/prune_old_intel"
+        rpc_payload = json.dumps({"retention_days": RETENTION_DAYS}).encode('utf-8')
+        req = urllib.request.Request(rpc_url, data=rpc_payload, headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            if resp.status in (200, 204):
+                rpc_success = True
+                print("[DB] Automated 30-day prune executed via stored procedure prune_old_intel().")
+    except Exception:
+        pass
+
+    if rpc_success:
+        return
+
+    # 2. Fallback: REST DELETE queries with URL-safe 'Z' timestamp formatting (no +00:00 space decode bug)
+    cutoff_iso = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    encoded_cutoff = urllib.parse.quote(cutoff_iso)
 
     try:
         # Delete old articles
-        url_art = f"{SUPABASE_URL}/rest/v1/articles?published_at=lt.{cutoff_iso}"
+        url_art = f"{SUPABASE_URL}/rest/v1/articles?published_at=lt.{encoded_cutoff}"
         req_art = urllib.request.Request(url_art, headers=headers, method='DELETE')
         urllib.request.urlopen(req_art, timeout=8)
 
         # Delete old clusters
-        url_cls = f"{SUPABASE_URL}/rest/v1/clusters?last_updated=lt.{cutoff_iso}"
+        url_cls = f"{SUPABASE_URL}/rest/v1/clusters?last_updated=lt.{encoded_cutoff}"
         req_cls = urllib.request.Request(url_cls, headers=headers, method='DELETE')
         urllib.request.urlopen(req_cls, timeout=8)
+        print(f"[DB] Automated 30-day prune executed via REST API (cutoff: {cutoff_iso}).")
     except Exception as e:
         print(f"[INFO] Prune notice: {e}")
 
@@ -467,9 +610,10 @@ def prune_supabase_records() -> None:
 # ====================================================================
 def run_pipeline():
     start_time = time.time()
+    now_iso = datetime.now(timezone.utc).isoformat()
     print("=" * 70)
     print("MANEKSHAW.VISION // HEADLESS OSINT INGESTION PIPELINE")
-    print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
+    print(f"Timestamp: {now_iso}")
     print("=" * 70)
 
     georesolver = Georesolver(GAZETTEER_FILE)
@@ -485,6 +629,11 @@ def run_pipeline():
     seen_urls = set()
     seen_titles = []
 
+    # Reset telemetry buffers for current execution
+    global FEED_HEALTH_TELEMETRY, LLM_USAGE_TELEMETRY
+    FEED_HEALTH_TELEMETRY = []
+    LLM_USAGE_TELEMETRY = []
+
     # 2. Fetch Active Feeds
     active_sources = [s for s in sources if s.get('active', True)]
     # Process up to 12 diverse feeds per 15-minute run to respect free-tier execution limits
@@ -492,19 +641,31 @@ def run_pipeline():
         feed_url = src.get('feedUrl')
         if not feed_url:
             continue
+
+        status_code = 0
+        etag_header = None
+        last_mod_header = None
+        item_count = 0
+        error_msg = None
+
         try:
             req = urllib.request.Request(
                 feed_url,
                 headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/xml, text/xml"}
             )
-            with urllib.request.urlopen(req, timeout=6) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                status_code = resp.status
+                etag_header = resp.headers.get('ETag')
+                last_mod_header = resp.headers.get('Last-Modified')
                 xml_data = resp.read()
                 items = parse_feed_xml(xml_data, src)
+                item_count = len(items)
+
                 for it in items:
                     norm_url = it['link']
                     if norm_url in seen_urls:
                         continue
-                    # Check title similarity
+                    # Check title similarity (>80% word overlap)
                     t_lower = it['title'].lower()
                     if any(len(set(t_lower.split()) & set(st.split())) / max(len(t_lower.split()), 1) > 0.8 for st in seen_titles):
                         continue
@@ -512,8 +673,9 @@ def run_pipeline():
                     seen_urls.add(norm_url)
                     seen_titles.append(t_lower)
 
-                    coords, country, region, hotspot = georesolver.resolve(it['title'] + ' ' + it['summary'])
-                    cat, sev = classify_keyword(it['title'] + ' ' + it['summary'])
+                    combined_text = it['title'] + ' ' + it['summary']
+                    coords, country, region, hotspot = georesolver.resolve(combined_text)
+                    cat, sev = classify_keyword(combined_text)
 
                     art_id = f"art_{hash_id(norm_url)}"
                     all_articles.append({
@@ -521,8 +683,10 @@ def run_pipeline():
                         "title": it['title'],
                         "summary": it['summary'],
                         "source": it['source'],
+                        "source_name": it['source'],
                         "source_domain": it['source_domain'],
                         "tier": it['tier'],
+                        "source_tier": it['tier'],
                         "state_funded": it['state_funded'],
                         "published_at": it['published_at'],
                         "category": cat,
@@ -531,16 +695,40 @@ def run_pipeline():
                         "related_hotspot": hotspot,
                         "country_code": country,
                         "link": norm_url,
-                        "created_at": datetime.now(timezone.utc).isoformat()
+                        "url": norm_url,
+                        "created_at": now_iso,
+                        "ingested_at": now_iso
                     })
+        except urllib.error.HTTPError as e:
+            status_code = e.code
+            error_msg = f"HTTP {e.code}"
         except Exception as e:
-            # print(f"[FEED] Skipping {src.get('name')}: {e}")
-            pass
+            status_code = 500
+            error_msg = str(e)[:100]
+
+        FEED_HEALTH_TELEMETRY.append({
+            "feed_url": feed_url,
+            "domain": src.get("domain", ""),
+            "etag": etag_header,
+            "last_modified": last_mod_header,
+            "consecutive_failures": 0 if (200 <= status_code < 400) else 1,
+            "last_status": status_code if status_code else 200,
+            "status": status_code if status_code else 200,
+            "last_error": error_msg,
+            "error_message": error_msg,
+            "last_item_count": item_count,
+            "articles_fetched": item_count,
+            "last_checked": now_iso,
+            "last_fetch_at": now_iso
+        })
 
     print(f"Fetched & deduped {len(all_articles)} fresh intelligence articles.")
 
     # 3. Pass 2: Batched LLM Classification (Groq / Gemini)
     if all_articles:
+        # Sort all_articles by Pass 1 severity (critical > high > medium > low) before slicing [:15]
+        sev_rank = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        all_articles.sort(key=lambda a: sev_rank.get(a.get('severity', 'low'), 3))
         all_articles = classify_batch_llm(all_articles)
 
     # 4. Synthesize Corroborated Clusters (Breaking Marquee Dispatches)
@@ -554,31 +742,45 @@ def run_pipeline():
         if not arts:
             continue
         lead = arts[0]
-        # Corroboration logic: CONFIRMED if >=1 Tier-1 or >=2 independent sources
+        # Corroboration logic: CONFIRMED if >=1 Tier-1 or >=2 independent non-state sources
         has_tier1 = any(a.get('tier') == 1 for a in arts)
         non_state_sources = set(a.get('source_domain') for a in arts if not a.get('state_funded'))
         confidence = "CONFIRMED" if (has_tier1 or len(non_state_sources) >= 2) else "REPORTED"
 
         cluster_id = f"cls_{hash_id(hs_key + lead['title'])[:12]}"
+        crit_count = sum(1 for a in arts if a.get('severity') == 'critical')
+        high_count = sum(1 for a in arts if a.get('severity') == 'high')
+        cluster_esc_score = min(98, max(25, 50 + (crit_count * 8) + (high_count * 4)))
+
         clusters.append({
             "id": cluster_id,
+            "cluster_id": cluster_id,
             "headline": lead['title'],
+            "title": lead['title'],
             "summary": lead['summary'],
             "confidence": confidence,
             "category": lead['category'],
             "severity": lead['severity'],
             "coordinates": lead['coordinates'],
             "related_hotspot": lead.get('related_hotspot'),
-            "country_code": lead.get('country_code'),
+            "related_hotspots": [lead.get('related_hotspot')] if lead.get('related_hotspot') else [],
+            "country_code": lead.get('country_code', 'GLOBAL'),
             "sources": list(set(a['source'] for a in arts))[:5],
+            "source_count": len(set(a['source'] for a in arts)),
+            "highest_tier": min(a.get('tier', 2) for a in arts),
+            "article_ids": [a['id'] for a in arts],
+            "categories": list(set(a['category'] for a in arts)),
+            "escalation_score": cluster_esc_score,
             "first_seen": lead['published_at'],
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "first_seen_at": lead['published_at'],
+            "last_updated": now_iso,
+            "last_updated_at": now_iso,
             "article_count": len(arts)
         })
 
     print(f"Synthesized {len(clusters)} corroborated intelligence clusters.")
 
-    # 5. Dynamic Hotspot Escalation Scores
+    # 5. Dynamic Hotspot Escalation Scores & Deltas
     hotspot_scores = []
     if os.path.exists(GAZETTEER_FILE):
         try:
@@ -592,26 +794,44 @@ def run_pipeline():
                     base_score = 65
                     score = min(98, max(25, base_score + (crit_count * 6) + (high_count * 3)))
                     delta = f"▲ +{len(matched_arts) * 0.8:.1f}" if matched_arts else "— 0.0"
+                    delta_int = int(round(len(matched_arts) * 0.8)) if matched_arts else 0
                     trend = "escalating" if score >= 80 else ("stable" if score >= 50 else "de-escalating")
+
+                    coords = hdata.get("coordinates") or hdata.get("coords", [86.35, 25.06])
+                    country = hdata.get("countryCode") or hdata.get("country", "GLOBAL")
+                    region = hdata.get("region") or hdata.get("theater", "global")
+
+                    top_cat = "military"
+                    if matched_arts:
+                        cat_counts = {}
+                        for a in matched_arts:
+                            cat_counts[a['category']] = cat_counts.get(a['category'], 0) + 1
+                        top_cat = max(cat_counts, key=cat_counts.get)
 
                     hotspot_scores.append({
                         "id": hid,
+                        "hotspot_id": hid,
                         "name": hdata.get("name", hid),
-                        "coordinates": hdata.get("coords", [86.35, 25.06]),
+                        "coordinates": coords,
                         "escalation_score": score,
+                        "score": score,
                         "escalation_trend": trend,
                         "escalation_delta": delta,
-                        "region": hdata.get("region", "global"),
-                        "country_code": hdata.get("countryCode", "GLOBAL"),
+                        "delta": delta_int,
+                        "region": region,
+                        "country_code": country,
                         "telemetry": {
                             "activeReports": len(matched_arts),
                             "criticalAlerts": crit_count,
                             "sensorIntegrity": "NOMINAL"
                         },
-                        "description": f"Real-time monitoring across {hdata.get('name')}.",
+                        "description": f"Real-time monitoring across {hdata.get('name', hid)}.",
                         "why_it_matters": "Strategic global defense, chokepoint security, or border integrity.",
                         "contributing_links": [a['link'] for a in matched_arts[:4]],
-                        "updated_at": datetime.now(timezone.utc).isoformat()
+                        "article_count": len(matched_arts),
+                        "top_category": top_cat,
+                        "updated_at": now_iso,
+                        "last_updated_at": now_iso
                     })
         except Exception as e:
             print(f"[WARN] Hotspot scoring error: {e}")
@@ -620,8 +840,10 @@ def run_pipeline():
     streams = resolve_youtube_streams()
     print(f"Resolved {len(streams)} YouTube live and playlist streams.")
 
-    # 7. Persist to Supabase
-    if SUPABASE_KEY:
+    # 7. Persist Strictly to Supabase (ZERO REPO DATA COMMITS)
+    is_service_role = is_service_role_key(SUPABASE_KEY)
+
+    if SUPABASE_KEY and is_service_role:
         print("[DB] Upserting records into Supabase...")
         if all_articles:
             upsert_supabase('articles', all_articles)
@@ -631,10 +853,16 @@ def run_pipeline():
             upsert_supabase('hotspot_scores', hotspot_scores)
         if streams:
             upsert_supabase('youtube_streams', streams)
+        if FEED_HEALTH_TELEMETRY:
+            upsert_supabase('feed_health', FEED_HEALTH_TELEMETRY)
+        if LLM_USAGE_TELEMETRY:
+            upsert_supabase('llm_usage', LLM_USAGE_TELEMETRY, on_conflict='date,provider,model')
         prune_supabase_records()
         print("[DB] Supabase synchronization complete.")
+    elif SUPABASE_KEY:
+        print("[INFO] Service Role Key not set (read-only anon key detected); skipping database upsert in read-only environment.")
     else:
-        print("[INFO] SUPABASE_KEY not present; skipping remote DB upsert. Local execution succeeded.")
+        print("[INFO] SUPABASE_SERVICE_ROLE_KEY not present; skipping remote DB upsert. Local execution succeeded.")
 
     duration = time.time() - start_time
     print(f"Pipeline finished successfully in {duration:.2f} seconds.")
@@ -646,6 +874,8 @@ def run_pipeline():
         "clusters_count": len(clusters),
         "hotspots_count": len(hotspot_scores),
         "streams_count": len(streams),
+        "feed_health_count": len(FEED_HEALTH_TELEMETRY),
+        "llm_usage_count": len(LLM_USAGE_TELEMETRY),
         "sample_article": all_articles[0] if all_articles else None,
         "sample_cluster": clusters[0] if clusters else None,
         "sample_stream": streams[0] if streams else None
