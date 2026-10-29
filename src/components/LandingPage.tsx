@@ -228,8 +228,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               justifyContent: 'space-between'
             }}
           >
-            {/* Single Crisp Horizontal Brand Lockup */}
-            <div className="flex items-center gap-2.5">
+            {/* Single Crisp Horizontal Brand Lockup – real <a> for drag-to-tab-bar support */}
+            <a
+              href="https://manvis.tech/"
+              aria-label="Manekshaw.Vision home"
+              title="Manekshaw.Vision home"
+              className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm"
+              style={{ textDecoration: 'none' } as React.CSSProperties}
+              onDragStart={(e) => {
+                const url = 'https://manvis.tech/';
+                e.dataTransfer.setData('text/uri-list', url);
+                e.dataTransfer.setData('text/plain', url);
+                const ghost = document.createElement('div');
+                ghost.style.cssText = 'position:fixed;top:-999px;left:-999px;background:#0EA5E9;color:#05080F;font-family:monospace;font-size:11px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap;';
+                ghost.textContent = 'MANEKSHAW.VISION';
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 60, 10);
+                setTimeout(() => document.body.removeChild(ghost), 0);
+              }}
+            >
               <div className="relative flex items-center justify-center w-6 h-6 rounded bg-sky-500/10 border border-sky-500/30 text-sky-400 shrink-0 shadow-[0_0_10px_rgba(56,189,248,0.25)]">
                 <Radio size={13} className="animate-pulse" />
                 <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#10b981]" />
@@ -243,7 +260,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   GEOINT
                 </span>
               </div>
-            </div>
+            </a>
 
             {/* Slim Navigation Links */}
             <nav

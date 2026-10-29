@@ -43,6 +43,8 @@ import {
 import { VIDEO_CATALOGUE, VideoCatalogueItem } from '../data/videoCatalogue';
 import { getYouTubeEmbedUrl, resolveLatestVideoFromRSS } from '../utils/youtubeResolver';
 import { classifySourceTier } from '../services/osintFeedService';
+import { NowPlayingMiniBar } from './NowPlayingMiniBar';
+import { PersistentPlayerHost } from './PersistentPlayerHost';
 
 export const VIDEO_REGION_GROUPS = [
   { id: 'ALL', label: `ALL (${VIDEO_CATALOGUE.length})`, title: 'ALL GLOBAL BROADCASTERS & OSINT', color: '#38BDF8' },
@@ -196,6 +198,15 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
     if (onChangeVideoRegionFilter) onChangeVideoRegionFilter(reg);
   };
 
+  // Reset Videos region to ALL each time the Videos tab becomes active
+  useEffect(() => {
+    if (activeTab === 'videos') {
+      setInternalSelectedVideoRegion('ALL');
+      if (onChangeVideoRegionFilter) onChangeVideoRegionFilter('ALL');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   const [collapsedVideoSections, setCollapsedVideoSections] = useState<Record<string, boolean>>({});
   const toggleVideoSection = (sectionKey: string) => {
     setCollapsedVideoSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
@@ -252,7 +263,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   }, [news, searchQuery, selectedSeverity, currentTheater]);
 
   const filteredVideos = useMemo(() => {
-    return VIDEO_CATALOGUE.filter((item) => {
+    const filtered = VIDEO_CATALOGUE.filter((item) => {
       // Search filter across title, channel, description, region, country, and tags
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -283,6 +294,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
       }
 
       return true;
+    });
+
+    // Stable live-first sort: live channels (isLive === true) before non-live,
+    // preserving the original relative order within each group (stable sort).
+    return filtered.sort((a, b) => {
+      const aLive = a.isLive === true ? 0 : 1;
+      const bLive = b.isLive === true ? 0 : 1;
+      return aLive - bLive;
     });
   }, [searchQuery, selectedVideoRegion, selectedVideoCategory]);
 
@@ -585,6 +604,12 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         </button>
       </div>
 
+      {/* NOW PLAYING mini bar – always mounted outside tab panels so audio survives tab switches */}
+      <NowPlayingMiniBar
+        onOpenVideosTab={() => setActiveTab('videos')}
+        isLight={isLight}
+      />
+
       {/* 2. Modern Segmented Tab Bar */}
       <div
         style={{
@@ -711,6 +736,20 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           })}
         </div>
       )}
+
+      {/* PERSISTENT PLAYER HOST – sits outside all tab panels; CSS-only visibility toggle preserves the iframe */}
+      <div
+        className={
+          activeTab === 'videos' && !isPlayerMinimized
+            ? 'px-3.5 pt-2 shrink-0 bg-[var(--bg-surface-elevated)] border-b border-[var(--border-subtle)]'
+            : 'fixed -top-[9999px] -left-[9999px] w-[1px] h-[1px] opacity-0 pointer-events-none'
+        }
+      >
+        <PersistentPlayerHost
+          isVisible={activeTab === 'videos' && !isPlayerMinimized}
+          isLight={isLight}
+        />
+      </div>
 
       {/* 4. Tab Panels */}
       <div className="flex-1 overflow-y-auto feed-scrollbar">

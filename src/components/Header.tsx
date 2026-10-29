@@ -343,11 +343,32 @@ export const Header: React.FC<HeaderProps> = ({
     >
       {/* 1. Left Cluster: Emblem, Theater Selector, Time Range */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Brand Emblem (Click to return to Home) */}
-        <div
-          onClick={onNavigateHome}
-          className="flex items-center gap-2 cursor-pointer group"
-          title="Return to Manekshaw.Vision Home"
+        {/* Brand Emblem – real <a> so drag-to-tab-bar, middle-click, Ctrl+click, right-click all work natively */}
+        <a
+          href="https://manvis.tech/"
+          aria-label="Manekshaw.Vision home"
+          title="Manekshaw.Vision home"
+          className="flex items-center gap-2 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm"
+          style={{ WebkitUserDrag: 'auto', userSelect: 'none' } as React.CSSProperties}
+          onClick={(e) => {
+            // Same-tab navigation via the app router; preserve browser default for Ctrl/Cmd/middle-click
+            if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+              e.preventDefault();
+              if (onNavigateHome) onNavigateHome();
+            }
+          }}
+          onDragStart={(e) => {
+            const url = 'https://manvis.tech/';
+            e.dataTransfer.setData('text/uri-list', url);
+            e.dataTransfer.setData('text/plain', url);
+            // Clean drag image: the emblem icon element
+            const ghost = document.createElement('div');
+            ghost.style.cssText = 'position:fixed;top:-999px;left:-999px;background:#0EA5E9;color:#05080F;font-family:monospace;font-size:11px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap;';
+            ghost.textContent = 'MANEKSHAW.VISION';
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, 60, 10);
+            setTimeout(() => document.body.removeChild(ghost), 0);
+          }}
         >
           <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 group-hover:border-sky-400 transition-colors">
             <Radio size={13} className="animate-pulse" />
@@ -362,7 +383,7 @@ export const Header: React.FC<HeaderProps> = ({
               LIVE
             </span>
           </div>
-        </div>
+        </a>
 
         {/* Divider */}
         <div className="hud-divider" />
