@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         serif: ['"Source Serif 4 Variable"', '"Source Serif 4"', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },

@@ -364,13 +364,13 @@ export const LayerDock: React.FC<LayerDockProps> = ({
           isLight ? 'hover:bg-[var(--bg-sunken)]' : 'hover:bg-white/[0.04]'
         }`}
         style={{
-          padding: '8px 12px',
+          padding: isLight ? '8px 12px' : '6px 10px',
           background: isLight ? 'var(--bg-panel)' : 'rgba(255, 255, 255, 0.02)',
           borderBottom: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)'
         }}
         title="Click to collapse Layer Matrix"
       >
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center ${isLight ? 'gap-2' : 'gap-1.5'}`}>
           <span className={isLight ? "text-[13px] font-serif font-semibold text-[var(--text-primary)]" : "text-[10.5px] font-bold tracking-wider text-slate-200"}>
             TACTICAL LAYERS
           </span>
@@ -396,13 +396,13 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       <div
         className="space-y-1.5"
         style={{
-          padding: '8px 12px',
+          padding: isLight ? '8px 12px' : '6px 10px',
           borderBottom: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)',
           background: isLight ? 'var(--surface)' : undefined
         }}
       >
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${
+          className={`flex items-center gap-1.5 ${isLight ? 'px-2.5 py-1.5 rounded-lg' : 'px-2 py-1 rounded'} border transition-colors ${
             isLight
               ? 'border-[var(--border-strong)] bg-[var(--surface)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--focus-ring)]'
               : 'border-white/10 bg-white/[0.03] focus-within:border-sky-500/50'
@@ -414,8 +414,8 @@ export const LayerDock: React.FC<LayerDockProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter matrix..."
-            className={`w-full bg-transparent border-none text-[11px] focus:outline-none ${
-              isLight ? 'font-sans text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]' : 'font-mono text-slate-200 placeholder:text-slate-500'
+            className={`w-full bg-transparent border-none focus:outline-none ${
+              isLight ? 'font-sans text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]' : 'font-mono text-[10.5px] text-slate-200 placeholder:text-slate-500'
             }`}
           />
           {searchQuery && (
@@ -654,7 +654,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
       <div
         className={`flex items-center justify-between text-[9px] shrink-0 ${isLight ? 'font-sans' : 'font-mono'}`}
         style={{
-          padding: '5px 12px',
+          padding: isLight ? '5px 12px' : '4px 10px',
           background: isLight ? 'var(--bg-panel)' : 'rgba(255, 255, 255, 0.02)',
           borderTop: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.04)',
           color: isLight ? 'var(--text-tertiary)' : '#38bdf8'

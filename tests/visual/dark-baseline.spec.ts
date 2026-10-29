@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { freezeAnimationsAndSettle, extractMapLibreStyleAndPaint, showMapPopup } from './helpers';
+import { freezeAnimationsAndSettle, extractMapLibreStyleAndPaint, showMapPopup, mockTelemetryFeeds, stabilizeClock } from './helpers';
 
 test.describe('Step 1: Dark Mode Baseline Capture', () => {
   test.beforeEach(async ({ page }) => {
+    await mockTelemetryFeeds(page);
+    await stabilizeClock(page);
     await page.goto('/Dashboard');
     // Ensure dark mode is active
     await page.evaluate(() => {
@@ -33,31 +35,36 @@ test.describe('Step 1: Dark Mode Baseline Capture', () => {
     const baseDir = path.resolve('tests/visual/baseline/screenshots/dark');
     fs.mkdirSync(baseDir, { recursive: true });
 
+    async function captureView(name: string) {
+      await freezeAnimationsAndSettle(page);
+      await page.screenshot({ path: path.join(baseDir, name) });
+    }
+
     // 1. Dashboard
-    await page.screenshot({ path: path.join(baseDir, '01-dashboard.png') });
+    await captureView('01-dashboard.png');
 
     // 2. Feed Tab (default active tab)
-    await page.screenshot({ path: path.join(baseDir, '02-feed.png') });
+    await captureView('02-feed.png');
 
     // 3. Videos Tab
     await page.getByRole('button', { name: 'Videos' }).click();
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '03-videos.png') });
+    await captureView('03-videos.png');
 
     // 4. Hotspots Tab
     await page.getByRole('button', { name: 'Hotspots' }).click();
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '04-hotspots.png') });
+    await captureView('04-hotspots.png');
 
     // 5. Wars Tab
     await page.getByRole('button', { name: 'Wars' }).click();
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '05-wars.png') });
+    await captureView('05-wars.png');
 
     // 6. Assets Tab
     await page.getByRole('button', { name: 'Assets' }).click();
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '06-assets.png') });
+    await captureView('06-assets.png');
 
     // 7. Dossier Tab (select a feature first to populate dossier)
     await page.getByRole('button', { name: 'Hotspots' }).click();
@@ -68,15 +75,15 @@ test.describe('Step 1: Dark Mode Baseline Capture', () => {
     }
     await page.getByRole('button', { name: 'Dossier' }).click();
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '07-dossier.png') });
+    await captureView('07-dossier.png');
 
     // 8. Map Popup
     await showMapPopup(page);
     await page.waitForTimeout(500);
-    await page.screenshot({ path: path.join(baseDir, '08-popup.png') });
+    await captureView('08-popup.png');
 
     // 9. Tactical Layers (focus on the dock)
-    await page.screenshot({ path: path.join(baseDir, '09-tactical-layers.png') });
+    await captureView('09-tactical-layers.png');
 
     // Verify all 9 files exist
     const expectedFiles = [

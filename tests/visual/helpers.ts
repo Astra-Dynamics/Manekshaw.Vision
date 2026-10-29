@@ -1,4 +1,53 @@
 import { Page } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+
+/**
+ * Mock external live telemetry feeds (such as USGS earthquakes) with deterministic fixtures
+ * to prevent pixel jitter between baseline capture and visual regression runs.
+ */
+export async function mockTelemetryFeeds(page: Page) {
+  const weekFixturePath = path.resolve('tests/visual/fixtures/usgs-earthquakes-week.json');
+  const dayFixturePath = path.resolve('tests/visual/fixtures/usgs-earthquakes-day.json');
+  const weekData = fs.readFileSync(weekFixturePath, 'utf-8');
+  const dayData = fs.readFileSync(dayFixturePath, 'utf-8');
+
+  await page.route('**/earthquake.usgs.gov/**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('4.5_day')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: dayData
+      });
+    } else {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: weekData
+      });
+    }
+  });
+}
+
+/**
+ * Stabilize tactical clock to fixed deterministic 19:09:12 without interfering
+ * with MapLibre's requestAnimationFrame or animation loops.
+ */
+export async function stabilizeClock(page: Page) {
+  await page.addInitScript(() => {
+    try {
+      Intl.DateTimeFormat.prototype.format = function() {
+        return '19:09:12';
+      };
+      Date.prototype.toTimeString = function() {
+        return '19:09:12 GMT+0530 (India Standard Time)';
+      };
+    } catch (e) {
+      // Ignore
+    }
+  });
+}
 
 export async function freezeAnimationsAndSettle(page: Page) {
   // 1. Freeze all CSS animations, transitions, and carets
@@ -56,6 +105,11 @@ export async function freezeAnimationsAndSettle(page: Page) {
 
   // 4. Stabilize live tactical clock and ticker marquee for visual regression
   await page.evaluate(() => {
+    const highestId = window.setInterval(() => {}, 0);
+    for (let i = 0; i <= highestId; i++) {
+      window.clearInterval(i);
+    }
+
     const clockSpans = document.querySelectorAll('.min-w-\\[56px\\]');
     clockSpans.forEach((el) => {
       el.textContent = '19:09:12';
