@@ -23,13 +23,17 @@ interface StatusDiagProps {
 
 interface StreamDiagItem {
   id: string;
-  name: string;
+  name?: string;
+  title?: string;
+  channel?: string;
   channelId: string;
   videoId?: string;
+  youtubeId?: string;
   isLive: boolean;
   region: string;
   category: string;
   lastChecked?: string;
+  externalUrl?: string;
 }
 
 export const StatusDiag: React.FC<StatusDiagProps> = ({
@@ -323,39 +327,52 @@ export const StatusDiag: React.FC<StatusDiagProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-[11px]">
-                {streams.map((s) => (
-                  <tr key={s.id} className={isDark ? 'hover:bg-slate-900/40' : 'hover:bg-slate-50'}>
-                    <td className="py-2.5 px-3 font-medium text-slate-200">
-                      {s.name}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-400">{s.region}</td>
-                    <td className="py-2.5 px-3">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
-                        {s.category}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-sky-400">
-                      {s.videoId || `UU${s.channelId.substring(2)}`}
-                    </td>
-                    <td className="py-2.5 px-3">
-                      <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                        ACTIVE EMBED
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-right">
-                      <a
-                        href={`https://www.youtube.com/watch?v=${s.videoId || ''}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sky-400 hover:text-sky-300 inline-flex items-center gap-1"
-                      >
-                        <span>Open</span>
-                        <ExternalLink size={11} />
-                      </a>
-                    </td>
-                  </tr>
-                ))}
+                {streams.map((s) => {
+                  const channelTitle = s.title || s.name || s.channel || s.id;
+                  const activeId = s.youtubeId || s.videoId || `UU${s.channelId.substring(2)}`;
+                  const isLiveStream = Boolean(s.isLive && activeId !== 'videoseries' && !activeId.startsWith('UU'));
+                  const watchUrl = isLiveStream ? `https://www.youtube.com/watch?v=${activeId}` : s.externalUrl || `https://www.youtube.com/channel/${s.channelId}`;
+                  return (
+                    <tr key={s.id} className={isDark ? 'hover:bg-slate-900/40' : 'hover:bg-slate-50'}>
+                      <td className="py-2.5 px-3 font-medium text-slate-200">
+                        {channelTitle}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-400">{s.region}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
+                          {s.category}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-sky-400">
+                        {activeId}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {isLiveStream ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                            LIVE BROADCAST
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-amber-400 font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            PLAYLIST EMBED
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        <a
+                          href={watchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sky-400 hover:text-sky-300 inline-flex items-center gap-1"
+                        >
+                          <span>Open</span>
+                          <ExternalLink size={11} />
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

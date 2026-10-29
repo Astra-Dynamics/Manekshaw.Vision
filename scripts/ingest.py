@@ -21,6 +21,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 
@@ -445,79 +446,275 @@ def parse_feed_xml(xml_content: bytes, source_meta: Dict[str, Any]) -> List[Dict
     return items
 
 # ====================================================================
-# YouTube Live Resolver (Server-Side Headless Canonical Extraction)
+# External Real-Time Telemetry Sensors (NASA, NOAA, USGS, ADSB.lol)
 # ====================================================================
-def resolve_youtube_streams() -> List[Dict[str, Any]]:
-    """Resolves active live stream video IDs and uploads playlists without API keys."""
-    if not os.path.exists(VIDEO_CATALOGUE_FILE):
-        return []
+def fetch_external_telemetry_sensors(georesolver) -> List[Dict[str, Any]]:
+    """
+    Fetches real-time sensor summaries for USGS, NASA EONET v3, NOAA/NWS, and adsb.lol.
+    Caches them into articles to prevent browser-side timeouts and CORS failures.
+    """
+    sensor_articles = []
+    now_iso = datetime.now(timezone.utc).isoformat()
 
-    verified_streams = []
+    # 1. USGS Earthquakes M4.5+
     try:
-        with open(VIDEO_CATALOGUE_FILE, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        # Extract channels array
-        channels_raw = re.findall(
-            r'\{\s*"id":\s*"([^"]+)",\s*"title":\s*"([^"]+)",\s*"channel":\s*"([^"]+)",\s*"channelId":\s*"([^"]+)",\s*"uploadsPlaylistId":\s*"([^"]+)",\s*"category":\s*"([^"]+)",\s*"region":\s*"([^"]+)",\s*"regionGroup":\s*"([^"]+)",\s*"countryCode":\s*"([^"]+)"',
-            content
+        req = urllib.request.Request(
+            "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson",
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"}
         )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            for f in data.get('features', [])[:12]:
+                props = f.get('properties', {})
+                geom = f.get('geometry', {})
+                coords = geom.get('coordinates', [0, 0, 0])
+                mag = float(props.get('mag', 4.5))
+                place = props.get('place', 'Seismic Zone')
+                lon, lat = coords[0], coords[1]
+                title = f"USGS NEIC: M{mag:.1f} Earthquake Detected — {place}"
+                summary = f"Automatic seismic telemetry recorded by USGS National Earthquake Information Center. Hypocenter registered at {coords[2]:.1f} km depth."
+                sev = "critical" if mag >= 6.0 else ("high" if mag >= 5.0 else "medium")
+                t_epoch = props.get('time', time.time() * 1000) / 1000
+                pub_iso = datetime.fromtimestamp(t_epoch, tz=timezone.utc).isoformat()
 
-        now_iso = datetime.now(timezone.utc).isoformat()
-
-        # Sample top 10 channels for live inspection
-        for item in channels_raw[:10]:
-            cid, title, channel, channel_id, uploads_id, cat, reg, reg_group, country = item
-            active_live_id = None
-            is_live = False
-
-            # Query channel /live endpoint server-side
-            live_url = f"https://www.youtube.com/channel/{channel_id}/live"
-            try:
-                req = urllib.request.Request(
-                    live_url,
-                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-                )
-                with urllib.request.urlopen(req, timeout=5) as resp:
-                    final_url = resp.geturl()
-                    # Check if redirected to /watch?v=...
-                    v_match = re.search(r'watch\?v=([a-zA-Z0-9_-]{11})', final_url)
-                    if v_match:
-                        active_live_id = v_match.group(1)
-                        is_live = True
-                    else:
-                        html_body = resp.read().decode('utf-8', errors='ignore')
-                        canonical_match = re.search(r'link rel="canonical" href="https://www\.youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})"', html_body)
-                        if canonical_match:
-                            active_live_id = canonical_match.group(1)
-                            is_live = True
-            except Exception:
-                pass
-
-            # Fallback to playlist if no active live video ID
-            fallback_yt_id = active_live_id if active_live_id else "videoseries"
-            effective_uploads_id = uploads_id or get_uploads_playlist_id(channel_id)
-
-            verified_streams.append({
-                "id": cid,
-                "title": title,
-                "channel": channel,
-                "channel_name": channel,
-                "channel_id": channel_id,
-                "uploads_playlist_id": effective_uploads_id,
-                "category": cat,
-                "region": reg,
-                "country_code": country,
-                "is_live": is_live,
-                "status": "live" if is_live else "offline",
-                "youtube_id": fallback_yt_id,
-                "video_id": fallback_yt_id,
-                "external_url": f"https://www.youtube.com/channel/{channel_id}",
-                "checked_at": now_iso,
-                "last_checked_at": now_iso
-            })
+                sensor_articles.append({
+                    "id": f"art_usgs_{props.get('code', hash_id(place))[:12]}",
+                    "title": title,
+                    "summary": summary,
+                    "source": "USGS NEIC Global Seismic Network",
+                    "source_name": "USGS NEIC",
+                    "source_domain": "earthquake.usgs.gov",
+                    "tier": 1,
+                    "state_funded": False,
+                    "published_at": pub_iso,
+                    "category": "natural",
+                    "severity": sev,
+                    "coordinates": [lon, lat],
+                    "related_hotspot": None,
+                    "country_code": "GLOBAL",
+                    "region": "global",
+                    "link": props.get('url', 'https://earthquake.usgs.gov'),
+                    "cluster_id": None
+                })
     except Exception as e:
-        print(f"[WARN] YouTube resolver error: {e}")
+        print(f"[WARN] USGS sensor fetch notice: {e}")
+
+    # 2. NASA EONET v3 Natural Events
+    try:
+        req = urllib.request.Request(
+            "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=15",
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            for ev in data.get('events', []):
+                title = ev.get('title', 'NASA Earth Observation Event')
+                cats = ev.get('categories', [])
+                cat_title = cats[0].get('title', 'Natural Event') if cats else 'Natural Event'
+                geoms = ev.get('geometry', [])
+                coords = [86.35, 25.06]
+                if geoms:
+                    c = geoms[-1].get('coordinates', [86.35, 25.06])
+                    if isinstance(c, list) and len(c) >= 2 and isinstance(c[0], (int, float)):
+                        coords = [c[0], c[1]]
+                sensor_articles.append({
+                    "id": f"art_eonet_{ev.get('id', hash_id(title))[:12]}",
+                    "title": f"NASA EONET: {cat_title} — {title}",
+                    "summary": f"NASA Earth Observatory Natural Event Tracker (EONET v3) recorded active environmental anomaly and planetary telemetry.",
+                    "source": "NASA Earth Observatory (EONET v3)",
+                    "source_name": "NASA EONET",
+                    "source_domain": "eonet.gsfc.nasa.gov",
+                    "tier": 1,
+                    "state_funded": False,
+                    "published_at": geoms[-1].get('date', now_iso) if geoms else now_iso,
+                    "category": "natural",
+                    "severity": "medium",
+                    "coordinates": coords,
+                    "related_hotspot": None,
+                    "country_code": "GLOBAL",
+                    "region": "global",
+                    "link": ev.get('link', 'https://eonet.gsfc.nasa.gov'),
+                    "cluster_id": None
+                })
+    except Exception as e:
+        print(f"[WARN] NASA EONET sensor fetch notice: {e}")
+
+    # 3. NOAA/NWS Weather Alerts
+    try:
+        req = urllib.request.Request(
+            "https://api.weather.gov/alerts/active?status=actual&severity=Extreme&limit=10",
+            headers={"User-Agent": "ManekshawVision/1.0 (contact@manvis.tech)", "Accept": "application/geo+json"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            for f in data.get('features', []):
+                p = f.get('properties', {})
+                headline = p.get('headline') or p.get('event', 'Severe Weather Warning')
+                desc = (p.get('description') or '')[:200]
+                geom = f.get('geometry')
+                coords = [-98.57, 39.82]
+                if geom and geom.get('coordinates'):
+                    c = geom.get('coordinates')
+                    if isinstance(c, list) and len(c) > 0:
+                        while isinstance(c[0], list):
+                            c = c[0]
+                        if len(c) >= 2 and isinstance(c[0], (int, float)):
+                            coords = [c[0], c[1]]
+                sensor_articles.append({
+                    "id": f"art_nws_{p.get('id', hash_id(headline))[:12]}",
+                    "title": f"NOAA/NWS Alert: {headline}",
+                    "summary": desc or "National Weather Service issued severe atmospheric warning bulletin.",
+                    "source": "NOAA / National Weather Service",
+                    "source_name": "NOAA NWS",
+                    "source_domain": "weather.gov",
+                    "tier": 1,
+                    "state_funded": False,
+                    "published_at": p.get('sent', now_iso),
+                    "category": "natural",
+                    "severity": "high" if p.get('severity') == 'Extreme' else "medium",
+                    "coordinates": coords,
+                    "related_hotspot": None,
+                    "country_code": "US",
+                    "region": "Americas",
+                    "link": "https://www.weather.gov",
+                    "cluster_id": None
+                })
+    except Exception as e:
+        print(f"[WARN] NOAA Weather sensor fetch notice: {e}")
+
+    # 4. adsb.lol Military Aircraft Telemetry
+    try:
+        req = urllib.request.Request(
+            "https://api.adsb.lol/v2/mil",
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            ac_list = data.get('ac', [])
+            total_mil = len(ac_list)
+            if total_mil > 0:
+                sensor_articles.append({
+                    "id": f"art_adsb_{int(time.time() // 900)}",
+                    "title": f"ADSB Military Telemetry: {total_mil} Active Military Aircraft Airborne in Global Theaters",
+                    "summary": f"Real-time ADS-B transponder telemetry recorded {total_mil} airborne military assets including airborne tankers, ISR reconnaissance platforms, and tactical transports.",
+                    "source": "adsb.lol Open Transponder Network",
+                    "source_name": "ADSB.lol",
+                    "source_domain": "adsb.lol",
+                    "tier": 2,
+                    "state_funded": False,
+                    "published_at": now_iso,
+                    "category": "military",
+                    "severity": "high" if total_mil > 300 else "medium",
+                    "coordinates": [86.35, 25.06],
+                    "related_hotspot": None,
+                    "country_code": "GLOBAL",
+                    "region": "global",
+                    "link": "https://adsb.lol",
+                    "cluster_id": None
+                })
+    except Exception as e:
+        print(f"[WARN] adsb.lol sensor fetch notice: {e}")
+
+    return sensor_articles
+
+# ====================================================================
+# YouTube Live Resolver (Parallel Server-Side Live Inspection)
+# ====================================================================
+TARGET_247_CHANNELS = [
+    # India 24/7 Live Broadcasters
+    {"id": "dd_india", "title": "DD India 24/7 Live", "channel": "DD India", "channel_id": "UCGDQNvybfDDeGTf4GtigXaw", "uploads_id": "UUGDQNvybfDDeGTf4GtigXaw", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "wion", "title": "WION: World Is One News", "channel": "WION", "channel_id": "UC_gUM8rL-Lzy6Z832PDOzsA", "uploads_id": "UU_gUM8rL-Lzy6Z832PDOzsA", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "ndtv_india", "title": "NDTV 24x7", "channel": "NDTV 24x7", "channel_id": "UCZFMm1mMw0F81Z37aaEzTUA", "uploads_id": "UUZFMm1mMw0F81Z37aaEzTUA", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "india_today", "title": "India Today Live", "channel": "India Today", "channel_id": "UCYPvAwZP8pZhSMW8qs7cVCw", "uploads_id": "UUYPvAwZP8pZhSMW8qs7cVCw", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "aaj_tak", "title": "Aaj Tak Live", "channel": "Aaj Tak", "channel_id": "UCt4t-jeY85JegMlZ-E5UWtA", "uploads_id": "UUt4t-jeY85JegMlZ-E5UWtA", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "sansad_tv", "title": "Sansad TV (Parliament of India)", "channel": "Sansad TV", "channel_id": "UCv01OP4p0c1XnB3fG7B1P-w", "uploads_id": "UUv01OP4p0c1XnB3fG7B1P-w", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+    {"id": "firstpost_vantage", "title": "Firstpost (Vantage)", "channel": "Firstpost", "channel_id": "UCz8QaiQxApLq8sLNcszYyJw", "uploads_id": "UUz8QaiQxApLq8sLNcszYyJw", "category": "24/7 LIVE NEWS", "region": "India / S. Asia", "country": "IN"},
+
+    # Global 24/7 Live Broadcasters
+    {"id": "aljazeera_en", "title": "Al Jazeera English Live", "channel": "Al Jazeera English", "channel_id": "UC6ZFN9Tx6xh-skXCuRHCDpQ", "uploads_id": "UU6ZFN9Tx6xh-skXCuRHCDpQ", "category": "24/7 LIVE NEWS", "region": "Middle East", "country": "QA"},
+    {"id": "dw_news", "title": "DW News Live", "channel": "DW News", "channel_id": "UCknLrEdhRCp1HK5ECQ9nkJw", "uploads_id": "UUknLrEdhRCp1HK5ECQ9nkJw", "category": "24/7 LIVE NEWS", "region": "Europe / UK", "country": "DE"},
+    {"id": "france24_en", "title": "France 24 English", "channel": "France 24 English", "channel_id": "UCQfwfsi5VrQ8yKZ-UWmAEFg", "uploads_id": "UUQfwfsi5VrQ8yKZ-UWmAEFg", "category": "24/7 LIVE NEWS", "region": "Europe / UK", "country": "FR"},
+    {"id": "sky_news", "title": "Sky News Live", "channel": "Sky News", "channel_id": "UCoMdktPbSTixAyNGwb-UYkQ", "uploads_id": "UUoMdktPbSTixAyNGwb-UYkQ", "category": "24/7 LIVE NEWS", "region": "Europe / UK", "country": "GB"},
+    {"id": "cna_live", "title": "CNA 24/7 Live", "channel": "CNA", "channel_id": "UC83jt4dlz1Gjl58fzQ5KKGg", "uploads_id": "UU83jt4dlz1Gjl58fzQ5KKGg", "category": "24/7 LIVE NEWS", "region": "East Asia / Indo-Pacific", "country": "SG"},
+    {"id": "nhk_world", "title": "NHK World-Japan Live", "channel": "NHK World-Japan", "channel_id": "UCvdHQUPn9pnngnLBN_NqPNA", "uploads_id": "UUvdHQUPn9pnngnLBN_NqPNA", "category": "24/7 LIVE NEWS", "region": "East Asia / Indo-Pacific", "country": "JP"},
+    {"id": "euronews_en", "title": "Euronews English Live", "channel": "Euronews English", "channel_id": "UCSrZ3UV4jOidv8ppoVuvW9Q", "uploads_id": "UUSrZ3UV4jOidv8ppoVuvW9Q", "category": "24/7 LIVE NEWS", "region": "Europe / UK", "country": "EU"},
+    {"id": "nasa_live", "title": "NASA Live & ISS Telemetry", "channel": "NASA", "channel_id": "UCLA_DiR1FfKNvjuUpBHmylQ", "uploads_id": "UULA_DiR1FfKNvjuUpBHmylQ", "category": "24/7 LIVE NEWS", "region": "Global Wire", "country": "GLOBAL"},
+
+    # Special Analysts
+    {"id": "perun", "title": "Perun Defense Economics", "channel": "Perun", "channel_id": "UCC3ehuUksTyQ7bbjGntmx3Q", "uploads_id": "UUC3ehuUksTyQ7bbjGntmx3Q", "category": "★ SPECIAL ANALYSTS", "region": "Global Wire", "country": "AU"},
+    {"id": "caspian_report", "title": "CaspianReport (Shirvan)", "channel": "CaspianReport", "channel_id": "UCnZjF-jc2h8I1fKAce1vFog", "uploads_id": "UUnZjF-jc2h8I1fKAce1vFog", "category": "★ SPECIAL ANALYSTS", "region": "Global Wire", "country": "GLOBAL"}
+]
+
+def check_single_channel_live(item: Dict[str, Any], now_iso: str) -> Dict[str, Any]:
+    cid = item["id"]
+    channel_id = item["channel_id"]
+    uploads_id = item.get("uploads_id") or get_uploads_playlist_id(channel_id)
+    active_live_id = None
+    is_live = False
+
+    live_url = f"https://www.youtube.com/channel/{channel_id}/live"
+    try:
+        req = urllib.request.Request(
+            live_url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            final_url = resp.geturl()
+            v_match = re.search(r'watch\?v=([a-zA-Z0-9_-]{11})', final_url)
+            if v_match:
+                active_live_id = v_match.group(1)
+                is_live = True
+            else:
+                html_body = resp.read().decode('utf-8', errors='ignore')
+                canonical_match = re.search(r'link rel="canonical" href="https://www\.youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})"', html_body)
+                if canonical_match:
+                    active_live_id = canonical_match.group(1)
+                    is_live = True
+                elif '"isLive":true' in html_body or '"isLiveNow":true' in html_body:
+                    body_v = re.search(r'"videoId":"([a-zA-Z0-9_-]{11})"', html_body)
+                    if body_v:
+                        active_live_id = body_v.group(1)
+                        is_live = True
+    except Exception:
+        pass
+
+    fallback_yt_id = active_live_id if (is_live and active_live_id) else "videoseries"
+
+    return {
+        "id": cid,
+        "title": item["title"],
+        "channel": item["channel"],
+        "channel_name": item["channel"],
+        "channel_id": channel_id,
+        "uploads_playlist_id": uploads_id,
+        "category": item["category"],
+        "region": item["region"],
+        "country_code": item["country"],
+        "is_live": is_live,
+        "status": "live" if is_live else "offline",
+        "youtube_id": fallback_yt_id,
+        "video_id": fallback_yt_id,
+        "external_url": f"https://www.youtube.com/channel/{channel_id}",
+        "checked_at": now_iso,
+        "last_checked_at": now_iso
+    }
+
+def resolve_youtube_streams() -> List[Dict[str, Any]]:
+    """Resolves active live stream video IDs in parallel across 24/7 channels and analysts."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    verified_streams = []
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(check_single_channel_live, ch, now_iso) for ch in TARGET_247_CHANNELS]
+        for fut in as_completed(futures):
+            try:
+                res = fut.result()
+                if res:
+                    verified_streams.append(res)
+            except Exception as e:
+                print(f"[WARN] Channel resolver error: {e}")
 
     return verified_streams
 
@@ -723,6 +920,12 @@ def run_pipeline():
         })
 
     print(f"Fetched & deduped {len(all_articles)} fresh intelligence articles.")
+
+    # 2.5 Ingest External Real-Time Telemetry Sensors (NASA, NOAA, USGS, ADSB.lol)
+    sensor_articles = fetch_external_telemetry_sensors(georesolver)
+    if sensor_articles:
+        all_articles.extend(sensor_articles)
+        print(f"Ingested {len(sensor_articles)} real-time sensor events from USGS, NASA EONET, NOAA NWS, and adsb.lol.")
 
     # 3. Pass 2: Batched LLM Classification (Groq / Gemini)
     if all_articles:

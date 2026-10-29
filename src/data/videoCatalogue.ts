@@ -583,6 +583,50 @@ export const VIDEO_CATALOGUE: VideoCatalogueItem[] = [
     "monogram": "SND"
   },
   {
+    "id": "aaj_tak",
+    "title": "Aaj Tak Live",
+    "channel": "Aaj Tak",
+    "channelId": "UCt4t-jeY85JegMlZ-E5UWtA",
+    "uploadsPlaylistId": "UUt4t-jeY85JegMlZ-E5UWtA",
+    "category": "24/7 LIVE NEWS",
+    "region": "India / S. Asia",
+    "regionGroup": "INDIA",
+    "countryCode": "IN",
+    "isLive": true,
+    "tags": [
+      "National Security",
+      "Hindi News",
+      "Breaking",
+      "India"
+    ],
+    "youtubeId": "Nq2wYlWFucg",
+    "externalUrl": "https://www.youtube.com/@aajtak",
+    "description": "Premier Indian news broadcaster delivering 24/7 breaking national defense, LAC border tracking, and security reporting.",
+    "monogram": "ATK"
+  },
+  {
+    "id": "firstpost_vantage",
+    "title": "Firstpost (Vantage)",
+    "channel": "Firstpost",
+    "channelId": "UCz8QaiQxApLq8sLNcszYyJw",
+    "uploadsPlaylistId": "UUz8QaiQxApLq8sLNcszYyJw",
+    "category": "24/7 LIVE NEWS",
+    "region": "India / S. Asia",
+    "regionGroup": "INDIA",
+    "countryCode": "IN",
+    "isLive": true,
+    "tags": [
+      "Vantage",
+      "Palki Sharma",
+      "Geopolitics",
+      "Global South"
+    ],
+    "youtubeId": "H9bS51o1q3g",
+    "externalUrl": "https://www.youtube.com/@Firstpost",
+    "description": "Global geopolitical analysis and strategic affairs from an Indian and Global South perspective.",
+    "monogram": "FP"
+  },
+  {
     "id": "reuters_live",
     "title": "Reuters Live Wires",
     "channel": "Reuters",
