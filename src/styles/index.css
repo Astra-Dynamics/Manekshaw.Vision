@@ -317,6 +317,49 @@ body {
 .pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
 .pulse-amber { animation: radar-pulse-amber 2s infinite; }
 
+/* Light Mode Calm Radar Pulse Beacons */
+@keyframes radar-pulse-coral-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(192, 57, 43, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+}
+
+@keyframes radar-pulse-cyan-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 111, 143, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(47, 111, 143, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 111, 143, 0); }
+}
+
+@keyframes radar-pulse-amber-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(183, 121, 31, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(183, 121, 31, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(183, 121, 31, 0); }
+}
+
+@keyframes radar-pulse-emerald-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(31, 122, 92, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(31, 122, 92, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(31, 122, 92, 0); }
+}
+
+.light .pulse-red, .light .pulse-coral,
+.light-theme .pulse-red, .light-theme .pulse-coral {
+  animation: radar-pulse-coral-light 3s infinite;
+}
+.light .pulse-green, .light .pulse-emerald,
+.light-theme .pulse-green, .light-theme .pulse-emerald {
+  animation: radar-pulse-emerald-light 3s infinite;
+}
+.light .pulse-cyan,
+.light-theme .pulse-cyan {
+  animation: radar-pulse-cyan-light 3s infinite;
+}
+.light .pulse-amber,
+.light-theme .pulse-amber {
+  animation: radar-pulse-amber-light 3s infinite;
+}
+
+
 /* Marquee for Landing Page */
 @keyframes marquee-flow {
   0% { transform: translateX(0%); }
@@ -423,6 +466,47 @@ body {
   color: #0284c7 !important;
   background: transparent !important;
 }
+
+/* Light Mode Maplibre & Tactical Popup Overrides */
+.light-theme .maplibregl-popup-content,
+.light .maplibregl-popup-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--text-primary) !important;
+  padding: 12px 14px !important;
+}
+.light-theme .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-left .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-right .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-close-button,
+.light .maplibregl-popup-close-button {
+  color: var(--text-tertiary) !important;
+}
+.light-theme .maplibregl-popup-close-button:hover,
+.light .maplibregl-popup-close-button:hover {
+  color: var(--accent) !important;
+}
+
+.light-theme .maplibregl-ctrl-group,
+.light .maplibregl-ctrl-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+.light-theme .maplibregl-ctrl-group button,
+.light .maplibregl-ctrl-group button {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
 
 /* Smooth anchor scrolling with offset for razor-thin 48px pinned header */
 html {

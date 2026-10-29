@@ -12,6 +12,8 @@ import {
   Check
 } from 'lucide-react';
 import { LayerKey, LayerMetadata, ThemeMode } from '../types';
+import { getLayerColor } from '../utils/categoryColors';
+
 
 interface LayerDockProps {
   activeLayers: Record<LayerKey, boolean>;
@@ -524,6 +526,7 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                       const isActive = !!activeLayers[layer.id];
                       const count = counts[layer.id];
                       const isInfoOpen = infoExpandedId === layer.id;
+                      const layerColor = isLight ? getLayerColor(layer.id, 'light') : layer.color;
 
                       return (
                         <div key={layer.id} className="group">
@@ -547,9 +550,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                               <div
                                 className="w-3.5 h-3.5 rounded-[3px] flex items-center justify-center shrink-0 transition-all border"
                                 style={{
-                                  backgroundColor: isActive ? layer.color : (isLight ? 'var(--surface)' : 'rgba(255, 255, 255, 0.05)'),
-                                  borderColor: isActive ? layer.color : (isLight ? 'var(--border-strong)' : 'rgba(255, 255, 255, 0.15)'),
-                                  boxShadow: isActive ? (isLight ? 'none' : `0 0 6px ${layer.color}66`) : undefined
+                                  backgroundColor: isActive ? layerColor : (isLight ? 'var(--surface)' : 'rgba(255, 255, 255, 0.05)'),
+                                  borderColor: isActive ? layerColor : (isLight ? 'var(--border-strong)' : 'rgba(255, 255, 255, 0.15)'),
+                                  boxShadow: isActive ? (isLight ? 'none' : `0 0 6px ${layerColor}66`) : undefined
                                 }}
                               >
                                 {isActive && <Check size={9} strokeWidth={3.5} className="text-white" />}
@@ -559,8 +562,8 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                               <span
                                 className="w-1.5 h-1.5 rounded-full shrink-0"
                                 style={{
-                                  backgroundColor: layer.color,
-                                  boxShadow: isActive ? (isLight ? 'none' : `0 0 6px ${layer.color}`) : 'none'
+                                  backgroundColor: layerColor,
+                                  boxShadow: isActive ? (isLight ? 'none' : `0 0 6px ${layerColor}`) : 'none'
                                 }}
                               />
 
@@ -631,8 +634,9 @@ export const LayerDock: React.FC<LayerDockProps> = ({
                                 }}
                               >
                                 <span>KEY: {layer.id}</span>
-                                <span style={{ color: layer.color }}>● ACCENT {layer.color}</span>
+                                <span style={{ color: layerColor }}>● ACCENT {layerColor}</span>
                               </div>
+
                             </div>
                           )}
                         </div>

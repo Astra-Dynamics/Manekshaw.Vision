@@ -68,7 +68,7 @@ async function verifyDarkMapInvariance() {
     const currentData = await extractMapLibreStyleAndPaint(page);
     await browser.close();
 
-    const baselineRaw = fs.readFileSync(baselinePath, 'utf-8');
+    const baselineRaw = fs.readFileSync(baselinePath, 'utf-8').replace(/\r\n/g, '\n');
     const currentRaw = JSON.stringify(currentData, null, 2);
 
     if (baselineRaw === currentRaw) {
