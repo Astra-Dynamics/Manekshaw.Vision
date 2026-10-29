@@ -1,5 +1,7 @@
 # Manekshaw.Vision — Sovereign Situational Awareness & Global Defense Intelligence Platform
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anantjain1109/Manekshaw.Vision)
+
 A sovereign, high-performance real-time global intelligence and defense dashboard built with **React 18**, **MapLibre GL**, **Tailwind CSS**, and **Vite**.
 
 Honoring the strategic clarity and visionary leadership of Field Marshal Sam Manekshaw, **Manekshaw.Vision** delivers comprehensive real-time situational awareness across geopolitical flashpoints, military deployments, strategic chokepoints, critical infrastructure, and national security domains.
