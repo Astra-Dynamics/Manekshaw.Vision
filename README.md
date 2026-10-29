@@ -1,6 +1,6 @@
 # Manekshaw.Vision — Sovereign Situational Awareness & Global Defense Intelligence Platform
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anantjain1109/Manekshaw.Vision)
+[![Ask DeepWiki](https://raw.githubusercontent.com/anantjain1109/Manekshaw.Vision/main/public/deepwiki-badge.svg)](https://deepwiki.com/anantjain1109/Manekshaw.Vision)
 
 A sovereign, high-performance real-time global intelligence and defense dashboard built with **React 18**, **MapLibre GL**, **Tailwind CSS**, and **Vite**.
 
