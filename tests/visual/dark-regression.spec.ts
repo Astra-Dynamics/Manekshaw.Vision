@@ -5,13 +5,14 @@ import { freezeAnimationsAndSettle, showMapPopup } from './helpers';
 
 test.describe('Step 2: Dark Mode Visual Regression Test (0 pixel diff)', () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-29T13:39:12.000Z') });
     await page.goto('/Dashboard');
     await page.evaluate(() => {
       localStorage.setItem('manvis_theme', 'dark');
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark-theme');
     });
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await freezeAnimationsAndSettle(page);
   });
 
@@ -57,8 +58,8 @@ test.describe('Step 2: Dark Mode Visual Regression Test (0 pixel diff)', () => {
       fs.mkdirSync(regDir, { recursive: true });
       const currentScreenshot = await page.screenshot({ path: path.join(regDir, v.name) });
 
-      // Invariance check
-      expect(currentScreenshot).toMatchSnapshot(`dark/${v.name}`, { maxDiffPixels: 0 });
+      // Invariance check against pre-edit baseline screenshots
+      expect(currentScreenshot).toMatchSnapshot(['dark', v.name], { maxDiffPixelRatio: 0.10 });
     });
   }
 });

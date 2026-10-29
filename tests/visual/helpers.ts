@@ -54,6 +54,19 @@ export async function freezeAnimationsAndSettle(page: Page) {
     }
   });
 
+  // 4. Stabilize live tactical clock and ticker marquee for visual regression
+  await page.evaluate(() => {
+    const clockSpans = document.querySelectorAll('.min-w-\\[56px\\]');
+    clockSpans.forEach((el) => {
+      el.textContent = '19:09:12';
+    });
+    const marquee = document.querySelector('.animate-marquee-dashboard') as HTMLElement;
+    if (marquee) {
+      marquee.style.transform = 'none';
+      marquee.style.animation = 'none';
+    }
+  });
+
   // Settle time for rasterization
   await page.waitForTimeout(500);
 }
