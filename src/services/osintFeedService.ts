@@ -1,5 +1,6 @@
 import { IntelNewsItem } from '../types';
 import { BREAKING_INTEL_DISPATCHES } from './newsService';
+import { getLiveIntelDispatches } from './liveFeedAdapter';
 
 const OSINT_CACHE_KEY = 'manvis_osint_feed_cache';
 const OSINT_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
@@ -179,6 +180,7 @@ export async function fetchLiveUsgsQuakes(): Promise<IntelNewsItem[]> {
         summary: `Hypocenter registered at ${depth.toFixed(1)} km depth. Automatic seismic telemetry recorded by USGS National Earthquake Information Center.`,
         source: 'USGS NEIC Real-Time Sensor',
         timeAgo,
+        publishedAt: new Date(f.properties.time).toISOString(),
         category: 'natural',
         severity: mag >= 6.0 ? 'critical' : mag >= 5.0 ? 'high' : 'medium',
         coordinates: [lon, lat],
@@ -222,8 +224,12 @@ export async function getAggregatedOsintFeed(): Promise<IntelNewsItem[]> {
   // Fetch live earthquakes
   const quakes = await fetchLiveUsgsQuakes();
 
-  // Combine live quakes + rich breaking corpus
-  const merged: IntelNewsItem[] = [...quakes, ...BREAKING_INTEL_DISPATCHES];
+  // Combine live quakes + live feed dispatches
+  let liveDispatches = await getLiveIntelDispatches();
+  if (!liveDispatches || liveDispatches.length === 0) {
+    liveDispatches = BREAKING_INTEL_DISPATCHES;
+  }
+  const merged: IntelNewsItem[] = [...quakes, ...liveDispatches];
 
   // Sort by severity (critical first) and then newest
   const sorted = merged.sort((a, b) => {

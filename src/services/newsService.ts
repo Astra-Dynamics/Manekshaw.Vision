@@ -369,8 +369,11 @@ export const BREAKING_INTEL_DISPATCHES: IntelNewsItem[] = [
   }
 ];
 
-export async function fetchLiveNewsDispatches(): Promise<IntelNewsItem[]> {
-  // In a production environment, this function fetches latest RSS feeds via a backend or worker.
-  // We return the rich curated breaking dispatch array by default.
-  return BREAKING_INTEL_DISPATCHES;
+export async function fetchLiveNewsDispatches(timeRange: string = '7d'): Promise<IntelNewsItem[]> {
+  try {
+    const { getLiveIntelDispatches } = await import('./liveFeedAdapter');
+    return await getLiveIntelDispatches(timeRange);
+  } catch (e) {
+    return BREAKING_INTEL_DISPATCHES;
+  }
 }

@@ -762,7 +762,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         category: item.category,
                         severity: item.severity,
                         description: item.summary,
-                        source: item.source
+                        source: item.source,
+                        link: (item as any).link
                       });
                     }
                   }}
@@ -889,14 +890,19 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                       <span
-                        className="truncate text-[10.5px]"
+                        className="truncate text-[10.5px] cursor-pointer hover:underline hover:text-sky-400 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = (item as any).link || `https://news.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}`;
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        }}
                         style={{
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                           minWidth: 0
                         }}
-                        title={item.source}
+                        title={`Open source: ${item.source}`}
                       >
                         {item.source}
                       </span>
@@ -1131,7 +1137,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                         })}
                         title={activeVideo.title}
                         className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                       />
                     </div>

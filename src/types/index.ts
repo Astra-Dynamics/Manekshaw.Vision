@@ -130,6 +130,7 @@ export interface IntelNewsItem {
   summary: string;
   source: string;
   timeAgo: string;
+  publishedAt?: string;
   category: 'military' | 'geopolitical' | 'cyber' | 'natural' | 'economic';
   severity: 'critical' | 'high' | 'medium' | 'low';
   coordinates?: [number, number];

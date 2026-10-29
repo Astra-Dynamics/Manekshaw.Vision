@@ -14,6 +14,8 @@ import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthModal } from './components/AuthModal';
 import { AuthPage } from './components/AuthPage';
+import { StatusDiag } from './pages/StatusDiag';
+import { filterByTimeRange, getLiveHotspots } from './services/liveFeedAdapter';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
   LayerKey,
@@ -1160,6 +1162,12 @@ const AppContent: React.FC = () => {
   const [liveEonet, setLiveEonet] = useState<MapFeatureItem[]>([]);
   const [liveWeather, setLiveWeather] = useState<MapFeatureItem[]>([]);
   const [newsFeed, setNewsFeed] = useState<IntelNewsItem[]>(BREAKING_INTEL_DISPATCHES);
+  const [liveHotspots, setLiveHotspots] = useState<IntelHotspot[]>(INTEL_HOTSPOTS);
+
+  // Active time-range filtered news feed
+  const filteredNewsFeed = useMemo(() => {
+    return filterByTimeRange(newsFeed, timeRange);
+  }, [newsFeed, timeRange]);
 
   // Load Real-Time Public APIs & OSINT Feed
   useEffect(() => {
@@ -1177,10 +1185,16 @@ const AppContent: React.FC = () => {
       if (mounted) setLiveWeather(w);
     });
 
-    // Initial Live OSINT Feed fetch
+    // Initial Live OSINT Feed & Hotspots fetch
     getAggregatedOsintFeed().then((feed) => {
       if (mounted && feed && feed.length > 0) {
         setNewsFeed(feed);
+      }
+    });
+
+    getLiveHotspots().then((hs) => {
+      if (mounted && hs && hs.length > 0) {
+        setLiveHotspots(hs);
       }
     });
 
@@ -1189,6 +1203,11 @@ const AppContent: React.FC = () => {
       getAggregatedOsintFeed().then((feed) => {
         if (mounted && feed && feed.length > 0) {
           setNewsFeed(feed);
+        }
+      });
+      getLiveHotspots().then((hs) => {
+        if (mounted && hs && hs.length > 0) {
+          setLiveHotspots(hs);
         }
       });
     }, 3 * 60 * 1000);
@@ -1448,7 +1467,8 @@ const AppContent: React.FC = () => {
       category: alert.category,
       severity: alert.severity,
       description: alert.summary,
-      source: alert.source
+      source: alert.source,
+      link: alert.link
     });
     updateActiveTabIntelDesk({
       activeSubTab: 'dossier'
@@ -1491,6 +1511,16 @@ const AppContent: React.FC = () => {
     );
   }
 
+  if (currentPath.toLowerCase() === '/status') {
+    return (
+      <StatusDiag
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
+        theme={theme}
+      />
+    );
+  }
+
   if (!isDashboard) {
     return (
       <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
@@ -1516,7 +1546,7 @@ const AppContent: React.FC = () => {
           center={mapCenter}
           zoom={mapZoom}
           activeLayers={activeLayers}
-          hotspots={INTEL_HOTSPOTS}
+          hotspots={liveHotspots}
           conflicts={CONFLICT_ZONES}
           features={allFeatures}
           theme={theme}
@@ -1558,7 +1588,7 @@ const AppContent: React.FC = () => {
             setMapZoom(newZoom);
           }
         }}
-        alerts={newsFeed}
+        alerts={filteredNewsFeed}
         onSelectAlert={handleSelectAlert}
         onOpenAuthModal={() => handleOpenAuth('signin')}
         onNavigateLogin={() => handleNavigateLogin('signin')}
@@ -1642,10 +1672,10 @@ const AppContent: React.FC = () => {
             isOpen={isRightPanelOpen}
             onClose={() => setIsRightPanelOpen(false)}
             theme={theme}
-            hotspots={INTEL_HOTSPOTS}
+            hotspots={liveHotspots}
             conflicts={CONFLICT_ZONES}
             features={allFeatures}
-            news={newsFeed}
+            news={filteredNewsFeed}
             selectedFeature={selectedFeature}
             onSelectFeature={handleSelectFeature}
             onCenterMap={(c) => {
