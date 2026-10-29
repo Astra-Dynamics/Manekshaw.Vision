@@ -54,7 +54,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
 
   // Tactical Warm Light Blueprint / Daylight Cartographic Palette for Light Mode ONLY
   const applyLightModeBasemapStyling = (map: maplibregl.Map) => {
-    // Defensive Helper: verifies layer existence & type, isolates individual updates
+    // Defensive Helper: checks layer existence and layer.type, and catches errors individually
     const safeSetPaint = (
       layerId: string,
       expectedType: 'background' | 'fill' | 'line' | 'symbol' | null,
@@ -90,114 +90,161 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       }
     };
 
-    // 1. Background & Landcover / Parks
-    safeSetPaint('background', 'background', 'background-color', '#F3F1EA');
-    const parkFillLayers = [
-      'landcover',
-      'park_national_park',
-      'park_nature_reserve',
-      'landuse'
-    ];
-    parkFillLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'fill', 'fill-color', '#EAECDD');
-    });
-    safeSetPaint('landuse_residential', 'fill', 'fill-color', '#F3F1EA');
-    safeSetPaint('building', 'fill', 'fill-color', '#EAE7DC');
-    safeSetPaint('building-top', 'fill', 'fill-color', '#E6E3D7');
+    // 1. Land / Background & Built-up Landuse
+    try {
+      safeSetPaint('background', 'background', 'background-color', '#F3F1EA');
+      safeSetPaint('landuse_residential', 'fill', 'fill-color', '#F3F1EA');
+      safeSetPaint('building', 'fill', 'fill-color', '#EAE7DC');
+      safeSetPaint('building-top', 'fill', 'fill-color', '#E6E3D7');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 1 (Background & Buildings) error:', e);
+    }
 
-    // 2. Water & Waterways
-    safeSetPaint('water', 'fill', 'fill-color', '#D4E0E6');
-    safeSetPaint('waterway', 'line', 'line-color', '#D4E0E6');
-    safeSetLayout('water_shadow', 'fill', 'visibility', 'none');
+    // 2. Parks & Landcover (FILL LAYERS ONLY)
+    try {
+      const parkFillLayers = [
+        'landcover',
+        'park_national_park',
+        'park_nature_reserve',
+        'landuse'
+      ];
+      parkFillLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'fill', 'fill-color', '#EAECDD');
+      });
+      // Park POI label text styling (symbol layer, NOT fill)
+      safeSetPaint('poi_park', 'symbol', 'text-color', '#557A60');
+      safeSetPaint('poi_park', 'symbol', 'text-halo-color', '#F3F1EA');
+      safeSetPaint('poi_park', 'symbol', 'text-halo-width', 1.0);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 2 (Parks & Landcover) error:', e);
+    }
 
-    // 3. Roads, Bridges, Tunnels, Rails & Aeroways
-    const roadLineLayers = [
-      'tunnel_service_case', 'tunnel_minor_case', 'tunnel_sec_case', 'tunnel_pri_case',
-      'tunnel_trunk_case', 'tunnel_mot_case', 'tunnel_path',
-      'tunnel_service_fill', 'tunnel_minor_fill', 'tunnel_sec_fill', 'tunnel_pri_fill',
-      'tunnel_trunk_fill', 'tunnel_mot_fill', 'tunnel_rail', 'tunnel_rail_dash',
-      'road_service_case', 'road_minor_case', 'road_pri_case_ramp', 'road_trunk_case_ramp',
-      'road_mot_case_ramp', 'road_sec_case_noramp', 'road_pri_case_noramp',
-      'road_trunk_case_noramp', 'road_mot_case_noramp', 'road_path', 'road_path_areas',
-      'road_service_fill', 'road_minor_fill', 'road_pri_fill_ramp', 'road_trunk_fill_ramp',
-      'road_mot_fill_ramp', 'road_sec_fill_noramp', 'road_pri_fill_noramp',
-      'road_trunk_fill_noramp', 'road_mot_fill_noramp',
-      'rail', 'rail_dash',
-      'bridge_service_case', 'bridge_minor_case', 'bridge_sec_case', 'bridge_pri_case',
-      'bridge_trunk_case', 'bridge_mot_case', 'bridge_path',
-      'bridge_service_fill', 'bridge_minor_fill', 'bridge_sec_fill', 'bridge_pri_fill',
-      'bridge_trunk_fill', 'bridge_mot_fill',
-      'aeroway-runway', 'aeroway-taxiway'
-    ];
-    roadLineLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'line', 'line-color', '#E6E3D7');
-      safeSetPaint(layerId, 'line', 'line-opacity', [
+    // 3. Water & Waterways
+    try {
+      safeSetPaint('water', 'fill', 'fill-color', '#D4E0E6');
+      safeSetPaint('waterway', 'line', 'line-color', '#D4E0E6');
+      safeSetLayout('water_shadow', 'fill', 'visibility', 'none');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 3 (Water) error:', e);
+    }
+
+    // 4. Roads, Bridges, Tunnels, Rails & Aeroways (Hidden or faint #E6E3D7 at low zoom)
+    try {
+      const roadLineLayers = [
+        'tunnel_service_case', 'tunnel_minor_case', 'tunnel_sec_case', 'tunnel_pri_case',
+        'tunnel_trunk_case', 'tunnel_mot_case', 'tunnel_path',
+        'tunnel_service_fill', 'tunnel_minor_fill', 'tunnel_sec_fill', 'tunnel_pri_fill',
+        'tunnel_trunk_fill', 'tunnel_mot_fill', 'tunnel_rail', 'tunnel_rail_dash',
+        'road_service_case', 'road_minor_case', 'road_pri_case_ramp', 'road_trunk_case_ramp',
+        'road_mot_case_ramp', 'road_sec_case_noramp', 'road_pri_case_noramp',
+        'road_trunk_case_noramp', 'road_mot_case_noramp', 'road_path', 'road_path_areas',
+        'road_service_fill', 'road_minor_fill', 'road_pri_fill_ramp', 'road_trunk_fill_ramp',
+        'road_mot_fill_ramp', 'road_sec_fill_noramp', 'road_pri_fill_noramp',
+        'road_trunk_fill_noramp', 'road_mot_fill_noramp',
+        'rail', 'rail_dash',
+        'bridge_service_case', 'bridge_minor_case', 'bridge_sec_case', 'bridge_pri_case',
+        'bridge_trunk_case', 'bridge_mot_case', 'bridge_path',
+        'bridge_service_fill', 'bridge_minor_fill', 'bridge_sec_fill', 'bridge_pri_fill',
+        'bridge_trunk_fill', 'bridge_mot_fill',
+        'aeroway-runway', 'aeroway-taxiway'
+      ];
+      roadLineLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'line', 'line-color', '#E6E3D7');
+        safeSetPaint(layerId, 'line', 'line-opacity', [
+          'interpolate', ['linear'], ['zoom'],
+          4, 0.0,
+          7, 0.45,
+          12, 0.95
+        ]);
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 4 (Roads) error:', e);
+    }
+
+    // 5. Country Boundaries (#9C968A, width 0.8 low zoom to 1.3 z5+)
+    try {
+      safeSetPaint('boundary_country_inner', 'line', 'line-color', '#9C968A');
+      safeSetPaint('boundary_country_inner', 'line', 'line-width', [
         'interpolate', ['linear'], ['zoom'],
-        4, 0.0,
-        7, 0.45,
-        12, 0.95
+        2, 0.8,
+        5, 1.3
       ]);
-    });
+      safeSetLayout('boundary_country_outline', 'line', 'visibility', 'none');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 5 (Country Boundaries) error:', e);
+    }
 
-    // 4. Country & Disputed Boundaries
-    safeSetPaint('boundary_country_inner', 'line', 'line-color', '#9C968A');
-    safeSetPaint('boundary_country_inner', 'line', 'line-width', [
-      'interpolate', ['linear'], ['zoom'],
-      2, 0.8,
-      5, 1.3
-    ]);
-    safeSetLayout('boundary_country_outline', 'line', 'visibility', 'none');
-    safeSetPaint('boundary_county', 'line', 'line-color', '#B0A99B');
-    safeSetPaint('boundary_county', 'line', 'line-dasharray', [3, 2]);
-    safeSetPaint('boundary_county', 'line', 'line-width', 0.5);
+    // 6. Other / Disputed Boundaries (dashed #B0A99B, width 0.5)
+    try {
+      safeSetPaint('boundary_county', 'line', 'line-color', '#B0A99B');
+      safeSetPaint('boundary_county', 'line', 'line-dasharray', [3, 2]);
+      safeSetPaint('boundary_county', 'line', 'line-width', 0.5);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 6 (County/Disputed Boundaries) error:', e);
+    }
 
-    // 5. Admin-1 / State Boundaries
-    safeSetPaint('boundary_state', 'line', 'line-color', '#D3CEBF');
-    safeSetPaint('boundary_state', 'line', 'line-width', 0.5);
-    safeSetLayout('boundary_state', 'line', 'visibility', 'visible');
+    // 7. Admin-1 / State Boundaries (#D3CEBF, width 0.5, visible from zoom 4 only)
+    try {
+      safeSetPaint('boundary_state', 'line', 'line-color', '#D3CEBF');
+      safeSetPaint('boundary_state', 'line', 'line-width', 0.5);
+      safeSetLayout('boundary_state', 'line', 'visibility', 'visible');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 7 (State Boundaries) error:', e);
+    }
 
-    // 6. Country Labels
-    const countryLabelLayers = ['place_country_1', 'place_country_2', 'place_continent'];
-    countryLabelLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'symbol', 'text-color', '#6F6A5E');
-      safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
-      safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
-    });
-    safeSetPaint('place_state', 'symbol', 'text-color', '#75746E');
-    safeSetPaint('place_state', 'symbol', 'text-halo-color', '#F3F1EA');
-    safeSetPaint('place_state', 'symbol', 'text-halo-width', 1.5);
+    // 8. Country & Continent Labels (#6F6A5E with 1.5px halo #F3F1EA)
+    try {
+      const countryLabelLayers = ['place_country_1', 'place_country_2', 'place_continent'];
+      countryLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#6F6A5E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
+      });
+      safeSetPaint('place_state', 'symbol', 'text-color', '#75746E');
+      safeSetPaint('place_state', 'symbol', 'text-halo-color', '#F3F1EA');
+      safeSetPaint('place_state', 'symbol', 'text-halo-width', 1.5);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 8 (Country Labels) error:', e);
+    }
 
-    // 7. City & Settlement Labels
-    const cityLabelLayers = [
-      'place_city_r6', 'place_city_r5', 'place_city_dot_r7', 'place_city_dot_r4',
-      'place_city_dot_r2', 'place_city_dot_z7', 'place_capital_dot_z7',
-      'place_town', 'place_villages', 'place_suburbs', 'place_hamlet'
-    ];
-    cityLabelLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'symbol', 'text-color', '#4A463E');
-      safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
-      safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
-      safeSetPaint(layerId, 'symbol', 'icon-color', '#4A463E');
-    });
+    // 9. City & Settlement Labels (#4A463E with 1.5px halo #F3F1EA)
+    try {
+      const cityLabelLayers = [
+        'place_city_r6', 'place_city_r5', 'place_city_dot_r7', 'place_city_dot_r4',
+        'place_city_dot_r2', 'place_city_dot_z7', 'place_capital_dot_z7',
+        'place_town', 'place_villages', 'place_suburbs', 'place_hamlet'
+      ];
+      cityLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#4A463E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
+        safeSetPaint(layerId, 'symbol', 'icon-color', '#4A463E');
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 9 (City Labels) error:', e);
+    }
 
-    // 8. Water Labels
-    const waterLabelLayers = [
-      'watername_ocean', 'watername_sea', 'watername_lake',
-      'watername_lake_pois', 'watername_lake_line', 'waterway_label'
-    ];
-    waterLabelLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'symbol', 'text-color', '#7F9AA6');
-      safeSetPaint(layerId, 'symbol', 'text-halo-color', '#D4E0E6');
-      safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
-    });
+    // 10. Water Labels (#7F9AA6 italic, halo #D4E0E6 1.0) & Road Name Labels (#75746E, halo #F3F1EA 1.0)
+    try {
+      const waterLabelLayers = [
+        'watername_ocean', 'watername_sea', 'watername_lake',
+        'watername_lake_pois', 'watername_lake_line', 'waterway_label'
+      ];
+      waterLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#7F9AA6');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#D4E0E6');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
+      });
 
-    // 9. Road Name Labels
-    const roadNameLayers = ['roadname_minor', 'roadname_sec', 'roadname_pri', 'roadname_major'];
-    roadNameLayers.forEach((layerId) => {
-      safeSetPaint(layerId, 'symbol', 'text-color', '#75746E');
-      safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
-      safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
-    });
+      const roadNameLayers = ['roadname_minor', 'roadname_sec', 'roadname_pri', 'roadname_major'];
+      roadNameLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#75746E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 10 (Water & Road Labels) error:', e);
+    }
   };
 
 
@@ -915,7 +962,31 @@ export const MapComponent: React.FC<MapComponentProps> = ({
               ],
               'circle-color': ['get', 'color'],
               'circle-stroke-width': 2,
-              'circle-stroke-color': '#FFFFFF'
+              'circle-stroke-color': '#FFFFFF',
+              'circle-opacity': [
+                'step',
+                ['zoom'],
+                [
+                  'case',
+                  ['in', ['get', 'layer'], ['literal', ['weather', 'outages', 'canadaAlerts', 'economic', 'sanctions']]],
+                  0.0,
+                  1.0
+                ],
+                3.0,
+                1.0
+              ],
+              'circle-stroke-opacity': [
+                'step',
+                ['zoom'],
+                [
+                  'case',
+                  ['in', ['get', 'layer'], ['literal', ['weather', 'outages', 'canadaAlerts', 'economic', 'sanctions']]],
+                  0.0,
+                  1.0
+                ],
+                3.0,
+                1.0
+              ]
             }
           : {
               'circle-radius': [
