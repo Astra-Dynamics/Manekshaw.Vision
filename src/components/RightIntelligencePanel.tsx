@@ -61,17 +61,18 @@ export const VIDEO_REGION_GROUPS = [
 
 // Canva-style compact tactical drag ghost token
 export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
+  const isLight = typeof document !== 'undefined' && document.body.classList.contains('light-theme');
   const ghost = document.createElement('div');
   ghost.style.position = 'absolute';
   ghost.style.top = '-1000px';
   ghost.style.left = '-1000px';
   ghost.style.width = '140px';
   ghost.style.height = '36px';
-  ghost.style.background = '#0EA5E9';
-  ghost.style.color = '#080C14';
-  ghost.style.border = '1px solid #F8FAFC';
+  ghost.style.background = isLight ? '#C6613F' : '#0EA5E9';
+  ghost.style.color = isLight ? '#FFFFFF' : '#080C14';
+  ghost.style.border = isLight ? '1px solid #FAF9F5' : '1px solid #F8FAFC';
   ghost.style.borderRadius = '4px';
-  ghost.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.7)';
+  ghost.style.boxShadow = isLight ? '0 8px 20px rgba(31, 30, 29, 0.25)' : '0 12px 24px rgba(0, 0, 0, 0.7)';
   ghost.style.fontFamily = 'monospace';
   ghost.style.fontSize = '11px';
   ghost.style.fontWeight = '700';
@@ -81,7 +82,7 @@ export const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, labe
   ghost.style.padding = '0 10px';
   ghost.style.zIndex = '99999';
   ghost.style.pointerEvents = 'none';
-  ghost.innerHTML = `<span style="background:rgba(0,0,0,0.25);padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
+  ghost.innerHTML = `<span style="background:${isLight ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)'};padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
   document.body.appendChild(ghost);
   e.dataTransfer.setDragImage(ghost, 70, 18);
   setTimeout(() => {
