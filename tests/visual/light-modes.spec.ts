@@ -12,11 +12,12 @@ test.describe('Step 4: Light Mode Before/After Capture', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/Dashboard');
+    await page.goto('/Dashboard?theme=light');
     await page.evaluate(() => {
       localStorage.setItem('manvis_theme', 'light');
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
     });
     await page.reload();
     await freezeAnimationsAndSettle(page);
@@ -61,31 +62,34 @@ test.describe('Step 4: Light Mode Before/After Capture', () => {
     await page.screenshot({ path: path.join(outDir, '07-light-dossier.png') });
 
     // 8. Map Zoom 2 over South Asia
-    await page.goto('/Dashboard?c=25.06,86.35,2');
+    await page.goto('/Dashboard?c=25.06,86.35,2&theme=light');
     await page.evaluate(() => {
       localStorage.setItem('manvis_theme', 'light');
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
     });
     await freezeAnimationsAndSettle(page);
     await page.screenshot({ path: path.join(outDir, '08-light-map-zoom-2.png') });
 
     // 9. Map Zoom 4 over South Asia
-    await page.goto('/Dashboard?c=25.06,86.35,4');
+    await page.goto('/Dashboard?c=25.06,86.35,4&theme=light');
     await page.evaluate(() => {
       localStorage.setItem('manvis_theme', 'light');
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
     });
     await freezeAnimationsAndSettle(page);
     await page.screenshot({ path: path.join(outDir, '09-light-map-zoom-4.png') });
 
     // 10. Map Zoom 6 over South Asia
-    await page.goto('/Dashboard?c=25.06,86.35,6');
+    await page.goto('/Dashboard?c=25.06,86.35,6&theme=light');
     await page.evaluate(() => {
       localStorage.setItem('manvis_theme', 'light');
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
     });
     await freezeAnimationsAndSettle(page);
     await page.screenshot({ path: path.join(outDir, '10-light-map-zoom-6.png') });

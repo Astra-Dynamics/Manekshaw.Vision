@@ -6,7 +6,66 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
-:root, body.light-theme {
+:root, .dark, body.dark-theme {
+  /* Dark Theme (Palantir Gotham Command Center - Default) */
+  --bg-app: #06090e;
+  --bg-canvas: #06090e;
+  --bg-surface: #080b11;
+  --bg-surface-elevated: #0d121c;
+  --bg-surface-hover: #141c2c;
+  --bg-surface-subtle: #080b11;
+  --hud-bg: rgba(8, 11, 17, 0.94);
+  --hud-border: rgba(255, 255, 255, 0.09);
+  --hud-border-active: rgba(56, 189, 248, 0.45);
+  --hud-glow: 0 16px 36px -8px rgba(0, 0, 0, 0.8), 0 0 20px 0 rgba(56, 189, 248, 0.04);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --border-accent: rgba(56, 189, 248, 0.4);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+
+  --badge-bg-critical: rgba(244, 63, 94, 0.12);
+  --badge-text-critical: #f43f5e;
+  --badge-border-critical: rgba(244, 63, 94, 0.25);
+
+  --badge-bg-high: rgba(245, 158, 11, 0.12);
+  --badge-text-high: #fbbf24;
+  --badge-border-high: rgba(245, 158, 11, 0.25);
+
+  --badge-bg-info: rgba(56, 189, 248, 0.12);
+  --badge-text-info: #38bdf8;
+  --badge-border-info: rgba(56, 189, 248, 0.25);
+
+  --category-header-bg: rgba(20, 28, 44, 0.6);
+  --category-header-text: #94a3b8;
+
+  /* Semantic Layer Accents (Neon-on-Dark) */
+  --accent-kinetic: #f43f5e;
+  --accent-military: #f59e0b;
+  --accent-strategic: #06b6d4;
+  --accent-infra: #10b981;
+  --accent-env: #6366f1;
+  --accent-geo: #8b5cf6;
+
+  --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px 0 rgba(56, 189, 248, 0.05);
+
+  /* Geometry & Typography Defaults */
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --radius-btn: 8px;
+  --radius-chip: 6px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+}
+
+html.light, :root.light, body.light-theme {
   /* Light Theme — Claude Warm Editorial with Terracotta Accents */
   --bg-app: #FAF9F5;
   --bg-panel: #F5F4ED;
@@ -90,65 +149,6 @@
   --accent-infra: #1F7A5C;
   --accent-env: #5E7C99;
   --accent-geo: #7A5C99;
-
-  /* Geometry */
-  --radius-card: 12px;
-  --radius-input: 8px;
-  --radius-btn: 8px;
-  --radius-chip: 6px;
-
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
-}
-
-.dark, body.dark-theme {
-  /* Dark Theme (Palantir Gotham Command Center - Default) */
-  --bg-app: #06090e;
-  --bg-canvas: #06090e;
-  --bg-surface: #080b11;
-  --bg-surface-elevated: #0d121c;
-  --bg-surface-hover: #141c2c;
-  --bg-surface-subtle: #080b11;
-  --hud-bg: rgba(8, 11, 17, 0.94);
-  --hud-border: rgba(255, 255, 255, 0.09);
-  --hud-border-active: rgba(56, 189, 248, 0.45);
-  --hud-glow: 0 16px 36px -8px rgba(0, 0, 0, 0.8), 0 0 20px 0 rgba(56, 189, 248, 0.04);
-
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.14);
-  --border-strong: rgba(255, 255, 255, 0.22);
-  --border-accent: rgba(56, 189, 248, 0.4);
-
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-faint: #475569;
-
-  --badge-bg-critical: rgba(244, 63, 94, 0.12);
-  --badge-text-critical: #f43f5e;
-  --badge-border-critical: rgba(244, 63, 94, 0.25);
-
-  --badge-bg-high: rgba(245, 158, 11, 0.12);
-  --badge-text-high: #fbbf24;
-  --badge-border-high: rgba(245, 158, 11, 0.25);
-
-  --badge-bg-info: rgba(56, 189, 248, 0.12);
-  --badge-text-info: #38bdf8;
-  --badge-border-info: rgba(56, 189, 248, 0.25);
-
-  --category-header-bg: rgba(20, 28, 44, 0.6);
-  --category-header-text: #94a3b8;
-
-  /* Semantic Layer Accents (Neon-on-Dark) */
-  --accent-kinetic: #f43f5e;
-  --accent-military: #f59e0b;
-  --accent-strategic: #06b6d4;
-  --accent-infra: #10b981;
-  --accent-env: #6366f1;
-  --accent-geo: #8b5cf6;
-
-  --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px 0 rgba(56, 189, 248, 0.05);
 }
 
 *, *::before, *::after {
