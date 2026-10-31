@@ -1,0 +1,32 @@
+# ==============================================================================
+# MANEKSHAW.VISION // CODEOWNERS
+# Organization: Astra-Dynamics
+# Enforces mandatory owner review and approval on protected infrastructure.
+# ==============================================================================
+
+# Default fallback owner for the entire repository
+*                           @anantjain1109
+
+# ------------------------------------------------------------------------------
+# RESTRICTED BACKEND & API INFRASTRUCTURE (MODIFICATION LOCKED TO OWNER ONLY)
+# ------------------------------------------------------------------------------
+
+# Serverless APIs, feed dispatch, live proxy & admin endpoints
+/api/                       @anantjain1109
+
+# Headless Python ingestion engine, RSS collectors, YouTube resolvers & scripts
+/scripts/                   @anantjain1109
+
+# Supabase database schemas, role policies, and SQL migrations
+/supabase/                  @anantjain1109
+
+# CI/CD GitHub Actions workflows, telemetry automation & dispatch
+/.github/                   @anantjain1109
+
+# Root build tooling, package dependencies, and environment templates
+/vite.config.ts             @anantjain1109
+/.env.example               @anantjain1109
+/package.json               @anantjain1109
+/package-lock.json          @anantjain1109
+/tsconfig.json              @anantjain1109
+/tsconfig.node.json         @anantjain1109
