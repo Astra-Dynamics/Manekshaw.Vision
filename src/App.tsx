@@ -415,9 +415,14 @@ const AppContent: React.FC = () => {
     });
   }, []);
 
-  // Theme Management (Dark default, persists in localStorage)
+  // Theme Management (Always load in Dark Mode by default)
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    return (localStorage.getItem('manvis_theme') as ThemeMode) || 'dark';
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTheme = urlParams.get('theme') as ThemeMode | null;
+      if (urlTheme === 'light' || urlTheme === 'dark') return urlTheme;
+    } catch {}
+    return 'dark';
   });
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
 
@@ -433,7 +438,9 @@ const AppContent: React.FC = () => {
       document.body.classList.add('light-theme');
       document.body.classList.remove('dark-theme');
     }
-    localStorage.setItem('manvis_theme', theme);
+    try {
+      localStorage.setItem('manvis_theme', theme);
+    } catch {}
   }, [theme]);
 
   const handleToggleTheme = () => {
@@ -1807,6 +1814,7 @@ const AppContent: React.FC = () => {
         }}
         relatedNews={countryNews}
         relatedAssets={countryAssets}
+        isLight={theme === 'light'}
       />
 
       {/* 5. Tactical Command Palette (Cmd+K / Search) */}

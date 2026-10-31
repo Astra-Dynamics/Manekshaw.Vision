@@ -26,6 +26,7 @@ interface CountryBriefModalProps {
   onCenterMap: (coords: [number, number], zoom?: number) => void;
   relatedNews: IntelNewsItem[];
   relatedAssets: MapFeatureItem[];
+  isLight?: boolean;
 }
 
 export const CountryBriefModal: React.FC<CountryBriefModalProps> = ({
@@ -33,8 +34,10 @@ export const CountryBriefModal: React.FC<CountryBriefModalProps> = ({
   onClose,
   onCenterMap,
   relatedNews,
-  relatedAssets
+  relatedAssets,
+  isLight: propIsLight
 }) => {
+  const isLight = propIsLight ?? (typeof document !== 'undefined' && document.body.classList.contains('light-theme'));
   const [activeTab, setActiveTab] = useState<'brief' | 'military' | 'economy' | 'news'>('brief');
   const [copied, setCopied] = useState(false);
 
@@ -97,26 +100,32 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-h-[90vh] overflow-hidden text-[var(--text-primary)] font-sans relative"
+        className={`w-full max-h-[90vh] overflow-hidden text-[var(--text-primary)] font-sans relative ${
+          isLight ? 'rounded-[12px] shadow-2xl' : 'rounded-[4px]'
+        }`}
         style={{
           maxWidth: '760px',
           width: '100%',
           padding: '28px 32px',
-          borderRadius: '4px',
-          background: 'var(--bg-surface-elevated)',
+          borderRadius: isLight ? '12px' : '4px',
+          background: isLight ? 'var(--surface)' : 'var(--bg-surface-elevated)',
           border: '1px solid var(--border-medium)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.85)',
+          boxShadow: isLight ? '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : '0 25px 50px -12px rgba(0, 0, 0, 0.85)',
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
           gap: '18px'
         }}
       >
-        {/* Palantir Gotham Corner Bracket Accents */}
-        <span className="bracket-tl" />
-        <span className="bracket-tr" />
-        <span className="bracket-bl" />
-        <span className="bracket-br" />
+        {/* Palantir Gotham Corner Bracket Accents (dark mode only) */}
+        {!isLight && (
+          <>
+            <span className="bracket-tl" />
+            <span className="bracket-tr" />
+            <span className="bracket-bl" />
+            <span className="bracket-br" />
+          </>
+        )}
 
         {/* 1. Header Row (Tactical 42x42 Square Box + Country Title + Instability Index) */}
         <div
@@ -126,16 +135,14 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           <div className="flex items-center gap-[14px]">
             {/* Tactical 42x42 Square Badge (No duplicate text, clean sovereign code) */}
             <div
-              className="w-[42px] h-[42px] rounded-[2px] border flex items-center justify-center font-mono font-bold text-sm text-sky-500 shrink-0"
-              style={{
-                borderColor: 'var(--border-medium)',
-                background: 'var(--bg-surface)'
-              }}
+              className={`w-[42px] h-[42px] border flex items-center justify-center font-mono font-bold text-sm shrink-0 ${
+                isLight ? 'rounded-[6px] text-[var(--accent-text)] bg-[var(--accent-soft)] border-[var(--accent)]/30' : 'rounded-[2px] text-sky-500 bg-[var(--bg-surface)] border-[var(--border-medium)]'
+              }`}
             >
               {country.code}
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? 'font-serif' : ''}`} style={{ color: 'var(--text-primary)' }}>
                 {country.name}
               </h1>
               <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -199,7 +206,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
 
             <button
               onClick={onClose}
-              className="p-1 rounded-[2px] hover:bg-[var(--bg-surface-hover)] transition-colors ml-1"
+              className={`p-1 transition-colors ml-1 ${isLight ? 'rounded-[6px] hover:bg-[var(--bg-sunken)]' : 'rounded-[2px] hover:bg-[var(--bg-surface-hover)]'}`}
               style={{ color: 'var(--text-muted)' }}
               title="Close modal (Esc)"
             >
@@ -208,55 +215,33 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           </div>
         </div>
 
-        {/* 2. Navigation Tabs (Clean bottom-bordered tab bar with cyan active underline) */}
+        {/* 2. Navigation Tabs (Clean bottom-bordered tab bar with accent active underline) */}
         <div
           className="flex items-center gap-6 font-sans text-xs"
           style={{ borderBottom: '1px solid var(--border-subtle)' }}
         >
-          <button
-            onClick={() => setActiveTab('brief')}
-            className={`pb-2.5 font-medium transition-colors relative ${
-              activeTab === 'brief'
-                ? 'text-sky-500 font-semibold border-b-2 border-sky-500'
-                : 'hover:text-[var(--text-primary)]'
-            }`}
-            style={{ color: activeTab === 'brief' ? '#0284c7' : 'var(--text-secondary)' }}
-          >
-            Strategic Brief
-          </button>
-          <button
-            onClick={() => setActiveTab('military')}
-            className={`pb-2.5 font-medium transition-colors relative ${
-              activeTab === 'military'
-                ? 'text-sky-500 font-semibold border-b-2 border-sky-500'
-                : 'hover:text-[var(--text-primary)]'
-            }`}
-            style={{ color: activeTab === 'military' ? '#0284c7' : 'var(--text-secondary)' }}
-          >
-            Defense & Military
-          </button>
-          <button
-            onClick={() => setActiveTab('economy')}
-            className={`pb-2.5 font-medium transition-colors relative ${
-              activeTab === 'economy'
-                ? 'text-sky-500 font-semibold border-b-2 border-sky-500'
-                : 'hover:text-[var(--text-primary)]'
-            }`}
-            style={{ color: activeTab === 'economy' ? '#0284c7' : 'var(--text-secondary)' }}
-          >
-            Economy & Trade
-          </button>
-          <button
-            onClick={() => setActiveTab('news')}
-            className={`pb-2.5 font-medium transition-colors relative ${
-              activeTab === 'news'
-                ? 'text-sky-500 font-semibold border-b-2 border-sky-500'
-                : 'hover:text-[var(--text-primary)]'
-            }`}
-            style={{ color: activeTab === 'news' ? '#0284c7' : 'var(--text-secondary)' }}
-          >
-            Intelligence Feed ({relatedNews.length})
-          </button>
+          {[
+            { id: 'brief', label: 'Strategic Brief' },
+            { id: 'military', label: 'Defense & Military' },
+            { id: 'economy', label: 'Economy & Trade' },
+            { id: 'news', label: `Intelligence Feed (${relatedNews.length})` }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`pb-2.5 font-medium transition-colors relative cursor-pointer ${
+                  isActive
+                    ? (isLight ? 'text-[var(--accent-text)] font-semibold border-b-2 border-[var(--accent)]' : 'text-sky-500 font-semibold border-b-2 border-sky-500')
+                    : 'hover:text-[var(--text-primary)]'
+                }`}
+                style={{ color: isActive ? (isLight ? 'var(--accent-text)' : '#0284c7') : 'var(--text-secondary)' }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* 3. Modal Scrollable Body with Vertical Rhythm (flex flex-col gap-4) */}
@@ -273,7 +258,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <span className="text-[10px] font-mono font-bold text-sky-500 uppercase tracking-wider flex items-center gap-1.5 mb-[6px]">
+                <span className={`text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 mb-[6px] ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'}`}>
                   <Activity size={13} /> EXECUTIVE INTELLIGENCE SUMMARY
                 </span>
                 <p className="text-[13px] leading-relaxed font-sans" style={{ color: 'var(--text-secondary)' }}>
@@ -400,7 +385,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                   <span className="text-[10px] uppercase font-mono block font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>
                     ANNUAL DEFENSE BUDGET
                   </span>
-                  <span className="text-[14px] font-semibold text-sky-500 block leading-snug">
+                  <span className={`text-[14px] font-semibold block leading-snug ${isLight ? 'text-[var(--accent-text)] font-mono' : 'text-sky-500'}`}>
                     {country.militaryPosture.defenseBudget}
                   </span>
                 </div>
@@ -430,14 +415,18 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                   borderColor: 'var(--border-subtle)'
                 }}
               >
-                <span className="text-[10.5px] font-mono font-bold text-sky-500 uppercase tracking-wider block mb-2">
+                <span className={`text-[10.5px] font-mono font-bold uppercase tracking-wider block mb-2 ${isLight ? 'text-[var(--accent-text)]' : 'text-sky-500'}`}>
                   SECURITY ALLIANCES & TREATY COMMITMENTS
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {country.militaryPosture.alliances.map((alliance, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 rounded-[2px] bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/25 text-[11px] font-mono"
+                      className={`px-2.5 py-1 text-[11px] font-mono ${
+                        isLight
+                          ? 'rounded-[6px] bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/30'
+                          : 'rounded-[2px] bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/25'
+                      }`}
                     >
                       🛡️ {alliance}
                     </span>
@@ -542,7 +531,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                     }}
                   >
                     <div className="flex items-center justify-between text-[10px] font-mono">
-                      <span className="px-1.5 py-0.5 rounded-[2px] bg-sky-500/15 text-sky-500 font-bold uppercase">
+                      <span className={`px-1.5 py-0.5 font-bold uppercase ${isLight ? 'rounded-[4px] bg-[var(--accent-soft)] text-[var(--accent-text)]' : 'rounded-[2px] bg-sky-500/15 text-sky-500'}`}>
                         {n.category}
                       </span>
                       <span style={{ color: 'var(--text-muted)' }}>{n.timeAgo}</span>
@@ -563,7 +552,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           )}
         </div>
 
-        {/* 4. Footer Action Row (Palantir Foundry Rectangular Controls) */}
+        {/* 4. Footer Action Row */}
         <div
           className="pt-3 flex items-center justify-between text-xs font-mono"
           style={{ borderTop: '1px solid var(--border-subtle)' }}
@@ -571,7 +560,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleFocusCountry}
-              style={{
+              style={isLight ? undefined : {
                 borderRadius: '2px',
                 padding: '8px 16px',
                 fontFamily: 'monospace',
@@ -587,29 +576,29 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
                 gap: '6px',
                 cursor: 'pointer'
               }}
-              className="hover:bg-sky-500/25 transition-colors"
+              className={isLight ? 'px-4 py-2 rounded-[6px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-[11px] font-mono uppercase font-semibold tracking-wider inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm' : 'hover:bg-sky-500/25 transition-colors'}
             >
               <Crosshair size={13} /> Center on Map
             </button>
             <button
               onClick={handleCopy}
               style={{
-                borderRadius: '2px',
+                borderRadius: isLight ? '6px' : '2px',
                 padding: '8px 16px',
                 fontFamily: 'monospace',
                 fontSize: '11px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
-                background: 'var(--bg-surface)',
+                background: isLight ? 'var(--surface)' : 'var(--bg-surface)',
                 border: '1px solid var(--border-medium)',
-                color: 'var(--text-secondary)',
+                color: isLight ? 'var(--text-primary)' : 'var(--text-secondary)',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer'
               }}
-              className="hover:bg-[var(--bg-surface-hover)] transition-colors"
+              className={`transition-colors ${isLight ? 'hover:bg-[var(--bg-sunken)] shadow-sm' : 'hover:bg-[var(--bg-surface-hover)]'}`}
             >
               {copied ? <CheckCircle size={13} className="text-emerald-500" /> : <Copy size={13} />}
               <span>{copied ? 'Copied' : 'Copy Brief'}</span>
@@ -619,7 +608,7 @@ ${country.strategicRisks.map((r) => `• ${r}`).join('\n')}
           <button
             onClick={onClose}
             style={{
-              borderRadius: '2px',
+              borderRadius: isLight ? '6px' : '2px',
               padding: '8px 16px',
               fontFamily: 'monospace',
               fontSize: '11px',

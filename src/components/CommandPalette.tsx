@@ -84,7 +84,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         title: th.name,
         subtitle: 'Theater Preset Camera',
         category: 'Theater',
-        icon: <Globe size={15} className="text-sky-400" />,
+        icon: <Globe size={15} className={theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'} />,
         action: () => {
           onSelectView(th.id);
           onClose();
@@ -203,11 +203,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-[var(--bg-surface)] border border-[var(--border-accent)] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-[var(--text-primary)]"
+        className={`w-full max-w-2xl overflow-hidden flex flex-col text-[var(--text-primary)] ${
+          theme === 'light'
+            ? 'bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[12px] shadow-2xl'
+            : 'bg-[var(--bg-surface)] border border-[var(--border-accent)] rounded-2xl shadow-2xl'
+        }`}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]">
-          <Search size={18} className="text-sky-400 shrink-0" />
+        <div className={`flex items-center gap-3 px-4 py-3.5 border-b border-[var(--border-subtle)] ${theme === 'light' ? 'bg-[var(--surface)]' : 'bg-[var(--bg-surface-subtle)]'}`}>
+          <Search size={18} className={`${theme === 'light' ? 'text-[var(--text-tertiary)]' : 'text-sky-400'} shrink-0`} />
           <input
             ref={inputRef}
             type="text"
@@ -248,7 +252,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[var(--bg-surface-hover)] border border-[var(--border-accent)] shadow-xs'
+                      ? (theme === 'light'
+                          ? 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 shadow-xs'
+                          : 'bg-[var(--bg-surface-hover)] border border-[var(--border-accent)] shadow-xs')
                       : 'border border-transparent'
                   }`}
                 >
@@ -279,13 +285,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+        <div className={`px-4 py-2 border-t border-[var(--border-subtle)] ${theme === 'light' ? 'bg-[var(--bg-sunken)]' : 'bg-[var(--bg-surface-subtle)]'} flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]`}>
           <div className="flex items-center gap-4">
             <span>↑↓ Navigate</span>
             <span>↵ Select</span>
             <span>ESC Dismiss</span>
           </div>
-          <div className="flex items-center gap-1.5 text-sky-400">
+          <div className={`flex items-center gap-1.5 ${theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'}`}>
             <Command size={12} />
             <span>Manekshaw Tactical Navigator</span>
           </div>

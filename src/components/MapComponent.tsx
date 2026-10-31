@@ -15,6 +15,8 @@ import { ADIZ_ZONES } from '../data/adizZones';
 import { GPS_JAMMING_ZONES } from '../data/gpsJamming';
 import { FORTIFIED_BORDERS } from '../data/fortifiedBorders';
 import { getFlagEmoji } from '../data/countryIntel';
+import { getLayerColor, getHotspotEscalationColor } from '../utils/categoryColors';
+
 
 interface MapComponentProps {
   center: [number, number]; // [lon, lat]
@@ -50,30 +52,201 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [is3D, setIs3D] = useState(false);
 
-  // Tactical Blueprint / Daylight Cartographic Palette for Light Mode ONLY
+  // Tactical Warm Light Blueprint / Daylight Cartographic Palette for Light Mode ONLY
   const applyLightModeBasemapStyling = (map: maplibregl.Map) => {
+    // Defensive Helper: checks layer existence and layer.type, and catches errors individually
+    const safeSetPaint = (
+      layerId: string,
+      expectedType: 'background' | 'fill' | 'line' | 'symbol' | null,
+      property: string,
+      value: any
+    ) => {
+      try {
+        const layer = map.getLayer(layerId);
+        if (!layer) return;
+        if (expectedType && layer.type !== expectedType) {
+          console.warn(`[BasemapStyle] Layer "${layerId}" has type "${layer.type}", expected "${expectedType}". Skipping "${property}".`);
+          return;
+        }
+        map.setPaintProperty(layerId, property, value);
+      } catch (err) {
+        console.warn(`[BasemapStyle] Error setting paint property "${property}" on "${layerId}":`, err);
+      }
+    };
+
+    const safeSetLayout = (
+      layerId: string,
+      expectedType: string | null,
+      property: string,
+      value: any
+    ) => {
+      try {
+        const layer = map.getLayer(layerId);
+        if (!layer) return;
+        if (expectedType && layer.type !== expectedType) return;
+        map.setLayoutProperty(layerId, property, value);
+      } catch (err) {
+        console.warn(`[BasemapStyle] Error setting layout property "${property}" on "${layerId}":`, err);
+      }
+    };
+
+    // 1. Land / Background & Built-up Landuse
     try {
-      if (map.getLayer('water')) {
-        map.setPaintProperty('water', 'fill-color', '#DCE6F2');
-      }
-      if (map.getLayer('waterway')) {
-        map.setPaintProperty('waterway', 'line-color', '#DCE6F2');
-      }
-      if (map.getLayer('background')) {
-        map.setPaintProperty('background', 'background-color', '#F8FAFC');
-      }
-      if (map.getLayer('boundary_country_inner')) {
-        map.setPaintProperty('boundary_country_inner', 'line-color', '#94A3B8');
-        map.setPaintProperty('boundary_country_inner', 'line-width', 1);
-      }
-      if (map.getLayer('boundary_state')) {
-        map.setPaintProperty('boundary_state', 'line-color', '#CBD5E1');
-        map.setPaintProperty('boundary_state', 'line-width', 0.75);
-      }
+      safeSetPaint('background', 'background', 'background-color', '#F3F1EA');
+      safeSetPaint('landuse_residential', 'fill', 'fill-color', '#F3F1EA');
+      safeSetPaint('building', 'fill', 'fill-color', '#EAE7DC');
+      safeSetPaint('building-top', 'fill', 'fill-color', '#E6E3D7');
     } catch (e) {
-      console.warn('Could not apply light mode basemap styling:', e);
+      console.warn('[BasemapStyle] Group 1 (Background & Buildings) error:', e);
+    }
+
+    // 2. Parks & Landcover (FILL LAYERS ONLY)
+    try {
+      const parkFillLayers = [
+        'landcover',
+        'park_national_park',
+        'park_nature_reserve',
+        'landuse'
+      ];
+      parkFillLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'fill', 'fill-color', '#EAECDD');
+      });
+      // Park POI label text styling (symbol layer, NOT fill)
+      safeSetPaint('poi_park', 'symbol', 'text-color', '#557A60');
+      safeSetPaint('poi_park', 'symbol', 'text-halo-color', '#F3F1EA');
+      safeSetPaint('poi_park', 'symbol', 'text-halo-width', 1.0);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 2 (Parks & Landcover) error:', e);
+    }
+
+    // 3. Water & Waterways
+    try {
+      safeSetPaint('water', 'fill', 'fill-color', '#D4E0E6');
+      safeSetPaint('waterway', 'line', 'line-color', '#D4E0E6');
+      safeSetLayout('water_shadow', 'fill', 'visibility', 'none');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 3 (Water) error:', e);
+    }
+
+    // 4. Roads, Bridges, Tunnels, Rails & Aeroways (Hidden or faint #E6E3D7 at low zoom)
+    try {
+      const roadLineLayers = [
+        'tunnel_service_case', 'tunnel_minor_case', 'tunnel_sec_case', 'tunnel_pri_case',
+        'tunnel_trunk_case', 'tunnel_mot_case', 'tunnel_path',
+        'tunnel_service_fill', 'tunnel_minor_fill', 'tunnel_sec_fill', 'tunnel_pri_fill',
+        'tunnel_trunk_fill', 'tunnel_mot_fill', 'tunnel_rail', 'tunnel_rail_dash',
+        'road_service_case', 'road_minor_case', 'road_pri_case_ramp', 'road_trunk_case_ramp',
+        'road_mot_case_ramp', 'road_sec_case_noramp', 'road_pri_case_noramp',
+        'road_trunk_case_noramp', 'road_mot_case_noramp', 'road_path', 'road_path_areas',
+        'road_service_fill', 'road_minor_fill', 'road_pri_fill_ramp', 'road_trunk_fill_ramp',
+        'road_mot_fill_ramp', 'road_sec_fill_noramp', 'road_pri_fill_noramp',
+        'road_trunk_fill_noramp', 'road_mot_fill_noramp',
+        'rail', 'rail_dash',
+        'bridge_service_case', 'bridge_minor_case', 'bridge_sec_case', 'bridge_pri_case',
+        'bridge_trunk_case', 'bridge_mot_case', 'bridge_path',
+        'bridge_service_fill', 'bridge_minor_fill', 'bridge_sec_fill', 'bridge_pri_fill',
+        'bridge_trunk_fill', 'bridge_mot_fill',
+        'aeroway-runway', 'aeroway-taxiway'
+      ];
+      roadLineLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'line', 'line-color', '#E6E3D7');
+        safeSetPaint(layerId, 'line', 'line-opacity', [
+          'interpolate', ['linear'], ['zoom'],
+          4, 0.0,
+          7, 0.45,
+          12, 0.95
+        ]);
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 4 (Roads) error:', e);
+    }
+
+    // 5. Country Boundaries (#9C968A, width 0.8 low zoom to 1.3 z5+)
+    try {
+      safeSetPaint('boundary_country_inner', 'line', 'line-color', '#9C968A');
+      safeSetPaint('boundary_country_inner', 'line', 'line-width', [
+        'interpolate', ['linear'], ['zoom'],
+        2, 0.8,
+        5, 1.3
+      ]);
+      safeSetLayout('boundary_country_outline', 'line', 'visibility', 'none');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 5 (Country Boundaries) error:', e);
+    }
+
+    // 6. Other / Disputed Boundaries (dashed #B0A99B, width 0.5)
+    try {
+      safeSetPaint('boundary_county', 'line', 'line-color', '#B0A99B');
+      safeSetPaint('boundary_county', 'line', 'line-dasharray', [3, 2]);
+      safeSetPaint('boundary_county', 'line', 'line-width', 0.5);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 6 (County/Disputed Boundaries) error:', e);
+    }
+
+    // 7. Admin-1 / State Boundaries (#D3CEBF, width 0.5, visible from zoom 4 only)
+    try {
+      safeSetPaint('boundary_state', 'line', 'line-color', '#D3CEBF');
+      safeSetPaint('boundary_state', 'line', 'line-width', 0.5);
+      safeSetLayout('boundary_state', 'line', 'visibility', 'visible');
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 7 (State Boundaries) error:', e);
+    }
+
+    // 8. Country & Continent Labels (#6F6A5E with 1.5px halo #F3F1EA)
+    try {
+      const countryLabelLayers = ['place_country_1', 'place_country_2', 'place_continent'];
+      countryLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#6F6A5E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
+      });
+      safeSetPaint('place_state', 'symbol', 'text-color', '#75746E');
+      safeSetPaint('place_state', 'symbol', 'text-halo-color', '#F3F1EA');
+      safeSetPaint('place_state', 'symbol', 'text-halo-width', 1.5);
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 8 (Country Labels) error:', e);
+    }
+
+    // 9. City & Settlement Labels (#4A463E with 1.5px halo #F3F1EA)
+    try {
+      const cityLabelLayers = [
+        'place_city_r6', 'place_city_r5', 'place_city_dot_r7', 'place_city_dot_r4',
+        'place_city_dot_r2', 'place_city_dot_z7', 'place_capital_dot_z7',
+        'place_town', 'place_villages', 'place_suburbs', 'place_hamlet'
+      ];
+      cityLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#4A463E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.5);
+        safeSetPaint(layerId, 'symbol', 'icon-color', '#4A463E');
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 9 (City Labels) error:', e);
+    }
+
+    // 10. Water Labels (#7F9AA6 italic, halo #D4E0E6 1.0) & Road Name Labels (#75746E, halo #F3F1EA 1.0)
+    try {
+      const waterLabelLayers = [
+        'watername_ocean', 'watername_sea', 'watername_lake',
+        'watername_lake_pois', 'watername_lake_line', 'waterway_label'
+      ];
+      waterLabelLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#7F9AA6');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#D4E0E6');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
+      });
+
+      const roadNameLayers = ['roadname_minor', 'roadname_sec', 'roadname_pri', 'roadname_major'];
+      roadNameLayers.forEach((layerId) => {
+        safeSetPaint(layerId, 'symbol', 'text-color', '#75746E');
+        safeSetPaint(layerId, 'symbol', 'text-halo-color', '#F3F1EA');
+        safeSetPaint(layerId, 'symbol', 'text-halo-width', 1.0);
+      });
+    } catch (e) {
+      console.warn('[BasemapStyle] Group 10 (Water & Road Labels) error:', e);
     }
   };
+
 
   // Initialize Map
   useEffect(() => {
@@ -275,7 +448,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'country-boundaries',
         paint: {
-          'line-color': theme === 'light' ? '#0284C7' : '#38bdf8',
+          'line-color': theme === 'light' ? '#C6613F' : '#38bdf8',
           'line-width': 1.6,
           'line-opacity': 0.85
         },
@@ -299,7 +472,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'india-soi-source',
         paint: {
-          'fill-color': isLight ? '#0284C7' : '#0ea5e9',
+          'fill-color': isLight ? '#2F6F8F' : '#0ea5e9',
           'fill-opacity': isLight ? 0.06 : 0.05
         }
       });
@@ -310,10 +483,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': isLight ? '#0284C7' : '#38bdf8',
-          'line-width': isLight ? 3 : 5,
-          'line-blur': isLight ? 2 : 3,
-          'line-opacity': isLight ? 0.35 : 0.6
+          'line-color': isLight ? '#2F6F8F' : '#38bdf8',
+          'line-width': isLight ? 2 : 5,
+          'line-blur': isLight ? 1 : 3,
+          'line-opacity': isLight ? 0.15 : 0.6
         }
       });
 
@@ -323,8 +496,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'india-soi-source',
         paint: {
-          'line-color': isLight ? '#0284C7' : '#38bdf8',
-          'line-width': isLight ? 1.75 : 2.2,
+          'line-color': isLight ? '#2F6F8F' : '#38bdf8',
+          'line-width': isLight ? 1.5 : 2.2,
           'line-opacity': 0.95
         }
       });
@@ -374,12 +547,13 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           'text-transform': 'uppercase'
         },
         paint: {
-          'text-color': isLight ? '#0F172A' : '#7dd3fc',
-          'text-halo-color': isLight ? '#FFFFFF' : '#020617',
-          'text-halo-width': isLight ? 2.5 : 2
+          'text-color': isLight ? '#2F6F8F' : '#7dd3fc',
+          'text-halo-color': isLight ? '#F3F1EA' : '#020617',
+          'text-halo-width': isLight ? 1.5 : 2
         }
       });
     }
+
 
     // 1. Conflict Polygons Source
     const conflictGeoJson: GeoJSON.FeatureCollection = {
@@ -414,8 +588,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'conflicts-source',
         paint: {
-          'fill-color': '#dc2626',
-          'fill-opacity': 0.18
+          'fill-color': isLight ? '#B42318' : '#dc2626',
+          'fill-opacity': isLight ? 0.10 : 0.18
         }
       });
 
@@ -423,13 +597,21 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         id: 'conflicts-outline',
         type: 'line',
         source: 'conflicts-source',
-        paint: {
-          'line-color': '#ef4444',
-          'line-width': 2,
-          'line-dasharray': [2, 2]
-        }
+        paint: isLight
+          ? {
+              'line-color': '#B42318',
+              'line-width': 1.25,
+              'line-dasharray': [2, 2],
+              'line-opacity': 0.75
+            }
+          : {
+              'line-color': '#ef4444',
+              'line-width': 2,
+              'line-dasharray': [2, 2]
+            }
       });
     }
+
 
     // Toggle Conflict layer visibility
     const conflictVis = activeLayers.conflicts ? 'visible' : 'none';
@@ -471,7 +653,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'adiz-source',
         paint: {
-          'fill-color': ['get', 'color'],
+          'fill-color': isLight ? '#5B5BA6' : ['get', 'color'],
           'fill-opacity': 0.08
         }
       });
@@ -481,13 +663,14 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'adiz-source',
         paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 2,
+          'line-color': isLight ? '#5B5BA6' : ['get', 'color'],
+          'line-width': isLight ? 1.25 : 2,
           'line-dasharray': [4, 2],
-          'line-opacity': 0.85
+          'line-opacity': isLight ? 0.75 : 0.85
         }
       });
     }
+
 
     const adizVis = activeLayers.adizZones ? 'visible' : 'none';
     if (map.getLayer('adiz-fill')) map.setLayoutProperty('adiz-fill', 'visibility', adizVis);
@@ -530,8 +713,8 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'fill',
         source: 'gps-jamming-source',
         paint: {
-          'fill-color': '#06b6d4',
-          'fill-opacity': 0.16
+          'fill-color': isLight ? '#0E7490' : '#06b6d4',
+          'fill-opacity': isLight ? 0.08 : 0.16
         }
       });
 
@@ -540,10 +723,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'gps-jamming-source',
         paint: {
-          'line-color': '#22d3ee',
-          'line-width': 2,
+          'line-color': isLight ? '#0E7490' : '#22d3ee',
+          'line-width': isLight ? 1.25 : 2,
           'line-dasharray': [2, 2],
-          'line-opacity': 0.95
+          'line-opacity': isLight ? 0.75 : 0.95
         }
       });
     }
@@ -587,10 +770,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'fortified-borders-source',
         paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 5,
-          'line-blur': 2.5,
-          'line-opacity': 0.5
+          'line-color': isLight ? '#9F1D35' : ['get', 'color'],
+          'line-width': isLight ? 3 : 5,
+          'line-blur': isLight ? 1.5 : 2.5,
+          'line-opacity': isLight ? 0.25 : 0.5
         }
       });
 
@@ -599,22 +782,25 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         type: 'line',
         source: 'fortified-borders-source',
         paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 2.4,
+          'line-color': isLight ? '#9F1D35' : ['get', 'color'],
+          'line-width': isLight ? 1.5 : 2.4,
           'line-dasharray': [3, 1.5],
-          'line-opacity': 0.95
+          'line-opacity': isLight ? 0.85 : 0.95
         }
       });
     }
+
 
     const bordersVis = activeLayers.fortifiedBorders ? 'visible' : 'none';
     if (map.getLayer('fortified-borders-glow')) map.setLayoutProperty('fortified-borders-glow', 'visibility', bordersVis);
     if (map.getLayer('fortified-borders-line')) map.setLayoutProperty('fortified-borders-line', 'visibility', bordersVis);
 
     // Ensure Survey of India Sovereign Boundary stays topmost
-    if (map.getLayer('india-soi-fill')) map.moveLayer('india-soi-fill');
-    if (map.getLayer('india-soi-glow')) map.moveLayer('india-soi-glow');
-    if (map.getLayer('india-soi-line')) map.moveLayer('india-soi-line');
+    const beforePointsLayer = map.getLayer('points-halo') ? 'points-halo' : undefined;
+    if (map.getLayer('india-soi-fill')) map.moveLayer('india-soi-fill', beforePointsLayer);
+    if (map.getLayer('india-soi-glow')) map.moveLayer('india-soi-glow', beforePointsLayer);
+    if (map.getLayer('india-soi-line')) map.moveLayer('india-soi-line', beforePointsLayer);
+
 
     // 2. Point Features Source (Hotspots + other 12 layers)
     const allPointFeatures: GeoJSON.Feature[] = [];
@@ -623,7 +809,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     if (activeLayers.hotspots) {
       hotspots.forEach((h) => {
         let hotColor = isLight
-          ? (h.escalationScore >= 5 ? '#E11D48' : h.escalationScore >= 4 ? '#EA580C' : '#D97706')
+          ? getHotspotEscalationColor(h.escalationScore, 'light')
           : (h.escalationScore >= 5 ? '#ef4444' : h.escalationScore >= 4 ? '#f97316' : '#eab308');
 
         allPointFeatures.push({
@@ -649,20 +835,24 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     // Add features from other active layers
     features.forEach((feat) => {
       if (!activeLayers[feat.layer]) return;
+      if (isLight && feat.layer === 'natural') {
+        // Natural features handled via dedicated natural-source in light mode
+        return;
+      }
 
-      let color = isLight ? '#0284C7' : '#38bdf8';
-      if (feat.layer === 'iranAttacks') color = isLight ? '#E11D48' : '#ef4444';
-      else if (feat.layer === 'bases') color = isLight ? '#0284C7' : '#3b82f6';
-      else if (feat.layer === 'nuclear') color = isLight ? '#D97706' : '#eab308';
-      else if (feat.layer === 'military') color = isLight ? '#EA580C' : '#06b6d4';
-      else if (feat.layer === 'weather') color = isLight ? '#0284C7' : '#60a5fa';
-      else if (feat.layer === 'canadaAlerts') color = isLight ? '#E11D48' : '#f43f5e';
-      else if (feat.layer === 'outages') color = isLight ? '#059669' : '#a855f7';
-      else if (feat.layer === 'natural') color = isLight ? '#EA580C' : '#ea580c';
-      else if (feat.layer === 'waterways') color = isLight ? '#0284C7' : '#14b8a6';
-      else if (feat.layer === 'economic') color = isLight ? '#059669' : '#10b981';
-      else if (feat.layer === 'sanctions') color = isLight ? '#BE185D' : '#ec4899';
-      else if (feat.layer === 'gpsJamming') color = isLight ? '#0284C7' : '#06b6d4';
+      let color = isLight ? getLayerColor(feat.layer, 'light') : '#38bdf8';
+      if (feat.layer === 'iranAttacks') color = isLight ? getLayerColor('iranAttacks', 'light') : '#ef4444';
+      else if (feat.layer === 'bases') color = isLight ? getLayerColor('bases', 'light') : '#3b82f6';
+      else if (feat.layer === 'nuclear') color = isLight ? getLayerColor('nuclear', 'light') : '#eab308';
+      else if (feat.layer === 'military') color = isLight ? getLayerColor('military', 'light') : '#06b6d4';
+      else if (feat.layer === 'weather') color = isLight ? getLayerColor('weather', 'light') : '#60a5fa';
+      else if (feat.layer === 'canadaAlerts') color = isLight ? getLayerColor('canadaAlerts', 'light') : '#f43f5e';
+      else if (feat.layer === 'outages') color = isLight ? getLayerColor('outages', 'light') : '#a855f7';
+      else if (feat.layer === 'natural') color = isLight ? getLayerColor('natural', 'light') : '#ea580c';
+      else if (feat.layer === 'waterways') color = isLight ? getLayerColor('waterways', 'light') : '#14b8a6';
+      else if (feat.layer === 'economic') color = isLight ? getLayerColor('economic', 'light') : '#10b981';
+      else if (feat.layer === 'sanctions') color = isLight ? getLayerColor('sanctions', 'light') : '#ec4899';
+      else if (feat.layer === 'gpsJamming') color = isLight ? getLayerColor('gpsJamming', 'light') : '#06b6d4';
 
       allPointFeatures.push({
         type: 'Feature',
@@ -684,6 +874,22 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       });
     });
 
+    // Severity Z-Ordering: critical severity renders above low severity
+    const SEVERITY_ORDER: Record<string, number> = {
+      info: 1,
+      low: 1,
+      medium: 2,
+      high: 3,
+      critical: 4
+    };
+    allPointFeatures.sort((a, b) => {
+      const sevA = SEVERITY_ORDER[(a.properties?.severity as string) || 'info'] || 1;
+      const sevB = SEVERITY_ORDER[(b.properties?.severity as string) || 'info'] || 1;
+      const scoreA = (a.properties?.score as number) || sevA;
+      const scoreB = (b.properties?.score as number) || sevB;
+      return scoreA - scoreB;
+    });
+
     const pointsGeoJson: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
       features: allPointFeatures
@@ -697,54 +903,101 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         data: pointsGeoJson
       });
 
-      // Outer glowing halo
+      // Outer glowing halo (soft shadow in light mode, halo in dark mode)
       map.addLayer({
         id: 'points-halo',
         type: 'circle',
         source: 'points-source',
-        paint: {
-          'circle-radius': isLight
-            ? [
-                'interpolate', ['linear'], ['zoom'],
-                2, 5,
-                4.5, 7.5,
-                8, 12
-              ]
-            : [
+        paint: isLight
+          ? {
+              'circle-radius': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false], 11,
+                ['boolean', ['feature-state', 'hover'], false], 10,
+                7
+              ],
+              'circle-color': 'rgba(31, 30, 29, 0.30)',
+              'circle-opacity': [
+                'step',
+                ['zoom'],
+                [
+                  'case',
+                  ['in', ['get', 'layer'], ['literal', ['weather', 'outages', 'canadaAlerts', 'economic', 'sanctions']]],
+                  0.0,
+                  0.8
+                ],
+                3.0,
+                0.8
+              ],
+              'circle-stroke-width': 0,
+              'circle-stroke-color': ['get', 'color'],
+              'circle-stroke-opacity': 0
+            }
+          : {
+              'circle-radius': [
                 'interpolate', ['linear'], ['zoom'],
                 2, 6,
                 8, 14
               ],
-          'circle-color': isLight ? 'rgba(0,0,0,0)' : ['get', 'color'],
-          'circle-opacity': isLight ? 0 : 0.25,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': ['get', 'color'],
-          'circle-stroke-opacity': isLight ? 0.35 : 0.5
-        }
+              'circle-color': ['get', 'color'],
+              'circle-opacity': 0.25,
+              'circle-stroke-width': 1,
+              'circle-stroke-color': ['get', 'color'],
+              'circle-stroke-opacity': 0.5
+            }
       });
 
-      // Inner solid tactical dot
+      // Inner solid tactical dot (2px white ring, radius 5 default / 8 hover / 9 selected in light mode)
       map.addLayer({
         id: 'points-core',
         type: 'circle',
         source: 'points-source',
-        paint: {
-          'circle-radius': isLight
-            ? [
-                'interpolate', ['linear'], ['zoom'],
-                2, 3.0,
-                4.5, 4.5,
-                8, 5.5
+        paint: isLight
+          ? {
+              'circle-radius': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false], 9,
+                ['boolean', ['feature-state', 'hover'], false], 8,
+                5
+              ],
+              'circle-color': ['get', 'color'],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#FFFFFF',
+              'circle-opacity': [
+                'step',
+                ['zoom'],
+                [
+                  'case',
+                  ['in', ['get', 'layer'], ['literal', ['weather', 'outages', 'canadaAlerts', 'economic', 'sanctions']]],
+                  0.0,
+                  1.0
+                ],
+                3.0,
+                1.0
+              ],
+              'circle-stroke-opacity': [
+                'step',
+                ['zoom'],
+                [
+                  'case',
+                  ['in', ['get', 'layer'], ['literal', ['weather', 'outages', 'canadaAlerts', 'economic', 'sanctions']]],
+                  0.0,
+                  1.0
+                ],
+                3.0,
+                1.0
               ]
-            : [
+            }
+          : {
+              'circle-radius': [
                 'interpolate', ['linear'], ['zoom'],
                 2, 3.5,
                 8, 6.5
               ],
-          'circle-color': ['get', 'color'],
-          'circle-stroke-width': 1.5,
-          'circle-stroke-color': isLight ? '#FFFFFF' : '#0c1017'
-        }
+              'circle-color': ['get', 'color'],
+              'circle-stroke-width': 1.5,
+              'circle-stroke-color': '#0c1017'
+            }
       });
 
       // Marker labels on zoom >= 4
@@ -762,9 +1015,9 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           'text-max-width': 14
         },
         paint: {
-          'text-color': isLight ? '#0F172A' : '#f8fafc',
-          'text-halo-color': isLight ? '#FFFFFF' : '#020617',
-          'text-halo-width': isLight ? 2.5 : 1.5
+          'text-color': isLight ? '#1F1E1D' : '#f8fafc',
+          'text-halo-color': isLight ? '#F3F1EA' : '#020617',
+          'text-halo-width': 1.5
         }
       });
 
@@ -777,25 +1030,43 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         const geom = f.geometry as GeoJSON.Point;
         const p = f.properties;
 
-        const html = `
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
-              <span style="color: ${p.color}; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
-                ${p.layer}
-              </span>
-              ${p.score ? `<span style="background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); padding: 1px 5px; border-radius: 3px; font-weight: 700; font-size: 9.5px;">LEVEL ${p.score}</span>` : ''}
+        const html = isLight
+          ? `
+            <div style="font-family: 'Inter', -apple-system, sans-serif; font-size: 11px; padding: 2px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; border-bottom: 1px solid #E8E6DC; padding-bottom: 4px;">
+                <span style="color: ${p.color}; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
+                  ${p.layer}
+                </span>
+                ${p.score ? `<span style="background: #F6E3DA; color: #A6492A; border: 1px solid rgba(198,97,63,0.3); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-size: 9.5px;">LEVEL ${p.score}</span>` : ''}
+              </div>
+              <div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; color: #1F1E1D; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">
+                ${p.name}
+              </div>
+              <div style="color: #5E5D59; font-size: 11px; line-height: 1.4;">
+                ${p.description ? p.description.slice(0, 115) + '...' : ''}
+              </div>
             </div>
-            <div style="font-weight: 700; color: #f8fafc; font-size: 12px; margin-bottom: 4px; line-height: 1.3;">
-              ${p.name}
+          `
+          : `
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">
+                <span style="color: ${p.color}; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
+                  ${p.layer}
+                </span>
+                ${p.score ? `<span style="background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); padding: 1px 5px; border-radius: 3px; font-weight: 700; font-size: 9.5px;">LEVEL ${p.score}</span>` : ''}
+              </div>
+              <div style="font-weight: 700; color: #f8fafc; font-size: 12px; margin-bottom: 4px; line-height: 1.3;">
+                ${p.name}
+              </div>
+              <div style="color: #94a3b8; font-size: 10px; line-height: 1.4; font-family: 'Inter', sans-serif;">
+                ${p.description ? p.description.slice(0, 115) + '...' : ''}
+              </div>
             </div>
-            <div style="color: #94a3b8; font-size: 10px; line-height: 1.4; font-family: 'Inter', sans-serif;">
-              ${p.description ? p.description.slice(0, 115) + '...' : ''}
-            </div>
-          </div>
-        `;
+          `;
 
         popupRef.current.setLngLat(geom.coordinates as [number, number]).setHTML(html).addTo(map);
       };
+
 
       const handleMouseLeave = () => {
         map.getCanvas().style.cursor = '';
@@ -883,16 +1154,28 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           map.getCanvas().style.cursor = 'pointer';
 
           const flag = getFlagEmoji(code);
-          const html = `
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-              <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #f1f5f9; font-size: 13px;">
-                <span>${flag}</span> <span>${name}</span> <span style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 1px 4px; border-radius: 3px;">${code}</span>
+          const html = isLight
+            ? `
+              <div style="font-family: 'Inter', -apple-system, sans-serif; font-size: 11px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; color: #1F1E1D; font-size: 13px;">
+                  <span>${flag}</span> <span>${name}</span> <span style="font-size: 10px; color: #A6492A; background: #F6E3DA; padding: 1px 4px; border-radius: 3px; font-family: 'Inter', sans-serif; font-weight: 600;">${code}</span>
+                </div>
+                <div style="color: #5E5D59; font-size: 10px; margin-top: 3px;">
+                  Click to open Country Intelligence Dossier
+                </div>
               </div>
-              <div style="color: #94a3b8; font-size: 10px; margin-top: 3px;">
-                Click to open Country Intelligence Dossier
+            `
+            : `
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #f1f5f9; font-size: 13px;">
+                  <span>${flag}</span> <span>${name}</span> <span style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 1px 4px; border-radius: 3px;">${code}</span>
+                </div>
+                <div style="color: #94a3b8; font-size: 10px; margin-top: 3px;">
+                  Click to open Country Intelligence Dossier
+                </div>
               </div>
-            </div>
-          `;
+            `;
+
           if (popupRef.current) {
             popupRef.current.setLngLat(e.lngLat).setHTML(html).addTo(map);
           }
@@ -923,10 +1206,175 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         }
       });
     }
+
+    // 2b. Clustered Earthquakes & Volcanoes in Light Mode
+    if (isLight) {
+      const naturalFeatures: GeoJSON.Feature[] = [];
+      if (activeLayers.natural) {
+        features.forEach((feat) => {
+          if (feat.layer !== 'natural') return;
+          const mag = Number(feat.details?.magnitude || 4.5);
+          naturalFeatures.push({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: feat.coordinates
+            },
+            properties: {
+              id: feat.id,
+              layer: 'natural',
+              name: feat.name,
+              category: feat.category || 'Seismic / Natural Event',
+              severity: feat.severity || 'info',
+              magnitude: mag,
+              color: '#8A6D3B',
+              description: feat.description,
+              details: JSON.stringify(feat.details || {})
+            }
+          });
+        });
+      }
+
+      const naturalGeoJson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: naturalFeatures
+      };
+
+      if (map.getSource('natural-source')) {
+        (map.getSource('natural-source') as maplibregl.GeoJSONSource).setData(naturalGeoJson);
+      } else {
+        map.addSource('natural-source', {
+          type: 'geojson',
+          data: naturalGeoJson,
+          cluster: true,
+          clusterMaxZoom: 4,
+          clusterRadius: 35
+        });
+
+        map.addLayer({
+          id: 'natural-clusters',
+          type: 'circle',
+          source: 'natural-source',
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': '#8A6D3B',
+            'circle-opacity': 0.35,
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              10,
+              10, 14,
+              50, 18
+            ],
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#8A6D3B'
+          }
+        });
+
+        map.addLayer({
+          id: 'natural-cluster-count',
+          type: 'symbol',
+          source: 'natural-source',
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['Open Sans Semibold'],
+            'text-size': 10
+          },
+          paint: {
+            'text-color': '#1F1E1D'
+          }
+        });
+
+        map.addLayer({
+          id: 'natural-unclustered',
+          type: 'circle',
+          source: 'natural-source',
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-color': '#8A6D3B',
+            'circle-opacity': 0.7,
+            'circle-stroke-width': 0.5,
+            'circle-stroke-color': '#FFFFFF',
+            'circle-radius': [
+              'interpolate',
+              ['linear'],
+              ['coalesce', ['get', 'magnitude'], 4.5],
+              4.0, 3.5,
+              6.0, 6.0,
+              8.0, 9.0
+            ]
+          }
+        });
+
+        map.on('mouseenter', 'natural-clusters', () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'natural-clusters', () => {
+          map.getCanvas().style.cursor = '';
+        });
+        map.on('click', 'natural-clusters', (e) => {
+          const f = map.queryRenderedFeatures(e.point, { layers: ['natural-clusters'] });
+          if (!f.length) return;
+          const clusterId = f[0].properties.cluster_id;
+          const src = map.getSource('natural-source') as maplibregl.GeoJSONSource;
+          src.getClusterExpansionZoom(clusterId).then((nextZoom) => {
+            const geom = f[0].geometry as GeoJSON.Point;
+            map.easeTo({
+              center: geom.coordinates as [number, number],
+              zoom: Math.min(nextZoom, 8)
+            });
+          }).catch(() => {});
+        });
+
+        map.on('mouseenter', 'natural-unclustered', (e) => {
+          map.getCanvas().style.cursor = 'pointer';
+          if (!e.features || e.features.length === 0 || !popupRef.current) return;
+          const f = e.features[0];
+          const geom = f.geometry as GeoJSON.Point;
+          const p = f.properties;
+
+          const html = `
+            <div style="font-family: 'Inter', -apple-system, sans-serif; font-size: 11px; padding: 2px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; border-bottom: 1px solid #E8E6DC; padding-bottom: 4px;">
+                <span style="color: #8A6D3B; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;">
+                  EARTHQUAKES & VOLCANOES
+                </span>
+                ${p.magnitude ? `<span style="background: #FBF3D6; color: #8A6100; border: 1px solid rgba(138,97,0,0.3); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-size: 9.5px;">M${Number(p.magnitude).toFixed(1)}</span>` : ''}
+              </div>
+              <div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; color: #1F1E1D; font-size: 13px; margin-bottom: 4px; line-height: 1.3;">
+                ${p.name}
+              </div>
+              <div style="color: #5E5D59; font-size: 11px; line-height: 1.4;">
+                ${p.description ? p.description.slice(0, 115) + '...' : ''}
+              </div>
+            </div>
+          `;
+          popupRef.current.setLngLat(geom.coordinates as [number, number]).setHTML(html).addTo(map);
+        });
+        map.on('mouseleave', 'natural-unclustered', () => {
+          map.getCanvas().style.cursor = '';
+          if (popupRef.current) popupRef.current.remove();
+        });
+        map.on('click', 'natural-unclustered', (e) => {
+          if (!e.features || e.features.length === 0) return;
+          const p = e.features[0].properties;
+          const orig = features.find((x) => x.id === p.id);
+          if (orig) onSelectFeature(orig);
+        });
+      }
+
+      const naturalVis = activeLayers.natural ? 'visible' : 'none';
+      if (map.getLayer('natural-clusters')) map.setLayoutProperty('natural-clusters', 'visibility', naturalVis);
+      if (map.getLayer('natural-cluster-count')) map.setLayoutProperty('natural-cluster-count', 'visibility', naturalVis);
+      if (map.getLayer('natural-unclustered')) map.setLayoutProperty('natural-unclustered', 'visibility', naturalVis);
+    }
   }, [mapLoaded, activeLayers, hotspots, conflicts, features, theme]);
 
+
   return (
-    <div className="relative w-full h-full flex-1 overflow-hidden bg-[#07090e]">
+    <div className={`relative w-full h-full flex-1 overflow-hidden ${theme === 'light' ? 'bg-[#FAF9F5]' : 'bg-[#07090e]'}`}>
+
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Floating Tactical Map Controls (Offset below Header 44px + TabBar 32px) */}
@@ -953,7 +1401,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           onClick={handleToggle3D}
           className={`w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-mono font-bold transition-colors ${
             is3D
-              ? 'bg-sky-500 text-slate-950 shadow-xs'
+              ? (theme === 'light' ? 'bg-[var(--accent)] text-white shadow-xs' : 'bg-sky-500 text-slate-950 shadow-xs')
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
           }`}
           title={is3D ? 'Reset to 2D Planar View' : 'Switch to 3D Perspective (45° Pitch)'}
@@ -971,12 +1419,15 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         <button
           type="button"
           onClick={handleFocusIndia}
-          className="w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-[11px] text-orange-400 hover:text-sky-300 hover:bg-[var(--bg-surface-hover)] hover:scale-110 transition-all cursor-pointer"
+          className={`w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-[11px] hover:bg-[var(--bg-surface-hover)] hover:scale-110 transition-all cursor-pointer ${
+            theme === 'light' ? 'text-[var(--accent)] hover:text-[var(--accent-hover)]' : 'text-orange-400 hover:text-sky-300'
+          }`}
           title="Center Sovereign India (SOI) [IN] - 25.06°N, 86.35°E, Z3.5"
         >
           IN
         </button>
       </div>
+
     </div>
   );
 };

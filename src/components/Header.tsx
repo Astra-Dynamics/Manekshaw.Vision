@@ -72,25 +72,37 @@ export interface HoverExpandButtonProps {
   onClick?: (e: React.MouseEvent) => void;
   title?: string;
   className?: string;
+  theme?: 'dark' | 'light';
 }
 
 export const HoverExpandButton: React.FC<HoverExpandButtonProps> = ({
   icon,
   label,
   active = false,
-  activeClassName = 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]',
+  activeClassName,
   onClick,
   title,
-  className = ''
+  className = '',
+  theme = 'dark'
 }) => {
+  const defaultActive =
+    theme === 'light'
+      ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] font-semibold border border-[var(--accent)]/30'
+      : 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]';
+  const resolvedActive = activeClassName || defaultActive;
+
   return (
     <button
       type="button"
       onClick={onClick}
       title={title}
-      className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[11px] shrink-0 border border-transparent ${
+      className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none ${
+        theme === 'light' ? 'font-sans' : 'font-mono'
+      } text-[11px] shrink-0 border border-transparent ${
         active
-          ? activeClassName
+          ? resolvedActive
+          : theme === 'light'
+          ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-sunken)]'
           : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
       } ${className}`}
     >
@@ -338,7 +350,11 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className="w-full h-11 bg-[var(--hud-bg)] border-b border-[var(--hud-border)] px-3 flex items-center justify-between select-none relative backdrop-blur-xl shrink-0 transition-colors shadow-xs"
+      className={`w-full h-11 px-3 flex items-center justify-between select-none relative backdrop-blur-xl shrink-0 transition-colors ${
+        theme === 'light'
+          ? 'bg-[var(--bg-panel)] border-b border-[var(--border-subtle)] shadow-none'
+          : 'bg-[var(--hud-bg)] border-b border-[var(--hud-border)] shadow-xs'
+      }`}
       style={{ zIndex: 2000 }}
     >
       {/* 1. Left Cluster: Emblem, Theater Selector, Time Range */}
@@ -348,7 +364,9 @@ export const Header: React.FC<HeaderProps> = ({
           href="https://manvis.tech/"
           aria-label="Manekshaw.Vision home"
           title="Manekshaw.Vision home"
-          className="flex items-center gap-2 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm"
+          className={`flex items-center gap-2 cursor-pointer group focus:outline-none focus-visible:ring-2 ${
+            theme === 'light' ? 'focus-visible:ring-[var(--focus-ring)]' : 'focus-visible:ring-sky-400'
+          } focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm`}
           style={{ WebkitUserDrag: 'auto', userSelect: 'none' } as React.CSSProperties}
           onClick={(e) => {
             // Same-tab navigation via the app router; preserve browser default for Ctrl/Cmd/middle-click
@@ -370,16 +388,30 @@ export const Header: React.FC<HeaderProps> = ({
             setTimeout(() => document.body.removeChild(ghost), 0);
           }}
         >
-          <div className="relative flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 group-hover:border-sky-400 transition-colors">
+          <div className={`relative flex items-center justify-center w-6 h-6 rounded-md transition-colors ${
+            theme === 'light'
+              ? 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)] group-hover:border-[var(--accent)]'
+              : 'bg-sky-500/10 border border-sky-500/30 text-sky-400 group-hover:border-sky-400'
+          }`}>
             <Radio size={13} className="animate-pulse" />
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+            <span className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${
+              theme === 'light' ? 'bg-[var(--sev-ok)]' : 'bg-emerald-400 shadow-[0_0_6px_#10b981]'
+            }`} />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-primary)] group-hover:text-sky-400 transition-colors">
-              MANEKSHAW<span className="text-sky-400">.VISION</span>
+            <span className={`transition-colors ${
+              theme === 'light'
+                ? 'text-sm font-serif font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-text)]'
+                : 'text-xs font-mono font-bold tracking-wider text-[var(--text-primary)] group-hover:text-sky-400'
+            }`}>
+              MANEKSHAW<span className={theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'}>.VISION</span>
             </span>
-            <span className="hidden xl:inline-block px-1 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className={`hidden xl:inline-block px-1.5 py-0.2 rounded text-[9px] font-bold ${
+              theme === 'light'
+                ? 'font-sans bg-[var(--sev-ok-bg)] text-[var(--sev-ok)] border border-[var(--sev-ok)]/20'
+                : 'font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }`}>
               LIVE
             </span>
           </div>
@@ -392,13 +424,19 @@ export const Header: React.FC<HeaderProps> = ({
         <div ref={theaterDropdownRef} className="relative">
           <button
             onClick={() => setIsTheaterOpen(!isTheaterOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 rounded-md font-mono text-[11px] text-[var(--text-primary)] transition-all cursor-pointer"
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] text-[var(--text-primary)] transition-all cursor-pointer ${
+              theme === 'light'
+                ? 'bg-[var(--surface)] hover:bg-[var(--bg-sunken)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] font-sans'
+                : 'bg-[var(--bg-surface-elevated)]/90 hover:bg-[var(--bg-surface-hover)] border border-[var(--hud-border)] hover:border-sky-500/40 font-mono'
+            }`}
             title="Operational Theater View"
           >
             <span className="font-semibold tracking-wide truncate max-w-[90px] sm:max-w-none">
               {currentTheater.label}
             </span>
-            <span className="text-[9px] text-sky-400">{isTheaterOpen ? '▲' : '▼'}</span>
+            <span className={`text-[9px] ${theme === 'light' ? 'text-[var(--text-tertiary)]' : 'text-sky-400'}`}>
+              {isTheaterOpen ? '▲' : '▼'}
+            </span>
           </button>
 
           {isTheaterOpen && (
@@ -406,19 +444,23 @@ export const Header: React.FC<HeaderProps> = ({
               className="absolute left-0 top-full mt-1.5 animate-fade-in"
               style={{
                 zIndex: 3000,
-                backgroundColor: theme === 'dark' ? '#0B101B' : '#FFFFFF',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                borderRadius: '4px',
+                backgroundColor: theme === 'dark' ? '#0B101B' : 'var(--surface)',
+                border: theme === 'dark' ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid var(--border-subtle)',
+                borderRadius: theme === 'dark' ? '4px' : '8px',
                 padding: '6px',
                 minWidth: '170px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                boxShadow: theme === 'dark'
+                  ? '0 20px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                  : 'var(--shadow-md)'
               }}
             >
               <div
-                className="px-2 py-1 text-[9px] font-mono font-bold uppercase tracking-wider mb-1"
+                className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider mb-1 ${
+                  theme === 'light' ? 'font-sans' : 'font-mono'
+                }`}
                 style={{
-                  color: theme === 'dark' ? '#64748B' : '#94A3B8',
-                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0'
+                  color: theme === 'dark' ? '#64748B' : 'var(--text-tertiary)',
+                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid var(--border-subtle)'
                 }}
               >
                 Select Theater
@@ -435,19 +477,17 @@ export const Header: React.FC<HeaderProps> = ({
                     className="transition-colors"
                     style={{
                       padding: '7px 12px',
-                      borderRadius: '3px',
-                      fontFamily: 'monospace',
+                      borderRadius: theme === 'dark' ? '3px' : '6px',
+                      fontFamily: theme === 'dark' ? 'monospace' : 'var(--font-sans)',
                       fontSize: '11.5px',
                       color: isSelected
-                        ? '#38BDF8'
-                        : theme === 'dark'
-                        ? '#CBD5E1'
-                        : '#334155',
+                        ? theme === 'dark' ? '#38BDF8' : 'var(--accent-text)'
+                        : theme === 'dark' ? '#CBD5E1' : 'var(--text-primary)',
                       backgroundColor: isSelected
-                        ? 'rgba(14, 165, 233, 0.2)'
+                        ? theme === 'dark' ? 'rgba(14, 165, 233, 0.2)' : 'var(--accent-soft)'
                         : 'transparent',
                       border: isSelected
-                        ? '1px solid rgba(56, 189, 248, 0.4)'
+                        ? theme === 'dark' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(198, 97, 63, 0.3)'
                         : '1px solid transparent',
                       fontWeight: isSelected ? 600 : 400,
                       display: 'flex',
@@ -457,19 +497,21 @@ export const Header: React.FC<HeaderProps> = ({
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.12)';
-                        e.currentTarget.style.color = '#F8FAFC';
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(56, 189, 248, 0.12)' : 'var(--bg-sunken)';
+                        e.currentTarget.style.color = theme === 'dark' ? '#F8FAFC' : 'var(--text-primary)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
                         e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = theme === 'dark' ? '#CBD5E1' : '#334155';
+                        e.currentTarget.style.color = theme === 'dark' ? '#CBD5E1' : 'var(--text-secondary)';
                       }
                     }}
                   >
                     <span>{th.label}</span>
-                    {isSelected && <span className="text-[10px] text-sky-400">●</span>}
+                    {isSelected && (
+                      <span className={`text-[10px] ${theme === 'dark' ? 'text-sky-400' : 'text-[var(--accent-text)]'}`}>●</span>
+                    )}
                   </div>
                 );
               })}
@@ -482,18 +524,24 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 1.3 Left-Side Time Range Selector (Hover-Expandable Micro-Pill) */}
         <div
-          className="relative group/timerange hidden sm:flex items-center h-[30px] rounded-md border border-[var(--hud-border)] hover:border-sky-500/40 bg-[var(--bg-surface-elevated)]/90 transition-all duration-250 ease-out overflow-hidden select-none font-mono text-[10px]"
+          className={`relative group/timerange hidden sm:flex items-center h-[30px] rounded-md transition-all duration-250 ease-out overflow-hidden select-none text-[10px] ${
+            theme === 'light'
+              ? 'border border-[var(--border-subtle)] hover:border-[var(--border-strong)] bg-[var(--surface)] font-sans'
+              : 'border border-[var(--hud-border)] hover:border-sky-500/40 bg-[var(--bg-surface-elevated)]/90 font-mono'
+          }`}
           title="Telemetry Time Window (Hover to expand all ranges)"
         >
           {/* Resting State: Small Clock Icon + Active Range Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 text-sky-400 font-bold shrink-0 cursor-pointer">
-            <Clock size={11} className="text-sky-400 shrink-0" />
+          <div className={`flex items-center gap-1.5 px-2.5 font-bold shrink-0 cursor-pointer ${
+            theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'
+          }`}>
+            <Clock size={11} className={theme === 'light' ? 'text-[var(--accent-text)] shrink-0' : 'text-sky-400 shrink-0'} />
             <span className="uppercase tracking-wider">{timeRange}</span>
           </div>
 
           {/* On Hover: Smoothly expand horizontally to reveal all 5 range buttons */}
           <div className="max-w-0 opacity-0 group-hover/timerange:delay-200 group-hover/timerange:max-w-[200px] group-hover/timerange:opacity-100 transition-all duration-250 ease-out delay-0 overflow-hidden flex items-center gap-[2px] pr-1.5">
-            <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-80" />
+            <div className={`w-[1px] h-3.5 mx-0.5 opacity-80 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
             {timeRanges.map((tr) => {
               const isActive = timeRange.toLowerCase() === tr.toLowerCase();
               return (
@@ -506,8 +554,12 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className={`px-1.5 py-0.5 rounded-[2px] uppercase font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/40 shadow-xs'
-                      : 'text-[var(--text-secondary)] hover:text-sky-300 hover:bg-white/5 border border-transparent'
+                      ? theme === 'light'
+                        ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] font-bold border border-[var(--accent)]/30'
+                        : 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/40 shadow-xs'
+                      : theme === 'light'
+                        ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-sunken)] border border-transparent'
+                        : 'text-[var(--text-secondary)] hover:text-sky-300 hover:bg-white/5 border border-transparent'
                   }`}
                 >
                   {tr}
@@ -533,14 +585,22 @@ export const Header: React.FC<HeaderProps> = ({
                 <div
                   key={`${item.id}-${idx}`}
                   onClick={() => onSelectAlert && onSelectAlert(item)}
-                  className="inline-flex items-center gap-1.5 cursor-pointer group text-[var(--text-secondary)] hover:text-sky-400 transition-colors"
+                  className={`inline-flex items-center gap-1.5 cursor-pointer group text-[var(--text-secondary)] transition-colors ${
+                    theme === 'light' ? 'hover:text-[var(--accent-text)]' : 'hover:text-sky-400'
+                  }`}
                 >
                   <span
                     className={`px-1 py-0.1 rounded text-[8.5px] font-bold uppercase ${
                       item.severity === 'critical'
-                        ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                        ? theme === 'light'
+                          ? 'bg-[var(--sev-critical-bg)] text-[var(--sev-critical)] border border-[var(--sev-critical)]/20'
+                          : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                         : item.severity === 'high'
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        ? theme === 'light'
+                          ? 'bg-[var(--sev-high-bg)] text-[var(--sev-high)] border border-[var(--sev-high)]/20'
+                          : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : theme === 'light'
+                        ? 'bg-[var(--sev-info-bg)] text-[var(--sev-info)] border border-[var(--sev-info)]/20'
                         : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
                     }`}
                   >
@@ -552,7 +612,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-[9.5px] text-[var(--text-muted)]">
                     {item.timeAgo}
                   </span>
-                  <ChevronRight size={10} className="text-[var(--text-muted)] group-hover:text-sky-400" />
+                  <ChevronRight size={10} className={`text-[var(--text-muted)] ${theme === 'light' ? 'group-hover:text-[var(--accent-text)]' : 'group-hover:text-sky-400'}`} />
                 </div>
               ))
             ) : (
@@ -568,9 +628,9 @@ export const Header: React.FC<HeaderProps> = ({
         <div
           className={`group/coords flex items-center h-[30px] rounded-md border transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10.5px] ${
             theme === 'light'
-              ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
+              ? 'bg-[var(--surface)] border-[var(--border-subtle)] shadow-xs hover:border-[var(--accent)]/50'
               : 'bg-[var(--bg-surface-elevated)]/90 border-[var(--hud-border)] hover:border-sky-500/50 shadow-xs'
-          } ${isEditingCoords ? 'border-sky-500 ring-1 ring-sky-500/40' : ''}`}
+          } ${isEditingCoords ? (theme === 'light' ? 'border-[var(--accent)] ring-1 ring-[var(--focus-ring)]' : 'border-sky-500 ring-1 ring-sky-500/40') : ''}`}
           onClick={() => {
             if (!isEditingCoords) {
               setCoordsInput(`${latDisplay}, ${lonDisplay} • Z${zoom.toFixed(1)}`);
@@ -580,8 +640,8 @@ export const Header: React.FC<HeaderProps> = ({
           title="Telemetry Coordinates (Hover to expand, click to edit custom coordinates/zoom)"
         >
           {/* Resting State: 30x30px Compass Icon */}
-          <div className="flex items-center justify-center w-[30px] h-[30px] shrink-0 text-sky-400">
-            <Compass size={13} className="text-sky-400 group-hover/coords:rotate-45 transition-transform duration-300" />
+          <div className={`flex items-center justify-center w-[30px] h-[30px] shrink-0 ${theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'}`}>
+            <Compass size={13} className={`${theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'} group-hover/coords:rotate-45 transition-transform duration-300`} />
           </div>
 
           {/* On Hover (or while editing): Expand to show full coordinates */}
@@ -604,7 +664,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 onBlur={handleSaveCoords}
                 className={`w-[175px] bg-transparent outline-none font-mono text-[10.5px] font-semibold text-center ${
-                  theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'
+                  theme === 'light' ? 'text-[var(--text-primary)]' : 'text-sky-400'
                 }`}
                 placeholder="lat, lon • Z3.5"
                 autoComplete="off"
@@ -612,11 +672,11 @@ export const Header: React.FC<HeaderProps> = ({
               />
             ) : (
               <div className="flex items-center gap-1.5 font-semibold">
-                <span className={theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'}>{latDisplay}</span>
+                <span className={theme === 'light' ? 'text-[var(--text-primary)]' : 'text-sky-400'}>{latDisplay}</span>
                 <span className="text-[var(--text-muted)]">,</span>
-                <span className={theme === 'light' ? 'text-[#0284C7]' : 'text-sky-400'}>{lonDisplay}</span>
-                <span className={theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'}>•</span>
-                <span className={`${theme === 'light' ? 'text-[#D97706]' : 'text-amber-400'}`}>Z{zoom.toFixed(1)}</span>
+                <span className={theme === 'light' ? 'text-[var(--text-primary)]' : 'text-sky-400'}>{lonDisplay}</span>
+                <span className={theme === 'light' ? 'text-[var(--text-tertiary)]' : 'text-zinc-600'}>•</span>
+                <span className={`${theme === 'light' ? 'text-[var(--sev-high)]' : 'text-amber-400'}`}>Z{zoom.toFixed(1)}</span>
               </div>
             )}
           </div>
@@ -628,14 +688,14 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setIsClockOpen(!isClockOpen)}
             className={`group/clock flex items-center h-[30px] rounded-md border transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10.5px] ${
               theme === 'light'
-                ? 'bg-white border-[#CBD5E1] shadow-2xs hover:border-sky-500'
+                ? 'bg-[var(--surface)] border-[var(--border-subtle)] shadow-xs hover:border-[var(--accent)]/50'
                 : 'bg-[var(--bg-surface-elevated)]/90 border-[var(--hud-border)] hover:border-sky-500/50 shadow-xs'
-            } ${isClockOpen ? 'border-sky-500' : ''}`}
+            } ${isClockOpen ? (theme === 'light' ? 'border-[var(--accent)]' : 'border-sky-500') : ''}`}
             title={`Live Tactical Clock: ${selectedCity.city} (${selectedCity.offsetLabel}) - Click to select timezone`}
           >
             {/* Resting: Clock Icon + live ticking HH:MM:SS */}
-            <div className="flex items-center gap-1.5 px-2 text-sky-400 font-semibold shrink-0">
-              <Clock size={12} className="text-sky-400 shrink-0 group-hover/clock:scale-105 transition-transform" />
+            <div className={`flex items-center gap-1.5 px-2 font-semibold shrink-0 ${theme === 'light' ? 'text-[var(--text-primary)]' : 'text-sky-400'}`}>
+              <Clock size={12} className={`${theme === 'light' ? 'text-[var(--accent-text)]' : 'text-sky-400'} shrink-0 group-hover/clock:scale-105 transition-transform`} />
               <span className="min-w-[56px] text-center">{formattedTime || '00:00:00'}</span>
             </div>
 
@@ -648,7 +708,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <span className="text-[10px] truncate">{selectedCity.city} ({selectedCity.offsetLabel})</span>
-              <ChevronDown size={11} className="text-sky-400 shrink-0" />
+              <ChevronDown size={11} className={`${theme === 'light' ? 'text-[var(--text-tertiary)]' : 'text-sky-400'} shrink-0`} />
             </div>
           </div>
 
@@ -657,15 +717,17 @@ export const Header: React.FC<HeaderProps> = ({
             <div
               className="absolute right-0 top-full mt-1.5 animate-fade-in font-mono text-[11px] rounded-md border shadow-2xl p-1 min-w-[210px] z-[3000]"
               style={{
-                backgroundColor: theme === 'dark' ? '#0B101B' : '#FFFFFF',
-                borderColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.3)' : '#CBD5E1'
+                backgroundColor: theme === 'dark' ? '#0B101B' : 'var(--surface)',
+                borderColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.3)' : 'var(--border-subtle)',
+                boxShadow: theme === 'dark' ? undefined : 'var(--shadow-md)',
+                borderRadius: theme === 'dark' ? '6px' : '8px'
               }}
             >
               <div
                 className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider mb-1"
                 style={{
-                  color: theme === 'dark' ? '#64748B' : '#94A3B8',
-                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0'
+                  color: theme === 'dark' ? '#64748B' : 'var(--text-tertiary)',
+                  borderBottom: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid var(--border-subtle)'
                 }}
               >
                 Select Strategic Timezone
@@ -682,13 +744,13 @@ export const Header: React.FC<HeaderProps> = ({
                     className="flex items-center justify-between px-2.5 py-1.5 rounded cursor-pointer transition-colors"
                     style={{
                       backgroundColor: isSelected
-                        ? 'rgba(14, 165, 233, 0.18)'
+                        ? theme === 'dark' ? 'rgba(14, 165, 233, 0.18)' : 'var(--accent-soft)'
                         : 'transparent',
                       color: isSelected
-                        ? '#38BDF8'
+                        ? theme === 'dark' ? '#38BDF8' : 'var(--accent-text)'
                         : theme === 'dark'
                         ? '#CBD5E1'
-                        : '#334155',
+                        : 'var(--text-primary)',
                       fontWeight: isSelected ? 600 : 400
                     }}
                   >
@@ -703,14 +765,19 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* 4. Right-Side Utility & Workstation Dock (Individual Hover-Reveal Labels) */}
-      <div className="flex items-center gap-0.5 p-0.5 rounded-md border border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 shadow-xs font-mono text-[11px] shrink-0 relative z-50">
+      <div className={`flex items-center gap-0.5 p-0.5 rounded-md border text-[11px] shrink-0 relative z-50 ${
+        theme === 'light'
+          ? 'border-[var(--border-subtle)] bg-[var(--surface)] shadow-xs font-sans'
+          : 'border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 shadow-xs font-mono'
+      }`}>
         {/* 1. Search */}
         <HoverExpandButton
-          icon={<Search size={13} className="text-sky-400" />}
+          theme={theme}
+          icon={<Search size={13} className={theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'} />}
           label={
             <>
               <span>Search</span>
-              <kbd className="px-1 py-0.2 rounded text-[9px] bg-white/10 text-slate-300">⌘K</kbd>
+              <kbd className={`px-1 py-0.2 rounded text-[9px] ${theme === 'light' ? 'bg-black/5 text-[var(--text-secondary)]' : 'bg-white/10 text-slate-300'}`}>⌘K</kbd>
             </>
           }
           onClick={onOpenCommandPalette}
@@ -719,11 +786,12 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 2. Share */}
         <HoverExpandButton
+          theme={theme}
           icon={
             copiedLink ? (
-              <Check size={13} className="text-emerald-400" />
+              <Check size={13} className="text-emerald-500" />
             ) : (
-              <Share2 size={13} className="text-sky-400" />
+              <Share2 size={13} className={theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'} />
             )
           }
           label={copiedLink ? 'Link Copied!' : 'Share Dashboard'}
@@ -733,15 +801,24 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 3. Save */}
         <HoverExpandButton
+          theme={theme}
           icon={
             <Bookmark
               size={13}
-              className={isWorkspaceSaved ? 'fill-sky-400 text-sky-400' : 'text-sky-400'}
+              className={
+                isWorkspaceSaved
+                  ? theme === 'light' ? 'fill-[var(--accent-text)] text-[var(--accent-text)]' : 'fill-sky-400 text-sky-400'
+                  : theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'
+              }
             />
           }
           label={isWorkspaceSaved ? 'Saved (Unsave)' : 'Save Dashboard'}
           active={isWorkspaceSaved}
-          activeClassName="bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.25)]"
+          activeClassName={
+            theme === 'light'
+              ? 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)] font-semibold'
+              : 'bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.25)]'
+          }
           onClick={onToggleSaveWorkspace}
           title={
             isWorkspaceSaved
@@ -751,21 +828,23 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
         {/* 4. Operator Profile / Auth Shield */}
         <UserNav
           onOpenAuthModal={onOpenAuthModal || (() => {})}
           onNavigateLogin={onNavigateLogin}
+          theme={theme}
         />
 
         {/* 5. Theme Toggle */}
         <HoverExpandButton
+          theme={theme}
           icon={
             theme === 'dark' ? (
               <Sun size={13} className="text-amber-400" />
             ) : (
-              <Moon size={13} className="text-sky-500" />
+              <Moon size={13} className="text-[var(--accent-text)]" />
             )
           }
           label={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
@@ -774,13 +853,14 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
         {/* 6. Audio Toggle */}
         <HoverExpandButton
+          theme={theme}
           icon={
             audioEnabled ? (
-              <Volume2 size={13} className="text-emerald-400" />
+              <Volume2 size={13} className="text-emerald-500" />
             ) : (
               <VolumeX size={13} className="text-slate-400" />
             )
@@ -792,6 +872,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 7. Fullscreen Toggle */}
         <HoverExpandButton
+          theme={theme}
           icon={isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
           label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           onClick={toggleFullscreen}
@@ -799,14 +880,19 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className="w-[1px] h-3.5 bg-[var(--hud-border)] mx-0.5 opacity-60 shrink-0" />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
         {/* 8. Four-Square Grid (Intel Workstation) */}
         <HoverExpandButton
+          theme={theme}
           icon={
             <LayoutGrid
               size={13}
-              className={isWorkspaceDrawerOpen ? 'text-slate-950' : 'text-sky-400'}
+              className={
+                isWorkspaceDrawerOpen
+                  ? theme === 'light' ? 'text-[var(--accent-text)]' : 'text-slate-950'
+                  : theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'
+              }
             />
           }
           label="Intel Workstation"
@@ -821,11 +907,12 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 9. Intel Desk Toggle */}
         <HoverExpandButton
+          theme={theme}
           icon={
             isRightPanelOpen ? (
-              <PanelRightClose size={13} className="text-slate-950" />
+              <PanelRightClose size={13} className={theme === 'light' ? 'text-[var(--accent-text)]' : 'text-slate-950'} />
             ) : (
-              <PanelRightOpen size={13} className="text-sky-400" />
+              <PanelRightOpen size={13} className={theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'} />
             )
           }
           label="Intel Desk"

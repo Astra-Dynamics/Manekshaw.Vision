@@ -1,57 +1,12 @@
 @import "tailwindcss";
 
-:root {
-  /* Light Theme (Palantir Technical Blueprint / Daylight Ops) */
-  --bg-app: #f1f5f9;
-  --bg-canvas: #e2e8f0;
-  --bg-surface: #f8fafc;
-  --bg-surface-elevated: #ffffff;
-  --bg-surface-hover: #f1f5f9;
-  --bg-surface-subtle: #f8fafc;
-  --hud-bg: rgba(248, 250, 252, 0.96);
-  --hud-border: #cbd5e1;
-  --hud-border-active: rgba(2, 132, 199, 0.6);
-  --hud-glow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
-
-  --border-subtle: #e2e8f0;
-  --border-medium: #cbd5e1;
-  --border-strong: #94a3b8;
-  --border-accent: #0284c7;
-
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
-
-  --badge-bg-critical: rgba(244, 63, 94, 0.10);
-  --badge-text-critical: #e11d48;
-  --badge-border-critical: rgba(244, 63, 94, 0.25);
-
-  --badge-bg-high: rgba(245, 158, 11, 0.10);
-  --badge-text-high: #d97706;
-  --badge-border-high: rgba(245, 158, 11, 0.25);
-
-  --badge-bg-info: rgba(2, 132, 199, 0.10);
-  --badge-text-info: #0284c7;
-  --badge-border-info: rgba(2, 132, 199, 0.25);
-
-  --category-header-bg: #e2e8f0;
-  --category-header-text: #334155;
-
-  /* Semantic Layer Accents (Light Ops) */
-  --accent-kinetic: #e11d48;
-  --accent-military: #d97706;
-  --accent-strategic: #0284c7;
-  --accent-infra: #059669;
-  --accent-env: #4f46e5;
-  --accent-geo: #7c3aed;
-
-  --shadow-hud: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+@theme {
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-.dark, body.dark-theme {
+:root, .dark, body.dark-theme {
   /* Dark Theme (Palantir Gotham Command Center - Default) */
   --bg-app: #06090e;
   --bg-canvas: #06090e;
@@ -98,6 +53,102 @@
   --accent-geo: #8b5cf6;
 
   --shadow-hud: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px 0 rgba(56, 189, 248, 0.05);
+
+  /* Geometry & Typography Defaults */
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --radius-btn: 8px;
+  --radius-chip: 6px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+}
+
+html.light, :root.light, body.light-theme {
+  /* Light Theme — Claude Warm Editorial with Terracotta Accents */
+  --bg-app: #FAF9F5;
+  --bg-panel: #F5F4ED;
+  --bg-sunken: #EFEDE4;
+  --surface: #FFFFFF;
+
+  /* Legacy aliases to preserve backward compatibility */
+  --bg-canvas: #FAF9F5;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-hover: #EFEDE4;
+  --bg-surface-subtle: #EFEDE4;
+  --hud-bg: #F5F4ED;
+  --hud-border: #E8E6DC;
+  --hud-border-active: rgba(198, 97, 63, 0.45);
+  --hud-glow: 0 4px 20px -2px rgba(31, 30, 29, 0.05);
+
+  --border-subtle: #E8E6DC;
+  --border-strong: #D6D3C6;
+  --border-medium: #D6D3C6;
+  --border-accent: #C6613F;
+
+  --text-primary: #1F1E1D;
+  --text-secondary: #5E5D59;
+  --text-tertiary: #75746E;
+  --text-muted: #75746E;
+  --text-faint: #75746E;
+
+  --accent: #C6613F;
+  --accent-hover: #B5552F;
+  --accent-text: #A6492A;
+  --accent-soft: #F6E3DA;
+  --on-accent: #FFFFFF;
+
+  --focus-ring: rgba(198, 97, 63, 0.45);
+
+  --shadow-sm: 0 1px 2px rgba(31, 30, 29, 0.04);
+  --shadow-md: 0 4px 16px rgba(31, 30, 29, 0.07), 0 1px 3px rgba(31, 30, 29, 0.05);
+  --shadow-hud: 0 10px 25px -5px rgba(31, 30, 29, 0.05);
+
+  /* Semantic severity (text & bg) */
+  --sev-critical: #B42318;
+  --sev-critical-bg: #FBEAE7;
+  --sev-high: #B54708;
+  --sev-high-bg: #FDF0E1;
+  --sev-medium: #8A6100;
+  --sev-medium-bg: #FBF3D6;
+  --sev-info: #2F6F8F;
+  --sev-info-bg: #E4EFF4;
+  --sev-ok: #2E7D5B;
+  --sev-ok-bg: #E3F1EA;
+
+  /* Badges */
+  --badge-bg-critical: #FBEAE7;
+  --badge-text-critical: #B42318;
+  --badge-border-critical: rgba(180, 35, 24, 0.20);
+
+  --badge-bg-high: #FDF0E1;
+  --badge-text-high: #B54708;
+  --badge-border-high: rgba(181, 71, 8, 0.20);
+
+  --badge-bg-medium: #FBF3D6;
+  --badge-text-medium: #8A6100;
+  --badge-border-medium: rgba(138, 97, 0, 0.20);
+
+  --badge-bg-info: #E4EFF4;
+  --badge-text-info: #2F6F8F;
+  --badge-border-info: rgba(47, 111, 143, 0.20);
+
+  --badge-bg-ok: #E3F1EA;
+  --badge-text-ok: #2E7D5B;
+  --badge-border-ok: rgba(46, 125, 91, 0.20);
+
+  --category-header-bg: #EFEDE4;
+  --category-header-text: #5E5D59;
+
+  /* Semantic Layer Accents (Light Ops) */
+  --accent-kinetic: #B42318;
+  --accent-military: #2F6F8F;
+  --accent-strategic: #3B7A6B;
+  --accent-infra: #1F7A5C;
+  --accent-env: #5E7C99;
+  --accent-geo: #7A5C99;
 }
 
 *, *::before, *::after {
@@ -266,6 +317,49 @@ body {
 .pulse-cyan { animation: radar-pulse-cyan 2s infinite; }
 .pulse-amber { animation: radar-pulse-amber 2s infinite; }
 
+/* Light Mode Calm Radar Pulse Beacons */
+@keyframes radar-pulse-coral-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(192, 57, 43, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+}
+
+@keyframes radar-pulse-cyan-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 111, 143, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(47, 111, 143, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 111, 143, 0); }
+}
+
+@keyframes radar-pulse-amber-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(183, 121, 31, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(183, 121, 31, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(183, 121, 31, 0); }
+}
+
+@keyframes radar-pulse-emerald-light {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(31, 122, 92, 0.35); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(31, 122, 92, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(31, 122, 92, 0); }
+}
+
+.light .pulse-red, .light .pulse-coral,
+.light-theme .pulse-red, .light-theme .pulse-coral {
+  animation: radar-pulse-coral-light 3s infinite;
+}
+.light .pulse-green, .light .pulse-emerald,
+.light-theme .pulse-green, .light-theme .pulse-emerald {
+  animation: radar-pulse-emerald-light 3s infinite;
+}
+.light .pulse-cyan,
+.light-theme .pulse-cyan {
+  animation: radar-pulse-cyan-light 3s infinite;
+}
+.light .pulse-amber,
+.light-theme .pulse-amber {
+  animation: radar-pulse-amber-light 3s infinite;
+}
+
+
 /* Marquee for Landing Page */
 @keyframes marquee-flow {
   0% { transform: translateX(0%); }
@@ -373,6 +467,47 @@ body {
   background: transparent !important;
 }
 
+/* Light Mode Maplibre & Tactical Popup Overrides */
+.light-theme .maplibregl-popup-content,
+.light .maplibregl-popup-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--text-primary) !important;
+  padding: 12px 14px !important;
+}
+.light-theme .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-left .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-anchor-right .maplibregl-popup-tip,
+.light .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface) !important; }
+.light-theme .maplibregl-popup-close-button,
+.light .maplibregl-popup-close-button {
+  color: var(--text-tertiary) !important;
+}
+.light-theme .maplibregl-popup-close-button:hover,
+.light .maplibregl-popup-close-button:hover {
+  color: var(--accent) !important;
+}
+
+.light-theme .maplibregl-ctrl-group,
+.light .maplibregl-ctrl-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+.light-theme .maplibregl-ctrl-group button,
+.light .maplibregl-ctrl-group button {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+
 /* Smooth anchor scrolling with offset for razor-thin 48px pinned header */
 html {
   scroll-behavior: smooth;
@@ -422,3 +557,121 @@ html {
   background: #38BDF8 !important;
   box-shadow: 0 0 12px #38BDF8 !important;
 }
+
+/* ==========================================================================
+   GLOBAL LIGHT THEME OVERRIDES (Claude Warm Editorial)
+   ========================================================================== */
+
+/* Custom Scrollbars in Light Mode */
+body.light-theme ::-webkit-scrollbar,
+body.light-theme .layers-scrollbar::-webkit-scrollbar,
+body.light-theme .feed-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+body.light-theme ::-webkit-scrollbar-track,
+body.light-theme .layers-scrollbar::-webkit-scrollbar-track,
+body.light-theme .feed-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+  border-left: none !important;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb,
+body.light-theme .layers-scrollbar::-webkit-scrollbar-thumb,
+body.light-theme .feed-scrollbar::-webkit-scrollbar-thumb {
+  background: #D6D3C6 !important;
+  border-radius: 4px !important;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb:hover,
+body.light-theme .layers-scrollbar::-webkit-scrollbar-thumb:hover,
+body.light-theme .feed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #BDB9AA !important;
+}
+
+/* Text Selection in Light Mode */
+body.light-theme ::selection {
+  background: var(--accent-soft) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Links in Light Mode */
+body.light-theme a {
+  color: var(--accent-text);
+}
+body.light-theme a:hover {
+  text-decoration: underline;
+}
+
+/* Tactical Corner Brackets (Silenced in Light Mode) */
+body.light-theme .bracket-tl,
+body.light-theme .bracket-tr,
+body.light-theme .bracket-bl,
+body.light-theme .bracket-br {
+  display: none !important;
+}
+
+/* Maplibre Control Overrides in Light Mode */
+body.light-theme .maplibregl-ctrl-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 8px !important;
+}
+body.light-theme .maplibregl-ctrl-group button {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+body.light-theme .maplibregl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+
+/* Maplibre Popup Overrides in Light Mode */
+body.light-theme .maplibregl-popup-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 12px !important;
+  color: var(--text-primary) !important;
+}
+body.light-theme .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--surface) !important; }
+body.light-theme .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--surface) !important; }
+body.light-theme .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface) !important; }
+body.light-theme .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface) !important; }
+body.light-theme .maplibregl-popup-close-button:hover {
+  color: var(--accent-text) !important;
+  background: transparent !important;
+}
+
+/* Resizer Gutter Glow in Light Mode */
+body.light-theme .resize-gutter-glow:hover,
+body.light-theme .resize-gutter-glow.active {
+  background: var(--accent) !important;
+  box-shadow: 0 0 10px rgba(198, 97, 63, 0.4) !important;
+}
+
+/* Feed Cards in Light Mode */
+body.light-theme .palantir-feed-card {
+  padding: 16px !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-sm) !important;
+  margin-bottom: 12px !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+body.light-theme .palantir-feed-card:hover {
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--border-strong) !important;
+}
+
+/* Light Editorial Headline Helper */
+.font-editorial {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+

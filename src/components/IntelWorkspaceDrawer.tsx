@@ -82,26 +82,36 @@ interface WorkspaceHeaderButtonProps {
   onClick?: (e: React.MouseEvent) => void;
   title?: string;
   className?: string;
+  isLight?: boolean;
 }
 
 const WorkspaceHeaderButton: React.FC<WorkspaceHeaderButtonProps> = ({
   icon,
   label,
   active = false,
-  activeClassName = 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]',
+  activeClassName,
   onClick,
   title,
-  className = ''
+  className = '',
+  isLight = false
 }) => {
+  const defaultActiveClassName = isLight
+    ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] font-semibold border-[var(--accent)]/30 shadow-[var(--shadow-sm)]'
+    : 'bg-sky-500 text-slate-950 font-bold shadow-[0_0_8px_rgba(56,189,248,0.35)]';
+
+  const resolvedActiveClassName = activeClassName || defaultActiveClassName;
+
+  const inactiveClassName = isLight
+    ? 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)] hover:border-[var(--border-subtle)]'
+    : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.06] hover:border-white/10';
+
   return (
     <button
       type="button"
       onClick={onClick}
       title={title}
       className={`group relative inline-flex items-center h-[26px] px-2 rounded transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none font-mono text-[10px] shrink-0 border border-transparent ${
-        active
-          ? activeClassName
-          : 'text-[var(--text-muted)] hover:text-sky-400 hover:bg-white/[0.06] hover:border-white/10'
+        active ? resolvedActiveClassName : inactiveClassName
       } ${className}`}
     >
       <span className="shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
@@ -638,17 +648,18 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
   // Canva-Style Drag Ghost Token
   // -------------------------------------------------------------
   const createCanvaDragGhost = (e: React.DragEvent, tokenType: string, label: string) => {
+    const isLight = !isDark;
     const ghost = document.createElement('div');
     ghost.style.position = 'absolute';
     ghost.style.top = '-1000px';
     ghost.style.left = '-1000px';
     ghost.style.width = '140px';
     ghost.style.height = '36px';
-    ghost.style.background = '#0EA5E9';
-    ghost.style.color = '#080C14';
-    ghost.style.border = '1px solid #F8FAFC';
+    ghost.style.background = isLight ? '#C6613F' : '#0EA5E9';
+    ghost.style.color = isLight ? '#FFFFFF' : '#080C14';
+    ghost.style.border = isLight ? '1px solid #FAF9F5' : '1px solid #F8FAFC';
     ghost.style.borderRadius = '4px';
-    ghost.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.7)';
+    ghost.style.boxShadow = isLight ? '0 8px 20px rgba(31, 30, 29, 0.25)' : '0 12px 24px rgba(0, 0, 0, 0.7)';
     ghost.style.fontFamily = 'monospace';
     ghost.style.fontSize = '11px';
     ghost.style.fontWeight = '700';
@@ -658,7 +669,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
     ghost.style.padding = '0 10px';
     ghost.style.zIndex = '99999';
     ghost.style.pointerEvents = 'none';
-    ghost.innerHTML = `<span style="background:rgba(0,0,0,0.25);padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
+    ghost.innerHTML = `<span style="background:${isLight ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)'};padding:2px 4px;border-radius:2px;font-size:10px;">${tokenType}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${label}</span>`;
     document.body.appendChild(ghost);
     e.dataTransfer.setDragImage(ghost, 70, 18);
     setTimeout(() => {
@@ -1027,23 +1038,34 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         className="absolute top-[76px] bottom-0 right-0 z-35 flex flex-col items-center py-4 gap-4 cursor-pointer transition-all border-l shadow-2xl select-none"
         style={{
           width: '36px',
-          background: isDark ? 'rgba(7, 10, 18, 0.96)' : '#F1F5F9',
-          borderColor: isDark ? 'rgba(56, 189, 248, 0.25)' : '#CBD5E1'
+          background: isDark ? 'rgba(7, 10, 18, 0.96)' : 'var(--bg-panel)',
+          borderColor: isDark ? 'rgba(56, 189, 248, 0.25)' : 'var(--border-subtle)',
+          boxShadow: isDark ? undefined : '-2px 0 12px rgba(31, 30, 29, 0.05)'
         }}
         title="Expand Intel Workspace (<<)"
       >
-        <div className="w-5 h-5 rounded-[3px] bg-sky-500/15 border border-sky-500/40 text-sky-400 flex items-center justify-center">
+        <div className={`w-5 h-5 rounded-[3px] flex items-center justify-center ${
+          isDark
+            ? 'bg-sky-500/15 border border-sky-500/40 text-sky-400'
+            : 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)]'
+        }`}>
           <Radio size={12} className="animate-pulse" />
         </div>
         <div
-          className="font-mono text-[10px] font-bold tracking-wider text-slate-300 uppercase select-none"
+          className={`font-mono text-[10px] font-bold tracking-wider uppercase select-none ${
+            isDark ? 'text-slate-300' : 'text-[var(--text-secondary)]'
+          }`}
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
           INTEL WORKSPACE ({allItems.length})
         </div>
         <button
           type="button"
-          className="p-1 rounded bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 transition-colors"
+          className={`p-1 rounded transition-colors ${
+            isDark
+              ? 'bg-sky-500/10 text-sky-400 hover:bg-sky-500/20'
+              : 'bg-[var(--bg-sunken)] text-[var(--accent-text)] hover:bg-[var(--accent-soft)]'
+          }`}
           title="Expand Drawer"
         >
           <ChevronLeft size={14} />
@@ -1064,9 +1086,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         width: isWholePage ? '100vw' : `${width}px`,
         maxWidth: '100vw',
         zIndex: isWholePage ? 45 : 35,
-        background: isDark ? 'var(--bg-surface)' : '#FFFFFF',
-        borderLeft: isWholePage ? 'none' : '1px solid var(--border-medium)',
-        boxShadow: isWholePage ? 'none' : '-16px 0 32px rgba(0, 0, 0, 0.65)',
+        background: isDark ? 'var(--bg-surface)' : 'var(--bg-app)',
+        borderLeft: isWholePage ? 'none' : isDark ? '1px solid var(--border-medium)' : '1px solid var(--border-subtle)',
+        boxShadow: isWholePage ? 'none' : isDark ? '-16px 0 32px rgba(0, 0, 0, 0.65)' : '-8px 0 24px rgba(31, 30, 29, 0.08)',
         transition: isDraggingResizer || isResizingDrawer ? 'none' : 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
@@ -1082,18 +1104,26 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           {/* Glowing Highlight line */}
           <div
             className={`w-[2px] h-full transition-all ${
-              isResizingDrawer || isDraggingResizer
-                ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
-                : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
+              isDark
+                ? isResizingDrawer || isDraggingResizer
+                  ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]'
+                  : 'bg-transparent group-hover:bg-[#38BDF8]/60 group-hover:shadow-[0_0_8px_#38BDF8]'
+                : isResizingDrawer || isDraggingResizer
+                  ? 'bg-[var(--accent)] shadow-[0_0_8px_rgba(198,97,63,0.4)]'
+                  : 'bg-transparent group-hover:bg-[var(--accent)]/50'
             }`}
           />
 
           {/* Centered Pill Grip Icon */}
           <div
             className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-8 rounded-full flex items-center justify-center transition-all ${
-              isResizingDrawer || isDraggingResizer
-                ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
-                : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
+              isDark
+                ? isResizingDrawer || isDraggingResizer
+                  ? 'bg-sky-500 text-slate-950 shadow-[0_0_12px_#38BDF8]'
+                  : 'bg-slate-900/95 text-slate-400 border border-slate-700/80 group-hover:border-sky-400 group-hover:text-sky-300'
+                : isResizingDrawer || isDraggingResizer
+                  ? 'bg-[var(--accent)] text-white shadow-[0_0_8px_rgba(198,97,63,0.35)]'
+                  : 'bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border-strong)] group-hover:border-[var(--accent)] group-hover:text-[var(--accent-text)] shadow-sm'
             }`}
           >
             <GripVertical size={11} />
@@ -1105,28 +1135,42 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       <div
         className="h-10 px-3 flex items-center justify-between shrink-0 border-b select-none font-mono text-xs"
         style={{
-          background: isDark ? 'rgba(8, 12, 20, 0.95)' : '#F8FAFC',
+          background: isDark ? 'rgba(8, 12, 20, 0.95)' : 'var(--bg-panel)',
           borderColor: 'var(--border-subtle)'
         }}
       >
         {/* Left: Emblem + Title + Count */}
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-[3px] bg-sky-500/15 border border-sky-500/40 text-sky-400 flex items-center justify-center">
+          <div className={`w-5 h-5 rounded-[3px] flex items-center justify-center ${
+            isDark
+              ? 'bg-sky-500/15 border border-sky-500/40 text-sky-400'
+              : 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)]'
+          }`}>
             <Radio size={12} className="animate-pulse" />
           </div>
-          <span className="font-bold tracking-wider text-slate-100 uppercase text-[11px]">
+          <span className={`font-bold tracking-wider uppercase text-[11px] ${
+            isDark ? 'text-slate-100' : 'text-[var(--text-primary)] font-serif'
+          }`}>
             INTEL WORKSPACE
           </span>
-          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
+          <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+            isDark
+              ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+              : 'bg-[var(--bg-sunken)] text-[var(--accent-text)] border border-[var(--border-subtle)]'
+          }`}>
             {allItems.length} {allItems.length === 1 ? 'ITEM' : 'ITEMS'}
           </span>
-          <span className="hidden sm:inline-block text-[9.5px] text-slate-500 font-mono">
+          <span className={`hidden sm:inline-block text-[9.5px] font-mono ${
+            isDark ? 'text-slate-500' : 'text-[var(--text-tertiary)]'
+          }`}>
             {isWholePage ? 'WHOLE PAGE (100vw)' : `${width}px`}
           </span>
         </div>
 
         {/* Right: Individual Hover-Expandable Micro-Pill Dock (Whole Page, Close All, Width, Minimize, Close) */}
-        <div className="flex items-center gap-1 p-0.5 rounded border border-white/10 bg-black/20">
+        <div className={`flex items-center gap-1 p-0.5 rounded border ${
+          isDark ? 'border-white/10 bg-black/20' : 'border-[var(--border-subtle)] bg-[var(--surface)] shadow-xs'
+        }`}>
           {/* 1. Whole Page Extension Button (Hover Expandable with 0.2s delay) */}
           <WorkspaceHeaderButton
             icon={isWholePage ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
@@ -1134,6 +1178,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             active={isWholePage}
             onClick={toggleWholePage}
             title={isWholePage ? 'Restore Drawer Mode (⤡)' : 'Expand Workspace to Whole Page (⤢)'}
+            isLight={!isDark}
           />
 
           {/* 2. Close All Button for Whole Intel Workspace (Hover Expandable with 0.2s delay) */}
@@ -1141,14 +1186,21 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             icon={<Trash2 size={11} className={isConfirmingCloseAll ? 'text-white' : ''} />}
             label={isConfirmingCloseAll ? 'CONFIRM CLOSE ALL?' : 'CLOSE ALL'}
             active={isConfirmingCloseAll}
-            activeClassName="bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)] border-rose-500"
+            activeClassName={
+              isDark
+                ? "bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.5)] border-rose-500"
+                : "bg-[var(--sev-critical)] text-white font-bold animate-pulse shadow-sm border-[var(--sev-critical)]"
+            }
             className={
               isConfirmingCloseAll
                 ? ''
-                : 'hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30'
+                : isDark
+                ? 'hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30'
+                : 'hover:text-[var(--sev-critical)] hover:bg-[var(--sev-critical-bg)] hover:border-[var(--sev-critical)]/30'
             }
             onClick={handleCloseAllWorkspace}
             title="Close all tabs and clear entire Intel Workspace"
+            isLight={!isDark}
           />
 
           {/* 3. Toggle Preset Width (Only visible in Drawer mode) */}
@@ -1158,6 +1210,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
               label={width >= 600 ? 'COMPACT (440px)' : 'EXPAND (680px)'}
               onClick={onToggleWidth}
               title={width >= 600 ? 'Shrink to 440px Compact' : 'Expand to 680px Wide Canvas'}
+              isLight={!isDark}
             />
           )}
 
@@ -1166,8 +1219,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             icon={<ChevronRight size={13} />}
             label="MINIMIZE"
             onClick={onToggleMinimize}
-            className="hover:text-amber-400"
+            className={isDark ? "hover:text-amber-400" : "hover:text-[var(--accent-text)]"}
             title="Minimize to Edge Rail (>>)"
+            isLight={!isDark}
           />
 
           {/* 5. Close Drawer */}
@@ -1175,8 +1229,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             icon={<X size={13} />}
             label="CLOSE"
             onClick={onClose}
-            className="hover:text-rose-400"
+            className={isDark ? "hover:text-rose-400" : "hover:text-[var(--sev-critical)]"}
             title="Close Workspace (×)"
+            isLight={!isDark}
           />
         </div>
       </div>
@@ -1185,7 +1240,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       <div
         className="h-8 px-2 flex items-end gap-1 shrink-0 overflow-x-auto select-none font-mono text-[11px]"
         style={{
-          background: isDark ? 'rgba(6, 9, 15, 0.96)' : '#E2E8F0',
+          background: isDark ? 'rgba(6, 9, 15, 0.96)' : 'var(--bg-sunken)',
           borderBottom: '1px solid var(--border-subtle)',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none'
@@ -1218,23 +1273,26 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                 background: isActive
                   ? isDark
                     ? 'var(--bg-surface)'
-                    : '#FFFFFF'
+                    : 'var(--surface)'
                   : 'transparent',
                 color: isActive
-                  ? '#38bdf8'
+                  ? isDark
+                    ? '#38bdf8'
+                    : 'var(--text-primary)'
                   : isDark
                   ? '#94A3B8'
-                  : '#64748B',
+                  : 'var(--text-secondary)',
                 border: isActive
                   ? isDark
                     ? '1px solid rgba(56, 189, 248, 0.35)'
-                    : '1px solid #CBD5E1'
+                    : '1px solid var(--border-subtle)'
                   : '1px solid transparent',
                 borderBottom: isActive
                   ? isDark
                     ? '1px solid var(--bg-surface)'
-                    : '1px solid #FFFFFF'
-                  : 'none'
+                    : '1px solid var(--surface)'
+                  : 'none',
+                boxShadow: isActive && !isDark ? '0 -1px 3px rgba(31,30,29,0.03)' : undefined
               }}
             >
               {isEditing ? (
@@ -1248,16 +1306,24 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                     if (e.key === 'Enter') handleSaveRename(tab.id);
                     if (e.key === 'Escape') setEditingTabId(null);
                   }}
-                  className="w-full bg-transparent text-[11px] font-mono outline-none text-sky-400"
+                  className={`w-full bg-transparent text-[11px] font-mono outline-none ${
+                    isDark ? 'text-sky-400' : 'text-[var(--accent-text)]'
+                  }`}
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
                 <>
-                  <span className="truncate font-semibold tracking-wide text-[10.5px]">
+                  <span className={`truncate tracking-wide text-[10.5px] ${
+                    isActive ? (isDark ? 'font-semibold' : 'font-bold') : 'font-medium'
+                  }`}>
                     {tab.title}
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[9px] px-1 py-0.1 rounded bg-white/5 text-slate-400">
+                    <span className={`text-[9px] px-1 py-0.1 rounded ${
+                      isDark
+                        ? 'bg-white/5 text-slate-400'
+                        : 'bg-[var(--bg-panel)] text-[var(--text-tertiary)] border border-[var(--border-subtle)]'
+                    }`}>
                       {tabItemCount}
                     </span>
                     {tabs.length > 1 && (
@@ -1267,7 +1333,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           e.stopPropagation();
                           onCloseTab(tab.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-rose-400 transition-opacity"
+                        className={`opacity-0 group-hover:opacity-100 p-0.5 transition-opacity ${
+                          isDark ? 'hover:text-rose-400' : 'hover:text-[var(--sev-critical)]'
+                        }`}
                         title="Close Tab"
                       >
                         <X size={10} />
@@ -1284,7 +1352,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
         <button
           type="button"
           onClick={onNewTab}
-          className="h-[24px] px-1.5 rounded hover:bg-white/[0.06] text-slate-400 hover:text-sky-400 flex items-center justify-center transition-colors shrink-0 mb-0.5"
+          className={`h-[24px] px-1.5 rounded flex items-center justify-center transition-colors shrink-0 mb-0.5 ${
+            isDark
+              ? 'hover:bg-white/[0.06] text-slate-400 hover:text-sky-400'
+              : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--surface)] border border-transparent hover:border-[var(--border-subtle)]'
+          }`}
           title="Create New Intel Watch Tab (+)"
         >
           <Plus size={12} />
@@ -1295,17 +1367,21 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
       <div
         className="h-7 px-3 flex items-center justify-between shrink-0 select-none font-mono text-[10px]"
         style={{
-          background: isDark ? 'rgba(8, 12, 20, 0.88)' : '#F1F5F9',
-          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid #CBD5E1'
+          background: isDark ? 'rgba(8, 12, 20, 0.88)' : 'var(--bg-panel)',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid var(--border-subtle)'
         }}
       >
         {/* Left: Active Tab Indicator & Item Count */}
         <div className="flex items-center gap-1.5 truncate pr-2">
-          <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)]">ACTIVE TAB:</span>
-          <span className="font-bold text-sky-400 truncate max-w-[180px] sm:max-w-[260px]">
+          <span className={`text-[9px] uppercase tracking-wider ${isDark ? 'text-[var(--text-muted)]' : 'text-[var(--text-tertiary)]'}`}>
+            ACTIVE TAB:
+          </span>
+          <span className={`font-bold truncate max-w-[180px] sm:max-w-[260px] ${
+            isDark ? 'text-sky-400' : 'text-[var(--accent-text)]'
+          }`}>
             {activeTab.title}
           </span>
-          <span className="text-[9px] text-[var(--text-muted)]">
+          <span className={`text-[9px] ${isDark ? 'text-[var(--text-muted)]' : 'text-[var(--text-tertiary)]'}`}>
             • {allItems.length} {allItems.length === 1 ? 'element' : 'elements'}
           </span>
         </div>
@@ -1317,12 +1393,16 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           disabled={allItems.length === 0}
           className={`px-2 py-0.5 rounded text-[9.5px] font-mono flex items-center gap-1 transition-all ${
             allItems.length === 0
-              ? 'opacity-35 cursor-not-allowed text-slate-500'
+              ? isDark
+                ? 'opacity-35 cursor-not-allowed text-slate-500'
+                : 'opacity-35 cursor-not-allowed text-[var(--text-tertiary)] border border-[var(--border-subtle)] bg-[var(--surface)]'
               : isConfirmingClearTab
-              ? 'bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.4)] cursor-pointer'
+              ? isDark
+                ? 'bg-rose-500 text-white font-bold animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.4)] cursor-pointer'
+                : 'bg-[var(--sev-critical)] text-white font-bold animate-pulse shadow-sm border border-[var(--sev-critical)] cursor-pointer'
               : isDark
               ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 cursor-pointer'
-              : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-300 hover:border-rose-300 cursor-pointer'
+              : 'text-[var(--text-secondary)] hover:text-[var(--sev-critical)] bg-[var(--surface)] hover:bg-[var(--sev-critical-bg)] border border-[var(--border-subtle)] hover:border-[var(--sev-critical)]/30 cursor-pointer shadow-xs'
           }`}
           title={allItems.length === 0 ? 'No elements to clear on this tab' : `Clear all elements on "${activeTab.title}"`}
         >
@@ -1352,18 +1432,30 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             onDragLeave={() => setActiveDropTarget(null)}
             onDrop={(e) => handleRowSlotDrop(e, 0)}
             className={`h-full min-h-[260px] flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl transition-all ${
-              activeDropTarget?.type === 'row_slot'
-                ? 'border-sky-400 bg-sky-500/10 text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.25)]'
-                : 'border-slate-800 bg-slate-900/20 text-slate-400 hover:border-slate-700'
+              isDark
+                ? activeDropTarget?.type === 'row_slot'
+                  ? 'border-sky-400 bg-sky-500/10 text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.25)]'
+                  : 'border-slate-800 bg-slate-900/20 text-slate-400 hover:border-slate-700'
+                : activeDropTarget?.type === 'row_slot'
+                  ? 'border-[var(--accent)] bg-[var(--accent-soft)]/50 text-[var(--accent-text)] shadow-md'
+                  : 'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-tertiary)] hover:border-[var(--accent)]/50 shadow-[var(--shadow-sm)]'
             }`}
           >
-            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-3">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
+              isDark
+                ? 'bg-sky-500/10 border border-sky-500/20 text-sky-400'
+                : 'bg-[var(--accent-soft)] border border-[var(--accent)]/30 text-[var(--accent-text)]'
+            }`}>
               <Radio size={20} className="animate-pulse" />
             </div>
-            <div className="font-mono text-xs font-bold text-slate-200 tracking-wider uppercase mb-1">
+            <div className={`font-mono text-xs font-bold tracking-wider uppercase mb-1 ${
+              isDark ? 'text-slate-200' : 'text-[var(--text-primary)] font-serif'
+            }`}>
               WORKSPACE CANVAS IS EMPTY
             </div>
-            <p className="font-sans text-[11px] text-slate-500 max-w-[320px]">
+            <p className={`font-sans text-[11px] max-w-[320px] ${
+              isDark ? 'text-slate-500' : 'text-[var(--text-secondary)]'
+            }`}>
               Drag and drop any intelligence item or video broadcast here to mount your first 2D block.
             </p>
           </div>
@@ -1392,13 +1484,19 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
             >
               <div
                 className={`h-[3px] rounded-full transition-all flex items-center justify-center relative ${
-                  activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0
-                    ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
-                    : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                  isDark
+                    ? activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0
+                      ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
+                      : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                    : activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0
+                      ? 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.35)] opacity-100 scale-y-125'
+                      : 'bg-transparent opacity-0 group-hover:bg-[var(--accent)]/25 group-hover:opacity-60'
                 }`}
               >
                 {activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === 0 && (
-                  <span className="absolute -top-3.5 px-3 py-0.5 rounded-full bg-[#0284C7] text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap">
+                  <span className={`absolute -top-3.5 px-3 py-0.5 rounded-full text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap ${
+                    isDark ? 'bg-[#0284C7]' : 'bg-[var(--accent)]'
+                  }`}>
                     <ArrowUp size={10} /> INSERT NEW ROW AT TOP
                   </span>
                 )}
@@ -1411,15 +1509,25 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
               return (
                 <React.Fragment key={row.rowId}>
                   <div
-                    className="relative group/row rounded-lg border border-slate-800/90 bg-[#090d16]/70 p-1.5 transition-all hover:border-slate-700 shadow-md"
+                    className={`relative group/row rounded-xl border p-1.5 transition-all ${
+                      isDark
+                        ? 'border-slate-800/90 bg-[#090d16]/70 hover:border-slate-700 shadow-md'
+                        : 'border-[var(--border-subtle)] bg-[var(--bg-panel)] hover:border-[var(--border-strong)] shadow-[var(--shadow-sm)]'
+                    }`}
                   >
                 {/* Row Controls Bar (Notion Style Block Actions) */}
-                <div className="flex items-center justify-between px-1.5 py-1 mb-1 text-[10px] font-mono text-slate-500 border-b border-white/[0.04]">
+                <div className={`flex items-center justify-between px-1.5 py-1 mb-1 text-[10px] font-mono border-b ${
+                  isDark ? 'text-slate-500 border-white/[0.04]' : 'text-[var(--text-tertiary)] border-[var(--border-subtle)]'
+                }`}>
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <span className={`font-bold uppercase tracking-wider text-[9px] ${
+                      isDark ? 'text-slate-400' : 'text-[var(--text-secondary)] font-semibold'
+                    }`}>
                       ROW {rowIdx + 1}
                     </span>
-                    <span className="text-[9px] px-1 py-0.2 rounded bg-white/5 text-slate-400">
+                    <span className={`text-[9px] px-1 py-0.2 rounded ${
+                      isDark ? 'bg-white/5 text-slate-400' : 'bg-[var(--bg-sunken)] text-[var(--text-tertiary)] border border-[var(--border-subtle)]'
+                    }`}>
                       {colCount} {colCount === 1 ? 'COL' : 'COLS'}
                     </span>
                   </div>
@@ -1430,7 +1538,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                       type="button"
                       disabled={rowIdx === 0}
                       onClick={() => moveRow(rowIdx, 'up')}
-                      className="p-0.5 hover:text-sky-400 disabled:opacity-20 cursor-pointer"
+                      className={`p-0.5 disabled:opacity-20 cursor-pointer ${
+                        isDark ? 'hover:text-sky-400 text-slate-400' : 'hover:text-[var(--accent-text)] text-[var(--text-secondary)]'
+                      }`}
                       title="Move Row Up"
                     >
                       <ArrowUp size={11} />
@@ -1441,7 +1551,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                       type="button"
                       disabled={rowIdx === localRows.length - 1}
                       onClick={() => moveRow(rowIdx, 'down')}
-                      className="p-0.5 hover:text-sky-400 disabled:opacity-20 cursor-pointer"
+                      className={`p-0.5 disabled:opacity-20 cursor-pointer ${
+                        isDark ? 'hover:text-sky-400 text-slate-400' : 'hover:text-[var(--accent-text)] text-[var(--text-secondary)]'
+                      }`}
                       title="Move Row Down"
                     >
                       <ArrowDown size={11} />
@@ -1452,7 +1564,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                       <button
                         type="button"
                         onClick={() => combineWithAdjacentRow(rowIdx, 'next')}
-                        className="px-1 py-0.5 rounded bg-white/5 hover:bg-sky-500/20 hover:text-sky-300 text-[9px] flex items-center gap-0.5 cursor-pointer ml-1"
+                        className={`px-1 py-0.5 rounded text-[9px] flex items-center gap-0.5 cursor-pointer ml-1 ${
+                          isDark
+                            ? 'bg-white/5 hover:bg-sky-500/20 hover:text-sky-300 text-slate-300'
+                            : 'bg-[var(--surface)] border border-[var(--border-subtle)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-text)] text-[var(--text-secondary)] shadow-xs'
+                        }`}
                         title="Merge with Row Below Side-by-Side"
                       >
                         <Columns size={10} />
@@ -1475,14 +1591,24 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                         {colIdx > 0 && (
                           <div
                             onMouseDown={(e) => handleStartColumnSplitterResize(row.rowId, colIdx - 1, e)}
-                            className="w-2.5 hover:w-3.5 hover:bg-sky-400/25 cursor-col-resize transition-all select-none flex items-center justify-center -mx-1 z-30 group/split shrink-0 self-stretch relative"
+                            className={`w-2.5 hover:w-3.5 cursor-col-resize transition-all select-none flex items-center justify-center -mx-1 z-30 group/split shrink-0 self-stretch relative ${
+                              isDark ? 'hover:bg-sky-400/25' : 'hover:bg-[var(--accent)]/20'
+                            }`}
                             title="Drag horizontally to adjust column widths (↔)"
                           >
-                            {/* Glowing vertical cyan line */}
-                            <div className="w-[2px] h-full bg-slate-800 group-hover/split:bg-[#38BDF8] group-hover/split:shadow-[0_0_10px_#38BDF8] transition-all" />
+                            {/* Glowing vertical line */}
+                            <div className={`w-[2px] h-full transition-all ${
+                              isDark
+                                ? 'bg-slate-800 group-hover/split:bg-[#38BDF8] group-hover/split:shadow-[0_0_10px_#38BDF8]'
+                                : 'bg-[var(--border-strong)] group-hover/split:bg-[var(--accent)] group-hover/split:shadow-[0_0_8px_rgba(198,97,63,0.35)]'
+                            }`} />
 
                             {/* Centered pill grip icon */}
-                            <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-6 rounded-full bg-slate-900 border border-slate-700 group-hover/split:border-sky-400 group-hover/split:bg-sky-500 text-slate-400 group-hover/split:text-slate-950 flex items-center justify-center transition-all shadow-md pointer-events-none">
+                            <div className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-6 rounded-full border flex items-center justify-center transition-all shadow-md pointer-events-none ${
+                              isDark
+                                ? 'bg-slate-900 border-slate-700 group-hover/split:border-sky-400 group-hover/split:bg-sky-500 text-slate-400 group-hover/split:text-slate-950'
+                                : 'bg-[var(--surface)] border-[var(--border-strong)] group-hover/split:border-[var(--accent)] group-hover/split:bg-[var(--accent)] text-[var(--text-secondary)] group-hover/split:text-white'
+                            }`}>
                               <MoveHorizontal size={9} />
                             </div>
                           </div>
@@ -1497,13 +1623,19 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                             flex: col.widthFlex || 1,
                             minWidth: '220px'
                           }}
-                          className={`relative flex flex-col rounded-md border ${
-                            activeDropTarget?.type === 'card' &&
-                            activeDropTarget.rowId === row.rowId &&
-                            activeDropTarget.colId === col.id
-                              ? 'border-sky-400 ring-1 ring-sky-400/40 shadow-[0_0_18px_rgba(56,189,248,0.25)]'
-                              : 'border-slate-800 hover:border-slate-700'
-                          } bg-[#0c121e] shadow-lg group/card transition-all`}
+                          className={`relative flex flex-col rounded-xl border group/card transition-all ${
+                            isDark
+                              ? activeDropTarget?.type === 'card' &&
+                                activeDropTarget.rowId === row.rowId &&
+                                activeDropTarget.colId === col.id
+                                ? 'border-sky-400 ring-1 ring-sky-400/40 shadow-[0_0_18px_rgba(56,189,248,0.25)] bg-[#0c121e]'
+                                : 'border-slate-800 hover:border-slate-700 bg-[#0c121e] shadow-lg'
+                              : activeDropTarget?.type === 'card' &&
+                                activeDropTarget.rowId === row.rowId &&
+                                activeDropTarget.colId === col.id
+                                ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/40 shadow-md bg-[var(--surface)]'
+                                : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]'
+                          }`}
                         >
                           {/* 4-Directional Glowing Drop Indicators */}
                           {activeDropTarget?.type === 'card' &&
@@ -1512,32 +1644,48 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                             <>
                               {activeDropTarget.direction === 'top' && (
                                 <div className="absolute -top-[3px] left-0 right-0 z-50 pointer-events-none flex items-center justify-center">
-                                  <div className="w-full h-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
-                                  <span className="absolute -top-5 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap">
+                                  <div className={`w-full h-[3px] rounded-full animate-pulse ${
+                                    isDark ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.4)]'
+                                  }`} />
+                                  <span className={`absolute -top-5 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap ${
+                                    isDark ? 'bg-[#0EA5E9] text-[#080C14]' : 'bg-[var(--accent)] text-white'
+                                  }`}>
                                     ↑ INSERT NEW ROW ABOVE
                                   </span>
                                 </div>
                               )}
                               {activeDropTarget.direction === 'bottom' && (
                                 <div className="absolute -bottom-[3px] left-0 right-0 z-50 pointer-events-none flex items-center justify-center">
-                                  <div className="w-full h-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
-                                  <span className="absolute -bottom-5 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap">
+                                  <div className={`w-full h-[3px] rounded-full animate-pulse ${
+                                    isDark ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.4)]'
+                                  }`} />
+                                  <span className={`absolute -bottom-5 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap ${
+                                    isDark ? 'bg-[#0EA5E9] text-[#080C14]' : 'bg-[var(--accent)] text-white'
+                                  }`}>
                                     ↓ INSERT NEW ROW BELOW
                                   </span>
                                 </div>
                               )}
                               {activeDropTarget.direction === 'left' && (
                                 <div className="absolute top-0 bottom-0 -left-[3px] z-50 pointer-events-none flex items-center justify-center">
-                                  <div className="h-full w-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
-                                  <span className="absolute -left-2 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50">
+                                  <div className={`h-full w-[3px] rounded-full animate-pulse ${
+                                    isDark ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.4)]'
+                                  }`} />
+                                  <span className={`absolute -left-2 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50 ${
+                                    isDark ? 'bg-[#0EA5E9] text-[#080C14]' : 'bg-[var(--accent)] text-white'
+                                  }`}>
                                     ← PLACE SIDE-BY-SIDE (LEFT)
                                   </span>
                                 </div>
                               )}
                               {activeDropTarget.direction === 'right' && (
                                 <div className="absolute top-0 bottom-0 -right-[3px] z-50 pointer-events-none flex items-center justify-center">
-                                  <div className="h-full w-[3px] bg-[#38BDF8] rounded-full shadow-[0_0_12px_#38BDF8] animate-pulse" />
-                                  <span className="absolute -right-2 px-2 py-0.5 rounded bg-[#0EA5E9] text-[#080C14] text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50">
+                                  <div className={`h-full w-[3px] rounded-full animate-pulse ${
+                                    isDark ? 'bg-[#38BDF8] shadow-[0_0_12px_#38BDF8]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.4)]'
+                                  }`} />
+                                  <span className={`absolute -right-2 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-md whitespace-nowrap z-50 ${
+                                    isDark ? 'bg-[#0EA5E9] text-[#080C14]' : 'bg-[var(--accent)] text-white'
+                                  }`}>
                                     → PLACE SIDE-BY-SIDE (RIGHT)
                                   </span>
                                 </div>
@@ -1547,35 +1695,47 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
                           {/* Card Header Bar */}
                           <div
-                            className="px-2.5 py-1.5 flex items-center justify-between gap-1.5 border-b border-slate-800 bg-[#090e17] text-xs font-mono select-none"
+                            className={`px-2.5 py-1.5 flex items-center justify-between gap-1.5 border-b text-xs font-mono select-none rounded-t-xl ${
+                              isDark
+                                ? 'border-slate-800 bg-[#090e17]'
+                                : 'border-[var(--border-subtle)] bg-[var(--surface)]'
+                            }`}
                           >
                             {/* Left: Notion Six-Dot Drag Handle (⋮⋮) + Icon + Title */}
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                               <div
                                 draggable="true"
                                 onDragStart={(e) => handleDragStartExistingCard(e, row.rowId, col.id, item)}
-                                className="px-1 py-0.5 -ml-1 text-slate-500 hover:text-sky-300 hover:bg-white/10 rounded cursor-grab active:cursor-grabbing shrink-0 transition-all flex items-center justify-center select-none"
+                                className={`px-1 py-0.5 -ml-1 rounded cursor-grab active:cursor-grabbing shrink-0 transition-all flex items-center justify-center select-none ${
+                                  isDark
+                                    ? 'text-slate-500 hover:text-sky-300 hover:bg-white/10'
+                                    : 'text-[var(--text-tertiary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)]'
+                                }`}
                                 title="Drag card to move anywhere (Notion 4-directional grip)"
                               >
                                 <span className="font-mono text-[13px] leading-none select-none tracking-[-2px] font-bold">⋮⋮</span>
                               </div>
 
                               {isVideo ? (
-                                <Tv size={12} className="text-sky-400 shrink-0" />
+                                <Tv size={12} className={isDark ? "text-sky-400 shrink-0" : "text-[var(--accent-text)] shrink-0"} />
                               ) : item.type === 'hotspot' ? (
-                                <Flame size={12} className="text-rose-400 shrink-0" />
+                                <Flame size={12} className={isDark ? "text-rose-400 shrink-0" : "text-[var(--sev-critical)] shrink-0"} />
                               ) : item.type === 'conflict' ? (
-                                <Swords size={12} className="text-amber-400 shrink-0" />
+                                <Swords size={12} className={isDark ? "text-amber-400 shrink-0" : "text-[var(--sev-high)] shrink-0"} />
                               ) : (
-                                <FileText size={12} className="text-slate-400 shrink-0" />
+                                <FileText size={12} className={isDark ? "text-slate-400 shrink-0" : "text-[var(--text-secondary)] shrink-0"} />
                               )}
 
-                              <span className="font-bold truncate text-[11px] text-slate-100">
+                              <span className={`truncate text-[11px] ${
+                                isDark ? 'font-bold text-slate-100' : 'font-serif font-semibold text-[var(--text-primary)]'
+                              }`}>
                                 {item.title}
                               </span>
 
                               {item.countryCode && (
-                                <span className="text-[9px] text-sky-400/90 font-bold shrink-0">
+                                <span className={`text-[9px] font-bold shrink-0 ${
+                                  isDark ? 'text-sky-400/90' : 'text-[var(--accent-text)] font-semibold'
+                                }`}>
                                   [{item.countryCode}]
                                 </span>
                               )}
@@ -1590,7 +1750,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => moveColumnWithinRow(row.rowId, colIdx, 'left')}
-                                      className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                      className={`p-0.5 cursor-pointer ${
+                                        isDark ? 'text-slate-400 hover:text-sky-400' : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)] rounded'
+                                      }`}
                                       title="Move Column Left"
                                     >
                                       <ChevronLeft size={11} />
@@ -1600,7 +1762,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => moveColumnWithinRow(row.rowId, colIdx, 'right')}
-                                      className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                      className={`p-0.5 cursor-pointer ${
+                                        isDark ? 'text-slate-400 hover:text-sky-400' : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)] rounded'
+                                      }`}
                                       title="Move Column Right"
                                     >
                                       <ChevronRight size={11} />
@@ -1610,7 +1774,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => splitColumnToOwnRow(row.rowId, col.id)}
-                                    className="p-0.5 text-slate-400 hover:text-sky-400 cursor-pointer"
+                                    className={`p-0.5 cursor-pointer ${
+                                      isDark ? 'text-slate-400 hover:text-sky-400' : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)] rounded'
+                                    }`}
                                     title="Extract to Standalone Row"
                                   >
                                     <Rows size={11} />
@@ -1623,7 +1789,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => onCenterMap(item.coordinates!)}
-                                  className="px-1.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[9.5px] font-mono font-semibold flex items-center gap-0.5 cursor-pointer"
+                                  className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-semibold flex items-center gap-0.5 cursor-pointer ${
+                                    isDark
+                                      ? 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400'
+                                      : 'bg-[var(--accent-soft)] hover:bg-[var(--accent-soft)]/80 text-[var(--accent-text)] border border-[var(--accent)]/20'
+                                  }`}
                                   title="Center on Map"
                                 >
                                   <Crosshair size={10} />
@@ -1637,7 +1807,9 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                   href={item.externalUrl || item.link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-1 text-slate-400 hover:text-sky-400 transition-colors"
+                                  className={`p-1 transition-colors ${
+                                    isDark ? 'text-slate-400 hover:text-sky-400' : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)]'
+                                  }`}
                                   title="Open External URL"
                                 >
                                   <ExternalLink size={11} />
@@ -1648,7 +1820,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleToggleCardWidth(row.rowId, col.id)}
-                                className="p-1 text-slate-400 hover:text-sky-300 hover:bg-white/5 rounded transition-colors cursor-pointer"
+                                className={`p-1 rounded transition-colors cursor-pointer ${
+                                  isDark
+                                    ? 'text-slate-400 hover:text-sky-300 hover:bg-white/5'
+                                    : 'text-[var(--text-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--bg-sunken)]'
+                                }`}
                                 title={colCount > 1 ? "Snap to 100% Full Width Row (⤢)" : "Snap to 50% Split Side-by-Side (◫)"}
                               >
                                 {colCount > 1 ? <Maximize2 size={11} /> : <Columns size={11} />}
@@ -1658,7 +1834,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveCard(row.rowId, col.id, item.id)}
-                                className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                                className={`p-1 rounded transition-colors cursor-pointer ${
+                                  isDark
+                                    ? 'text-slate-400 hover:text-rose-400'
+                                    : 'text-[var(--text-secondary)] hover:text-[var(--sev-critical)] hover:bg-[var(--sev-critical-bg)]'
+                                }`}
                                 title="Remove from Workspace"
                               >
                                 <Trash2 size={11} />
@@ -1676,7 +1856,7 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           >
                             {/* VIDEO PLAYER ITEM */}
                             {isVideo && (item.youtubeId || item.channelId || item.uploadsPlaylistId) ? (
-                              <LiveStreamCard item={item} />
+                              <LiveStreamCard item={item} isLight={!isDark} />
                             ) : (
                               /* INTEL / REPORT ITEM */
                               <div className="space-y-2">
@@ -1684,11 +1864,19 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                   {item.severity && (
                                     <span
                                       className={`px-1.5 py-0.2 rounded text-[8.5px] font-mono font-bold uppercase ${
-                                        item.severity === 'critical'
-                                          ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                        isDark
+                                          ? item.severity === 'critical'
+                                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                            : item.severity === 'high'
+                                            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                            : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                                          : item.severity === 'critical'
+                                          ? 'bg-[var(--sev-critical-bg)] text-[var(--sev-critical)] border border-[rgba(180,35,24,0.25)]'
                                           : item.severity === 'high'
-                                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                          : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                                          ? 'bg-[var(--sev-high-bg)] text-[var(--sev-high)] border border-[rgba(181,71,8,0.25)]'
+                                          : item.severity === 'medium'
+                                          ? 'bg-[var(--sev-medium-bg)] text-[var(--sev-medium)] border border-[rgba(138,97,0,0.25)]'
+                                          : 'bg-[var(--sev-info-bg)] text-[var(--sev-info)] border border-[rgba(47,111,143,0.25)]'
                                       }`}
                                     >
                                       {item.severity}
@@ -1696,27 +1884,39 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                                   )}
 
                                   {item.source && (
-                                    <span className="px-1.5 py-0.2 rounded text-[8.5px] font-mono font-bold bg-white/5 text-slate-300 border border-white/10">
+                                    <span className={`px-1.5 py-0.2 rounded text-[8.5px] font-mono font-bold ${
+                                      isDark
+                                        ? 'bg-white/5 text-slate-300 border border-white/10'
+                                        : 'bg-[var(--bg-sunken)] text-[var(--text-secondary)] border border-[var(--border-subtle)]'
+                                    }`}>
                                       {item.source}
                                     </span>
                                   )}
 
                                   {item.timestamp && (
-                                    <span className="text-[9.5px] font-mono text-slate-400 ml-auto">
+                                    <span className={`text-[9.5px] font-mono ml-auto ${
+                                      isDark ? 'text-slate-400' : 'text-[var(--text-tertiary)]'
+                                    }`}>
                                       {item.timestamp}
                                     </span>
                                   )}
                                 </div>
 
-                                <p className="text-[11.5px] text-slate-300 leading-relaxed font-sans">
+                                <p className={`text-[11.5px] leading-relaxed font-sans ${
+                                  isDark ? 'text-slate-300' : 'text-[var(--text-secondary)]'
+                                }`}>
                                   {item.summary || item.description || item.subtitle || 'No detailed brief available.'}
                                 </p>
 
                                 {item.parties && item.parties.length > 0 && (
-                                  <div className="flex items-center gap-1 flex-wrap pt-1 text-[9.5px] font-mono text-slate-400">
-                                    <span className="text-slate-500">PARTIES:</span>
+                                  <div className="flex items-center gap-1 flex-wrap pt-1 text-[9.5px] font-mono">
+                                    <span className={isDark ? "text-slate-500" : "text-[var(--text-tertiary)]"}>PARTIES:</span>
                                     {item.parties.map((p, pIdx) => (
-                                      <span key={pIdx} className="px-1 rounded bg-slate-800 text-slate-200">
+                                      <span key={pIdx} className={`px-1 rounded ${
+                                        isDark
+                                          ? 'bg-slate-800 text-slate-200'
+                                          : 'bg-[var(--bg-sunken)] text-[var(--text-primary)] border border-[var(--border-subtle)]'
+                                      }`}>
                                         {p}
                                       </span>
                                     ))}
@@ -1726,36 +1926,46 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                             )}
 
                             {/* Card Footer Quick Presets */}
-                            <div className="mt-2 pt-1.5 border-t border-white/[0.04] flex items-center justify-between text-[9px] font-mono text-slate-500">
-                              <span className="text-[8.5px] uppercase text-slate-400">
+                            <div className={`mt-2 pt-1.5 border-t flex items-center justify-between text-[9px] font-mono ${
+                              isDark ? 'border-white/[0.04] text-slate-500' : 'border-[var(--border-subtle)] text-[var(--text-tertiary)]'
+                            }`}>
+                              <span className={`text-[8.5px] uppercase ${isDark ? 'text-slate-400' : 'text-[var(--text-tertiary)]'}`}>
                                 {customHeight ? `${customHeight}px` : 'AUTO'}
                               </span>
                               <div className="flex items-center gap-1">
                                 <button
                                   type="button"
                                   onClick={() => handleSetPresetHeight(row.rowId, col.id, 140)}
-                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                  className={`px-1 rounded ${
+                                    isDark ? 'hover:bg-white/5 hover:text-sky-300' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sunken)] hover:text-[var(--accent-text)]'
+                                  }`}
                                 >
                                   SM
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSetPresetHeight(row.rowId, col.id, 240)}
-                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                  className={`px-1 rounded ${
+                                    isDark ? 'hover:bg-white/5 hover:text-sky-300' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sunken)] hover:text-[var(--accent-text)]'
+                                  }`}
                                 >
                                   MD
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSetPresetHeight(row.rowId, col.id, 380)}
-                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                  className={`px-1 rounded ${
+                                    isDark ? 'hover:bg-white/5 hover:text-sky-300' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sunken)] hover:text-[var(--accent-text)]'
+                                  }`}
                                 >
                                   LG
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSetPresetHeight(row.rowId, col.id, undefined)}
-                                  className="px-1 rounded hover:bg-white/5 hover:text-sky-300"
+                                  className={`px-1 rounded ${
+                                    isDark ? 'hover:bg-white/5 hover:text-sky-300' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sunken)] hover:text-[var(--accent-text)]'
+                                  }`}
                                 >
                                   RESET
                                 </button>
@@ -1764,16 +1974,26 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                           </div>
 
                           {/* Canva-Style Bottom Bar & Corner Resize Gutter (↕ / ↘) */}
-                          <div className="relative h-2.5 w-full bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between select-none shrink-0 group/bottombar">
+                          <div className={`relative h-2.5 w-full border-t flex items-center justify-between select-none shrink-0 group/bottombar rounded-b-xl ${
+                            isDark
+                              ? 'bg-slate-900/90 border-slate-800/80'
+                              : 'bg-[var(--bg-panel)] border-[var(--border-subtle)]'
+                          }`}>
                             {/* Bottom Edge ↕ Height Drag Handle */}
                             <div
                               onMouseDown={(e) =>
                                 handleStartCardHeightResize(row.rowId, col.id, customHeight, e)
                               }
-                              className="h-full flex-1 hover:bg-sky-500/20 cursor-ns-resize flex items-center justify-center group/height transition-colors"
+                              className={`h-full flex-1 cursor-ns-resize flex items-center justify-center group/height transition-colors ${
+                                isDark ? 'hover:bg-sky-500/20' : 'hover:bg-[var(--accent-soft)]'
+                              }`}
                               title="Drag down/up to resize card height (↕)"
                             >
-                              <div className="w-12 h-0.5 bg-slate-600 group-hover/height:bg-sky-400 group-hover/height:w-16 rounded-full transition-all" />
+                              <div className={`h-0.5 rounded-full transition-all ${
+                                isDark
+                                  ? 'w-12 bg-slate-600 group-hover/height:bg-sky-400 group-hover/height:w-16'
+                                  : 'w-12 bg-[var(--border-strong)] group-hover/height:bg-[var(--accent)] group-hover/height:w-16'
+                              }`} />
                             </div>
 
                             {/* Bottom-Right Corner ↘ Height + Width Drag Handle */}
@@ -1781,7 +2001,11 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
                               onMouseDown={(e) =>
                                 handleStartCardCornerResize(row.rowId, col.id, colIdx, customHeight, e)
                               }
-                              className="h-full w-5 hover:w-6 hover:bg-sky-500/30 cursor-nwse-resize flex items-center justify-center text-slate-500 hover:text-sky-300 transition-all border-l border-white/[0.04] group/corner"
+                              className={`h-full w-5 hover:w-6 cursor-nwse-resize flex items-center justify-center transition-all border-l group/corner ${
+                                isDark
+                                  ? 'hover:bg-sky-500/30 text-slate-500 hover:text-sky-300 border-white/[0.04]'
+                                  : 'hover:bg-[var(--accent-soft)] text-[var(--text-tertiary)] hover:text-[var(--accent-text)] border-[var(--border-subtle)]'
+                              }`}
                               title="Drag corner to resize taller & wider (↘)"
                             >
                               <svg className="w-2.5 h-2.5 opacity-60 group-hover/corner:opacity-100 transition-opacity" viewBox="0 0 10 10" fill="none">
@@ -1819,13 +2043,19 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
               >
                 <div
                   className={`h-[3px] rounded-full transition-all flex items-center justify-center relative ${
-                    activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1
-                      ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
-                      : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                    isDark
+                      ? activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1
+                        ? 'bg-[#38BDF8] shadow-[0_0_14px_#38BDF8] opacity-100 scale-y-125'
+                        : 'bg-transparent opacity-0 group-hover:bg-sky-400/25 group-hover:opacity-60'
+                      : activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1
+                        ? 'bg-[var(--accent)] shadow-[0_0_10px_rgba(198,97,63,0.35)] opacity-100 scale-y-125'
+                        : 'bg-transparent opacity-0 group-hover:bg-[var(--accent)]/25 group-hover:opacity-60'
                   }`}
                 >
                   {activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === rowIdx + 1 && (
-                    <span className="absolute -top-3.5 px-3 py-0.5 rounded-full bg-[#0284C7] text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap">
+                    <span className={`absolute -top-3.5 px-3 py-0.5 rounded-full text-white text-[9.5px] font-mono font-bold uppercase tracking-wider shadow-lg flex items-center gap-1 z-50 pointer-events-none whitespace-nowrap ${
+                      isDark ? 'bg-[#0284C7]' : 'bg-[var(--accent)]'
+                    }`}>
                       + INSERT NEW ROW HERE (BETWEEN ROW {rowIdx + 1} & {rowIdx + 2})
                     </span>
                   )}
@@ -1858,16 +2088,24 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
           }}
           onDrop={(e) => handleRowSlotDrop(e, localRows.length)}
           className={`min-h-[72px] mt-2 mb-6 rounded-lg border-2 border-dashed transition-all flex flex-col items-center justify-center p-3 text-center cursor-pointer ${
-            activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length
-              ? 'border-[#38BDF8] bg-sky-500/10 text-sky-400 shadow-[0_0_16px_rgba(56,189,248,0.2)]'
-              : 'border-slate-800/80 hover:border-slate-700 bg-[#090d16]/30 text-slate-500 hover:text-slate-400'
+            isDark
+              ? activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length
+                ? 'border-[#38BDF8] bg-sky-500/10 text-sky-400 shadow-[0_0_16px_rgba(56,189,248,0.2)]'
+                : 'border-slate-800/80 hover:border-slate-700 bg-[#090d16]/30 text-slate-500 hover:text-slate-400'
+              : activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length
+                ? 'border-[var(--accent)] bg-[var(--accent-soft)]/50 text-[var(--accent-text)] shadow-md'
+                : 'border-[var(--border-subtle)] hover:border-[var(--accent)]/40 bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--accent-text)] shadow-[var(--shadow-sm)]'
           }`}
         >
           <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider">
-            <Plus size={12} className={activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length ? 'text-[#38BDF8] animate-bounce' : 'text-sky-400'} />
+            <Plus size={12} className={
+              activeDropTarget?.type === 'row_slot' && activeDropTarget.targetRowIndex === localRows.length
+                ? isDark ? 'text-[#38BDF8] animate-bounce' : 'text-[var(--accent)] animate-bounce'
+                : isDark ? 'text-sky-400' : 'text-[var(--accent)]'
+            } />
             <span>Drop here to append as new row at bottom</span>
           </div>
-          <span className="text-[9px] text-slate-600 mt-0.5 font-mono">
+          <span className={`text-[9px] mt-0.5 font-mono ${isDark ? 'text-slate-600' : 'text-[var(--text-tertiary)]'}`}>
             Hover card edges for 4-directional placement (↑ Top, ↓ Bottom, ← Left, → Right)
           </span>
         </div>
@@ -1876,14 +2114,15 @@ export const IntelWorkspaceDrawer: React.FC<IntelWorkspaceDrawerProps> = ({
 
       {/* 5. Footer Information */}
       <div
-        className="h-7 px-3 flex items-center justify-between shrink-0 border-t text-[9px] font-mono text-slate-500"
+        className="h-7 px-3 flex items-center justify-between shrink-0 border-t text-[9px] font-mono"
         style={{
-          background: isDark ? 'rgba(6, 9, 15, 0.95)' : '#F1F5F9',
-          borderColor: 'var(--border-subtle)'
+          background: isDark ? 'rgba(6, 9, 15, 0.95)' : 'var(--bg-panel)',
+          borderColor: 'var(--border-subtle)',
+          color: isDark ? '#64748B' : 'var(--text-tertiary)'
         }}
       >
-        <div className="flex items-center gap-2 text-sky-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className={`flex items-center gap-2 ${isDark ? 'text-sky-400' : 'text-[var(--accent-text)] font-semibold'}`}>
+          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-emerald-400' : 'bg-[var(--sev-ok)]'}`} />
           <span>NOTION 2D BLOCK ENGINE</span>
         </div>
         <span>DRAG EDGES (↔ ↕) TO RESIZE</span>
