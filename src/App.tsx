@@ -9,6 +9,7 @@ import { RightIntelligencePanel } from './components/RightIntelligencePanel';
 import { CountryBriefModal } from './components/CountryBriefModal';
 import { CommandPalette } from './components/CommandPalette';
 import { LandingPage } from './components/LandingPage';
+import { HighPerfLandingPage } from './components/HighPerfLandingPage';
 import { WorkspaceTabBar } from './components/WorkspaceTabBar';
 import { IntelWorkspaceDrawer } from './components/IntelWorkspaceDrawer';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -416,6 +417,25 @@ const AppContent: React.FC = () => {
   }, []);
 
   // Theme Management (Always load in Dark Mode by default)
+  // Landing Page Performance Mode: 'standard' (lightweight dark) or 'highperf' (interactive 3D Three.js)
+  const [landingMode, setLandingMode] = useState<'standard' | 'highperf'>(() => {
+    try {
+      return (localStorage.getItem('manvis_landing_mode') as 'standard' | 'highperf') || 'standard';
+    } catch {
+      return 'standard';
+    }
+  });
+
+  const handleToggleLandingMode = () => {
+    setLandingMode((prev) => {
+      const next = prev === 'standard' ? 'highperf' : 'standard';
+      try {
+        localStorage.setItem('manvis_landing_mode', next);
+      } catch {}
+      return next;
+    });
+  };
+
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1543,14 +1563,31 @@ const AppContent: React.FC = () => {
   }
 
   if (!isDashboard) {
+    if (landingMode === 'highperf') {
+      return (
+        <div className="w-full min-h-screen overflow-y-auto bg-[#030712]">
+          <HighPerfLandingPage
+            onLaunchDashboard={handleLaunchDashboard}
+            onOpenAuthModal={() => handleOpenAuth('signin')}
+            onNavigateLogin={() => handleNavigateLogin('signin')}
+            onToggleLandingMode={handleToggleLandingMode}
+          />
+          <AuthModal
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+            defaultMode={authModalMode}
+          />
+        </div>
+      );
+    }
+
     return (
-      <div className={`w-full min-h-screen overflow-y-auto ${theme === 'light' ? 'bg-[#fbfbfa]' : 'bg-[#06090e]'}`}>
+      <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
         <LandingPage
           onLaunchDashboard={handleLaunchDashboard}
           onOpenAuthModal={() => handleOpenAuth('signin')}
           onNavigateLogin={() => handleNavigateLogin('signin')}
-          theme={theme}
-          onToggleTheme={handleToggleTheme}
+          onToggleLandingMode={handleToggleLandingMode}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
