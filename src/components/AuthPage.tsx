@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Radar,
   Eye,
@@ -10,10 +10,6 @@ import {
   Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import {
-  PasswordRequirements,
-  getPasswordConditions
-} from './PasswordRequirements';
 
 interface AuthPageProps {
   onNavigateHome: () => void;
@@ -35,28 +31,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const isSignUp = mode === 'signup';
-  const conditions = useMemo(
-    () => getPasswordConditions(password, fullName, isSignUp),
-    [password, fullName, isSignUp]
-  );
-  const allConditionsMet = conditions.every((c) => c.satisfied);
-  const [shakeActive, setShakeActive] = useState(false);
-
-  const triggerShake = () => {
-    setShakeActive(false);
-    requestAnimationFrame(() => {
-      setShakeActive(true);
-    });
-  };
-
-  useEffect(() => {
-    if (shakeActive) {
-      const timer = setTimeout(() => setShakeActive(false), 400);
-      return () => clearTimeout(timer);
-    }
-  }, [shakeActive]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,17 +59,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       return;
     }
 
-      if (!password.trim()) {
-        setErrorMsg('Enter a password');
-        triggerShake();
-        return;
-      }
+    if (!password.trim()) {
+      setErrorMsg('Enter a password');
+      return;
+    }
 
-      if (!allConditionsMet) {
-        setErrorMsg('Please satisfy all password conditions before proceeding.');
-        triggerShake();
-        return;
-      }
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -280,11 +253,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-
-                <PasswordRequirements
-                  conditions={conditions}
-                  shakeActive={shakeActive}
-                />
 
                 {mode === 'signin' && (
                   <div className="mt-2 text-right">

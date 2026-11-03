@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Shield,
   Lock,
@@ -15,10 +15,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import {
-  PasswordRequirements,
-  getPasswordConditions
-} from './PasswordRequirements';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -41,28 +37,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const isSignUp = mode === 'signup';
-  const conditions = useMemo(
-    () => getPasswordConditions(password, fullName, isSignUp),
-    [password, fullName, isSignUp]
-  );
-  const allConditionsMet = conditions.every((c) => c.satisfied);
-  const [shakeActive, setShakeActive] = useState(false);
-
-  const triggerShake = () => {
-    setShakeActive(false);
-    requestAnimationFrame(() => {
-      setShakeActive(true);
-    });
-  };
-
-  useEffect(() => {
-    if (shakeActive) {
-      const timer = setTimeout(() => setShakeActive(false), 400);
-      return () => clearTimeout(timer);
-    }
-  }, [shakeActive]);
-
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,13 +46,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     if (!email.trim() || !password.trim()) {
       setErrorMsg('All authentication parameters are required.');
-      triggerShake();
       return;
     }
 
-    if (!allConditionsMet) {
-      setErrorMsg('Please satisfy all password conditions before proceeding.');
-      triggerShake();
+    if (password.length < 6) {
+      setErrorMsg('Clearance passphrase must be at least 6 characters.');
       return;
     }
 
@@ -235,7 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <UserIcon
                   size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
+                />
                 <input
                   type="text"
                   required
@@ -243,7 +215,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Operator"
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900/90 border border-slate-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400/50 rounded outline-none text-slate-100 placeholder-slate-500 transition-colors"
-              />
+                />
               </div>
             </div>
           )}
@@ -256,7 +228,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Mail
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+              />
               <input
                 type="email"
                 required
@@ -264,7 +236,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="operator@manvis.tech"
                 className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900/90 border border-slate-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400/50 rounded outline-none text-slate-100 placeholder-slate-500 transition-colors"
-            />
+              />
             </div>
           </div>
 
@@ -276,7 +248,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Lock
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+              />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
@@ -284,7 +256,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 className="w-full pl-9 pr-9 py-2 text-xs bg-slate-900/90 border border-slate-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400/50 rounded outline-none text-slate-100 placeholder-slate-500 transition-colors"
-            />
+              />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -294,10 +266,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
           </div>
-          <PasswordRequirements
-            conditions={conditions}
-            shakeActive={shakeActive}
-          />
 
           {/* Role Access Information Box */}
           <div className="p-2.5 rounded bg-slate-900/60 border border-slate-800 text-[10px] space-y-1 text-slate-400">
