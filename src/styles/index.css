@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./immersive-theme.css";
 
 @theme {
   --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;

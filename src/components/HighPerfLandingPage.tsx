@@ -6,7 +6,6 @@ import {
   Radar,
   ArrowRight,
   Compass,
-  Terminal,
   Activity,
   Shield,
   Layers,
@@ -14,12 +13,16 @@ import {
   Zap,
   Flame,
   Award,
-  Maximize2,
-  RefreshCw,
-  Eye,
-  AlertTriangle,
-  Lock,
-  ChevronRight
+  Search,
+  Download,
+  Crosshair,
+  ArrowUpRight,
+  Menu,
+  X,
+  ChevronDown,
+  CheckCircle2,
+  Flag,
+  HelpCircle
 } from 'lucide-react';
 import { UserNav } from './UserNav';
 
@@ -36,71 +39,137 @@ interface StrategicHotspot {
   theater: string;
   lat: number;
   lng: number;
-  status: 'CRITICAL' | 'ELEVATED' | 'STRATEGIC';
+  status: 'HIGH ALERT' | 'ELEVATED' | 'WATCH' | 'STRATEGIC';
   statusColor: string;
-  intel: string;
+  coords: string;
+  detail: string;
+  layers: string[];
 }
 
-const STRATEGIC_HOTSPOTS: StrategicHotspot[] = [
+const THEATERS: StrategicHotspot[] = [
   {
-    id: 'india-north',
-    name: 'Jammu & Kashmir / Ladakh (LAC & LoC)',
-    theater: 'South Asia & Northern Frontiers',
+    id: 'indo-pacific',
+    name: 'INDO-PACIFIC',
+    theater: 'Indo-Pacific & Northern Frontiers',
     lat: 34.08,
     lng: 74.79,
-    status: 'CRITICAL',
-    statusColor: '#F43F5E',
-    intel: 'Continuous forward surveillance along Siachen AGPL and Eastern Ladakh. 100% Survey of India sovereign border compliance enforced.'
+    status: 'HIGH ALERT',
+    statusColor: 'var(--red)',
+    coords: '34.08°N / 74.79°E',
+    detail: 'LoC · LAC · AGPL · Siachen Corridor · Siachen Glacier',
+    layers: ['Fortified Frontlines', 'Military Bases', 'Nuclear Sites', 'Strategic Deployments']
   },
   {
-    id: 'hormuz',
-    name: 'Strait of Hormuz & Gulf of Oman',
-    theater: 'Middle East Maritime Corridor',
-    lat: 26.56,
-    lng: 56.25,
-    status: 'ELEVATED',
-    statusColor: '#F59E0B',
-    intel: 'Strategic hydrocarbon transit chokepoint. Carrier strike groups and commercial merchant tanker escort operations active.'
-  },
-  {
-    id: 'taiwan',
-    name: 'Taiwan Strait & First Island Chain',
-    theater: 'Indo-Pacific & East Asia',
-    lat: 24.14,
-    lng: 120.67,
-    status: 'STRATEGIC',
-    statusColor: '#00F0FF',
-    intel: 'Air Defense Identification Zone (ADIZ) incursions and naval median-line maneuvers under continuous synthetic aperture radar monitoring.'
-  },
-  {
-    id: 'red-sea',
-    name: 'Bab el-Mandeb & Red Sea Basin',
-    theater: 'Red Sea & Horn of Africa',
-    lat: 12.58,
-    lng: 43.33,
-    status: 'CRITICAL',
-    statusColor: '#F43F5E',
-    intel: 'Anti-ship ballistic missile alerts and uncrewed surface vessel (USV) drone intercepts safeguarding international maritime shipping.'
+    id: 'levant',
+    name: 'LEVANT BASIN',
+    theater: 'Middle East & Persian Gulf',
+    lat: 29.31,
+    lng: 47.48,
+    status: 'WATCH',
+    statusColor: 'var(--amber)',
+    coords: '29.31°N / 47.48°E',
+    detail: 'Strait of Hormuz · Bab-el-Mandeb · Red Sea Maritime Convoy',
+    layers: ['Middle East Strikes', 'Maritime Chokepoints', 'Intel Hotspots', 'Frontlines']
   },
   {
     id: 'black-sea',
-    name: 'Donbas & Black Sea Maritime Sector',
+    name: 'BLACK SEA',
     theater: 'Eastern Europe Conflict Zone',
-    lat: 46.48,
-    lng: 30.73,
-    status: 'CRITICAL',
-    statusColor: '#EF4444',
-    intel: 'High-density electronic warfare GPS jamming corridor, frontline mechanized engagements, and Black Sea grain corridor monitoring.'
+    lat: 48.37,
+    lng: 31.16,
+    status: 'ELEVATED',
+    statusColor: 'var(--red)',
+    coords: '48.37°N / 31.16°E',
+    detail: 'Donbas Frontlines · Electronic Warfare Corridors · NATO Air Patrols',
+    layers: ['Frontlines & Wars', 'Electronic Warfare', 'Grid Disruption', 'Sanctions Regimes']
   },
   {
-    id: 'malacca',
-    name: 'Strait of Malacca & Andaman Sea',
-    theater: 'Bay of Bengal & Southeast Asia',
-    lat: 4.21,
-    lng: 100.55,
+    id: 'east-asia',
+    name: 'EAST ASIA',
+    theater: 'Taiwan Strait & First Island Chain',
+    lat: 23.69,
+    lng: 120.96,
     status: 'STRATEGIC',
-    statusColor: '#10B981',
-    intel: 'Primary energy route linking Indian Ocean to the Pacific. Naval presence monitors dual-use commercial port infrastructure.'
+    statusColor: 'var(--cyan)',
+    coords: '23.69°N / 120.96°E',
+    detail: 'Taiwan Strait Median Line · ADIZ Sovereign Airspace · Subsea Cables',
+    layers: ['ADIZ Air Defense', 'Naval Task Forces', 'Economic Centers', 'Subsea Cables']
+  }
+];
+
+interface SignalDispatch {
+  id: string;
+  title: string;
+  detail: string;
+  time: string;
+  category: 'KINETIC' | 'CYBER' | 'RADAR' | 'MARITIME' | 'SEISMIC' | 'DEFENSE';
+}
+
+const SIGNAL_LOG: SignalDispatch[] = [
+  {
+    id: '01',
+    title: 'GNSS INTERFERENCE',
+    detail: 'Elevated spoofing activity detected across Eastern Mediterranean and Baltic air corridors.',
+    time: '02:14:08',
+    category: 'RADAR'
+  },
+  {
+    id: '02',
+    title: 'MARITIME MOVEMENT',
+    detail: 'Unusual commercial vessel clustering observed near Bab-el-Mandeb and Hormuz chokepoints.',
+    time: '01:48:32',
+    category: 'MARITIME'
+  },
+  {
+    id: '03',
+    title: 'BORDER POSTURE',
+    detail: 'Northern sector deployment along Siachen AGPL and LAC remains at continuous sovereign vigilance.',
+    time: '00:52:11',
+    category: 'DEFENSE'
+  },
+  {
+    id: '04',
+    title: 'TACTICAL RECON',
+    detail: 'Carrier strike group exercises confirmed in international waters outside First Island Chain.',
+    time: '00:31:45',
+    category: 'KINETIC'
+  },
+  {
+    id: '05',
+    title: 'SUBSEA TELEMETRY',
+    detail: 'Red Sea optical subsea telecommunications cable consortium telemetry registers normal operations.',
+    time: '23:19:04',
+    category: 'CYBER'
+  },
+  {
+    id: '06',
+    title: 'SEISMIC ANOMALY',
+    detail: 'USGS automated sensors detect M5.4 seismic displacement along Pacific Rim fault line.',
+    time: '22:45:19',
+    category: 'SEISMIC'
+  }
+];
+
+const FAQS = [
+  {
+    q: 'What is Manekshaw.Vision (ManVis)?',
+    a: 'Manekshaw.Vision is an independent, sovereign geospatial intelligence (GEOINT) and situational awareness platform. It aggregates physical conflict data, strategic military garrisons, electronic warfare signals, and critical infrastructure telemetry onto an interactive, high-contrast tactical map.'
+  },
+  {
+    q: 'How does it differ from consumer mapping platforms like Google Maps?',
+    a: 'Commercial map services are built for consumer navigation and frequently show broken, dashed, or contested territorial lines depending on the visitor’s country of access. Manekshaw.Vision is built from the ground up to strictly honor the official unbroken territorial integrity of India as mandated by the Survey of India (SOI), while providing tactical defense overlays (ADIZ, EW jamming, carrier groups) not found in consumer maps.'
+  },
+  {
+    q: 'How frequently is tactical intelligence updated?',
+    a: 'Telemetry feeds—including USGS real-time seismic sensors, NASA EONET events, NOAA weather warnings, and defense dispatch bulletins—refresh automatically every few minutes directly in your browser.'
+  },
+  {
+    q: 'Is an account or installation required to use the Dashboard?',
+    a: 'No. The entire platform runs directly inside your web browser using WebGL client-side rendering. There is no sign-up wall, no tracking, and zero installation required.'
+  },
+  {
+    q: 'Who developed Manekshaw.Vision?',
+    a: 'Manekshaw.Vision (ManVis) was architected and built by Team Astra Dynamics (ADYN)—a four-member high school engineering team exploring what happens when modern AI workflows, live open-source intelligence (OSINT) feeds, and WebGL cartography are combined into a single browser-native interface, dedicated to Field Marshal Sir Sam Manekshaw.'
   }
 ];
 
@@ -111,35 +180,76 @@ export const HighPerfLandingPage: React.FC<HighPerfLandingPageProps> = ({
   onToggleLandingMode
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [selectedHotspot, setSelectedHotspot] = useState<StrategicHotspot>(STRATEGIC_HOTSPOTS[0]);
-  const [fps, setFps] = useState<number>(60);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [terminalLines, setTerminalLines] = useState<string[]>([
-    'INIT_SYSTEM: HARDWARE-ACCELERATED GEOINT 3D PIPELINE INITIALIZED',
-    'GPU_STATUS: WEBGL 2.0 HARDWARE PIPELINE ACTIVE • 60+ FPS LOCKED',
-    'DATA_LINK: 47 OSINT CHANNELS SYNCHRONIZED ACROSS 6 GLOBAL THEATERS',
-    'SOI_BOUNDARY: 100% STATUTORY SURVEY OF INDIA CARTOGRAPHIC INTEGRITY',
-    'DEFCON_STATUS: DEFCON 3 • INCREASED FORCE READINESS ABOVE NORMAL',
-    'STREAM_READY: 16 SATELLITE & LIVE BROADCAST FEEDS ARMED FOR INGEST'
-  ]);
+  const [activeTheater, setActiveTheater] = useState<StrategicHotspot>(THEATERS[0]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  // Three.js Interactive 3D Globe Engine
+  // Trigger Toast Notification
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3200);
+  };
+
+  // Export Tactical SITREP Briefing
+  const handleExportBriefing = () => {
+    const sitrep = [
+      '========================================',
+      'MANEKSHAW.VISION // TACTICAL SITREP DISPATCH',
+      `TIMESTAMP: ${new Date().toISOString()}`,
+      'CLASSIFICATION: SOVEREIGN OPEN-SOURCE INTEL',
+      'CARTOGRAPHIC BASE: 100% SURVEY OF INDIA (SOI)',
+      '========================================\n',
+      'ACTIVE OPERATIONAL SECTOR:',
+      `Sector: ${activeTheater.name} (${activeTheater.theater})`,
+      `Coordinates: ${activeTheater.coords}`,
+      `Status: ${activeTheater.status}`,
+      `Key Landmarks: ${activeTheater.detail}`,
+      `Active Overlays: ${activeTheater.layers.join(' · ')}\n`,
+      'LIVE SIGNAL TELEMETRY LOG:',
+      ...SIGNAL_LOG.map((s) => `[${s.time}] ${s.title} (${s.category}): ${s.detail}`),
+      '\n========================================',
+      'END OF DISPATCH // ASTRA DYNAMICS (ADYN)'
+    ].join('\n');
+
+    try {
+      navigator.clipboard.writeText(sitrep);
+      showToast('Tactical SITREP copied to clipboard');
+    } catch {
+      showToast('SITREP exported successfully');
+    }
+  };
+
+  // Filtered Signal Log
+  const filteredSignals = useMemo(() => {
+    if (!searchQuery.trim()) return SIGNAL_LOG;
+    const q = searchQuery.toLowerCase();
+    return SIGNAL_LOG.filter(
+      (s) =>
+        s.title.toLowerCase().includes(q) ||
+        s.detail.toLowerCase().includes(q) ||
+        s.category.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  // Three.js Interactive 3D Hologram Globe Engine
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
     let animationFrameId: number;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const width = container.clientWidth || 730;
+    const height = container.clientHeight || 580;
 
     // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030712, 0.0018);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(0, 20, 160);
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000);
-    camera.position.set(0, 35, 175);
-
-    // 2. Renderer with High-Performance Settings
+    // 2. High-Performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -147,251 +257,178 @@ export const HighPerfLandingPage: React.FC<HighPerfLandingPageProps> = ({
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.touchAction = 'none';
+    container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 3. Globe Container Group (for mouse rotation)
+    // 3. Main Globe Group
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    const GLOBE_RADIUS = 55;
+    const GLOBE_RADIUS = 52;
 
-    // A. Inner Core Wireframe Sphere
-    const coreGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 48, 48);
+    // A. Inner Cyan Wireframe Core
+    const coreGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 36, 36);
     const coreMat = new THREE.MeshBasicMaterial({
-      color: 0x061226,
+      color: 0x00f0ff,
       wireframe: true,
       transparent: true,
-      opacity: 0.22
+      opacity: 0.14
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
     globeGroup.add(coreMesh);
 
-    // B. Glowing Atmospheric Shell
-    const atmoGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.03, 32, 32);
+    // B. Outer Glowing Atmosphere Shell
+    const atmoGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.04, 32, 32);
     const atmoMat = new THREE.MeshBasicMaterial({
       color: 0x00f0ff,
       wireframe: true,
       transparent: true,
-      opacity: 0.06
+      opacity: 0.05
     });
     const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
     globeGroup.add(atmoMesh);
 
-    // C. Point Cloud Continents & Latitude/Longitude Grid
-    const pointCount = 3800;
-    const pointPositions = new Float32Array(pointCount * 3);
-    const pointColors = new Float32Array(pointCount * 3);
-    const colorCyan = new THREE.Color(0x38bdf8);
-    const colorGold = new THREE.Color(0xfbbf24);
-    const colorNavy = new THREE.Color(0x1e3a8a);
+    // C. Golden Spiral Point Cloud Continents
+    const pointCount = 3200;
+    const positions = new Float32Array(pointCount * 3);
+    const colors = new Float32Array(pointCount * 3);
+    const colCyan = new THREE.Color(0x00f0ff);
+    const colMuted = new THREE.Color(0x1c2b3a);
+    const colRed = new THREE.Color(0xff3b30);
 
     for (let i = 0; i < pointCount; i++) {
-      // Golden spiral distribution across sphere
       const phi = Math.acos(1 - (2 * (i + 0.5)) / pointCount);
       const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
 
-      const r = GLOBE_RADIUS + (Math.random() - 0.5) * 1.5;
+      const r = GLOBE_RADIUS + (Math.random() - 0.5) * 1.2;
       const x = r * Math.sin(phi) * Math.cos(theta);
       const y = r * Math.cos(phi);
       const z = r * Math.sin(phi) * Math.sin(theta);
 
-      pointPositions[i * 3] = x;
-      pointPositions[i * 3 + 1] = y;
-      pointPositions[i * 3 + 2] = z;
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
 
-      // Color variation
-      const col = i % 8 === 0 ? colorGold : (i % 2 === 0 ? colorCyan : colorNavy);
-      pointColors[i * 3] = col.r;
-      pointColors[i * 3 + 1] = col.g;
-      pointColors[i * 3 + 2] = col.b;
+      const c = i % 15 === 0 ? colRed : (i % 3 === 0 ? colCyan : colMuted);
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
     }
 
     const pointsGeo = new THREE.BufferGeometry();
-    pointsGeo.setAttribute('position', new THREE.BufferAttribute(pointPositions, 3));
-    pointsGeo.setAttribute('color', new THREE.BufferAttribute(pointColors, 3));
+    pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    pointsGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const pointsMat = new THREE.PointsMaterial({
-      size: 1.6,
+      size: 1.4,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
       blending: THREE.AdditiveBlending
     });
     const pointsMesh = new THREE.Points(pointsGeo, pointsMat);
     globeGroup.add(pointsMesh);
 
-    // D. Orbiting Satellite Rings
-    const createOrbitRing = (radius: number, tiltX: number, tiltY: number, colorHex: number) => {
+    // D. Orbiting Ring Ellipses
+    const createRing = (radius: number, rx: number, rz: number, colorHex: number) => {
       const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
-      const points = curve.getPoints(128);
-      const ringGeo = new THREE.BufferGeometry().setFromPoints(
-        points.map(p => new THREE.Vector3(p.x, 0, p.y))
-      );
-      const ringMat = new THREE.LineBasicMaterial({
+      const pts = curve.getPoints(96);
+      const geo = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(p.x, 0, p.y)));
+      const mat = new THREE.LineBasicMaterial({
         color: colorHex,
         transparent: true,
-        opacity: 0.35
+        opacity: 0.28
       });
-      const ringMesh = new THREE.Line(ringGeo, ringMat);
-      ringMesh.rotation.x = tiltX;
-      ringMesh.rotation.z = tiltY;
-      return ringMesh;
+      const line = new THREE.Line(geo, mat);
+      line.rotation.x = rx;
+      line.rotation.z = rz;
+      return line;
     };
 
-    const orbit1 = createOrbitRing(GLOBE_RADIUS * 1.35, Math.PI / 4, Math.PI / 6, 0x00f0ff);
-    const orbit2 = createOrbitRing(GLOBE_RADIUS * 1.55, -Math.PI / 3, Math.PI / 4, 0xfbbf24);
-    globeGroup.add(orbit1);
-    globeGroup.add(orbit2);
+    const ring1 = createRing(GLOBE_RADIUS * 1.35, Math.PI / 4, Math.PI / 6, 0x00f0ff);
+    const ring2 = createRing(GLOBE_RADIUS * 1.55, -Math.PI / 3, Math.PI / 5, 0xff3b30);
+    globeGroup.add(ring1);
+    globeGroup.add(ring2);
 
-    // Orbiting Satellite Beacon Meshes
-    const satGeo = new THREE.SphereGeometry(1.4, 8, 8);
-    const satMat1 = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const sat1 = new THREE.Mesh(satGeo, satMat1);
-    globeGroup.add(sat1);
-
-    const satMat2 = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
-    const sat2 = new THREE.Mesh(satGeo, satMat2);
-    globeGroup.add(sat2);
-
-    // E. 3D Hotspot Coordinate Pins & Beacons
-    const latLngToVector3 = (lat: number, lng: number, r: number) => {
+    // E. 3D Hotspot Coordinates Beacons
+    const latLngToVector3 = (lat: number, lng: number, radius: number) => {
       const phi = (90 - lat) * (Math.PI / 180);
       const theta = (lng + 180) * (Math.PI / 180);
-      return new THREE.Vector3(
-        -(r * Math.sin(phi) * Math.cos(theta)),
-        r * Math.cos(phi),
-        r * Math.sin(phi) * Math.sin(theta)
-      );
+      const x = -(radius * Math.sin(phi) * Math.cos(theta));
+      const z = radius * Math.sin(phi) * Math.sin(theta);
+      const y = radius * Math.cos(phi);
+      return new THREE.Vector3(x, y, z);
     };
 
-    const hotspotMeshes: { id: string; mesh: THREE.Mesh; ring: THREE.Mesh }[] = [];
-
-    STRATEGIC_HOTSPOTS.forEach(spot => {
-      const pos = latLngToVector3(spot.lat, spot.lng, GLOBE_RADIUS + 1.0);
-
-      // Hotspot Core Marker
-      const markerGeo = new THREE.SphereGeometry(1.6, 12, 12);
+    const beaconsGroup = new THREE.Group();
+    THEATERS.forEach((th) => {
+      const pos = latLngToVector3(th.lat, th.lng, GLOBE_RADIUS + 0.5);
+      const markerGeo = new THREE.SphereGeometry(1.6, 8, 8);
       const markerMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(spot.statusColor)
+        color: th.status === 'HIGH ALERT' ? 0xff3b30 : 0x00f0ff
       });
       const markerMesh = new THREE.Mesh(markerGeo, markerMat);
       markerMesh.position.copy(pos);
-      globeGroup.add(markerMesh);
-
-      // Radar Ring Emitting from Hotspot
-      const ringGeo = new THREE.RingGeometry(1.8, 3.2, 24);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(spot.statusColor),
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.75
-      });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.position.copy(pos);
-      ringMesh.lookAt(new THREE.Vector3(0, 0, 0));
-      globeGroup.add(ringMesh);
-
-      hotspotMeshes.push({ id: spot.id, mesh: markerMesh, ring: ringMesh });
+      beaconsGroup.add(markerMesh);
     });
+    globeGroup.add(beaconsGroup);
 
-    // F. Interactive Mouse Drag & Auto Rotation Controls
+    // Initial orientation focusing on South Asia / Indo-Pacific
+    globeGroup.rotation.y = -1.2;
+    globeGroup.rotation.x = 0.25;
+
+    // F. Drag & Rotate Interaction
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
-    let targetRotationX = 0.25;
-    let targetRotationY = 0.8;
-    let currentRotationX = 0.25;
-    let currentRotationY = 0.8;
+    let velX = 0;
+    let velY = 0;
 
-    const onMouseDown = (e: MouseEvent) => {
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
       isDragging = true;
-      prevMouseX = e.clientX;
-      prevMouseY = e.clientY;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      prevMouseX = clientX;
+      prevMouseY = clientY;
+      velX = 0;
+      velY = 0;
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const deltaX = e.clientX - prevMouseX;
-        const deltaY = e.clientY - prevMouseY;
-        targetRotationY += deltaX * 0.005;
-        targetRotationX += deltaY * 0.005;
-        prevMouseX = e.clientX;
-        prevMouseY = e.clientY;
-      }
+    const onPointerMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const deltaX = clientX - prevMouseX;
+      const deltaY = clientY - prevMouseY;
+      prevMouseX = clientX;
+      prevMouseY = clientY;
+
+      velX = deltaX * 0.005;
+      velY = deltaY * 0.005;
+
+      globeGroup.rotation.y += velX;
+      globeGroup.rotation.x += velY;
     };
 
-    const onMouseUp = () => {
+    const onPointerUp = () => {
       isDragging = false;
     };
 
-    container.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    const domEl = renderer.domElement;
+    domEl.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
 
-    // G. Main Render & Animation Loop
-    let lastTime = performance.now();
-    let frameCount = 0;
-    let fpsTimer = 0;
-    let orbitAngle = 0;
-
-    const animate = (time: number) => {
-      animationFrameId = requestAnimationFrame(animate);
-
-      const delta = (time - lastTime) / 1000;
-      lastTime = time;
-
-      // FPS Counter calculation
-      frameCount++;
-      fpsTimer += delta;
-      if (fpsTimer >= 0.5) {
-        setFps(Math.round((frameCount / fpsTimer)));
-        frameCount = 0;
-        fpsTimer = 0;
-      }
-
-      // Smooth idle rotation if not dragging
-      if (!isDragging) {
-        targetRotationY += 0.0018;
-      }
-
-      // Inertial damping
-      currentRotationX += (targetRotationX - currentRotationX) * 0.08;
-      currentRotationY += (targetRotationY - currentRotationY) * 0.08;
-
-      globeGroup.rotation.x = currentRotationX;
-      globeGroup.rotation.y = currentRotationY;
-
-      // Orbit satellites
-      orbitAngle += 0.015;
-      const r1 = GLOBE_RADIUS * 1.35;
-      sat1.position.set(
-        Math.cos(orbitAngle) * r1 * Math.cos(Math.PI / 6),
-        Math.sin(orbitAngle) * r1 * Math.sin(Math.PI / 4),
-        Math.sin(orbitAngle) * r1 * Math.cos(Math.PI / 4)
-      );
-
-      const r2 = GLOBE_RADIUS * 1.55;
-      sat2.position.set(
-        Math.sin(orbitAngle * 0.8) * r2 * Math.cos(Math.PI / 4),
-        Math.cos(orbitAngle * 0.8) * r2 * Math.sin(-Math.PI / 3),
-        Math.cos(orbitAngle * 0.8) * r2
-      );
-
-      // Pulsate hotspot radar rings
-      const pulseScale = 1.0 + Math.sin(time * 0.006) * 0.35;
-      hotspotMeshes.forEach(item => {
-        item.ring.scale.set(pulseScale, pulseScale, pulseScale);
-      });
-
-      renderer.render(scene, camera);
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
+    domEl.addEventListener('touchstart', onPointerDown, { passive: true });
+    window.addEventListener('touchmove', onPointerMove, { passive: true });
+    window.addEventListener('touchend', onPointerUp);
 
     // Resize Handler
-    const handleResize = () => {
+    const onResize = () => {
       if (!container) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
@@ -399,286 +436,660 @@ export const HighPerfLandingPage: React.FC<HighPerfLandingPageProps> = ({
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
+    window.addEventListener('resize', onResize);
 
-    window.addEventListener('resize', handleResize);
+    // Animation Loop
+    let clock = new THREE.Clock();
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      if (!isDragging) {
+        // Continuous slow sovereign rotation
+        globeGroup.rotation.y += 0.0028;
+        velX *= 0.95;
+        velY *= 0.95;
+        globeGroup.rotation.y += velX;
+        globeGroup.rotation.x += velY;
+      }
+
+      // Atmospheric subtle pulse
+      const time = clock.getElapsedTime();
+      atmoMesh.scale.setScalar(1 + Math.sin(time * 2) * 0.015);
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-      container.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      if (renderer.domElement && container.contains(renderer.domElement)) {
+      domEl.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('mouseup', onPointerUp);
+      domEl.removeEventListener('touchstart', onPointerDown);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
-      renderer.dispose();
     };
   }, []);
 
-  // Periodic Terminal Telemetry Streamer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const incomingFeeds = [
-        `GEOINT_UPDATE: SAR Satellite radar sweep active over ${selectedHotspot.theater}`,
-        `TELEMETRY_INGEST: ${Math.floor(Math.random() * 8) + 4} new dispatches geocoded in 14ms`,
-        `HOTSPOT_METRIC: Escalation Index for ${selectedHotspot.name} recalculated to 8.4/10`,
-        `SPECTRUM_SCAN: GNSS interference detected across ${Math.floor(Math.random() * 40) + 120}km corridor`,
-        `SOVEREIGNTY_CHECK: Jammu & Kashmir, Ladakh & Arunachal SOI vectors verified unbroken`
-      ];
-      const randomLine = incomingFeeds[Math.floor(Math.random() * incomingFeeds.length)];
-      setTerminalLines(prev => [randomLine, ...prev.slice(0, 5)]);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [selectedHotspot]);
-
   return (
-    <div className="w-full min-h-screen bg-[#030712] text-[#F8FAFC] font-sans selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden relative">
-      {/* Background Cyber Grid & Vignette */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-25"
-        style={{
-          backgroundImage: `
-            radial-gradient(rgba(0, 240, 255, 0.2) 1px, transparent 1px),
-            linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-          `,
-          backgroundSize: '36px 36px, 72px 72px, 72px 72px'
-        }}
-      />
-      <div className="fixed inset-0 bg-radial-gradient from-transparent via-slate-950/60 to-[#02050D] pointer-events-none" />
+    <main className="site-shell" style={{ overflowX: 'hidden' }}>
+      {/* 1. Holographic Grain Film Noise */}
+      <div className="grain" aria-hidden="true" />
 
-      {/* RAZOR-THIN TACTICAL 48px WORKSTATION HEADER */}
-      <header className="fixed top-0 left-0 right-0 w-full z-[1000] border-b border-cyan-500/20 bg-[#040814]/90 backdrop-blur-xl shadow-[0_10px_35px_-10px_rgba(0,0,0,0.85)]">
-        <div className="max-w-[1500px] mx-auto h-[48px] px-4 sm:px-6 flex items-center justify-between">
-          {/* Brand Lockup */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-7 h-7 rounded bg-cyan-500/15 border border-cyan-400/40 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.4)]">
-              <Cpu size={15} className="animate-spin" style={{ animationDuration: '8s' }} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono font-extrabold tracking-wider text-[14px] text-white">
-                MANEKSHAW<span className="text-cyan-400">.VISION</span>
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                GPU 3D WORKSTATION
-              </span>
-            </div>
+      {/* 2. Sleek Site Navigation */}
+      <header className="site-nav" data-testid="site-navigation">
+        <a href="#top" aria-label="Manekshaw Vision home" data-testid="brand-home-link">
+          <div className="brand-mark compact" data-testid="brand-logo">
+            <span className="mark-icon">M</span>
+            <span>
+              MANVIS<span className="brand-dot">.</span>VISION
+            </span>
           </div>
+        </a>
 
-          {/* Right Controls: Mode Toggle & Dashboard Button */}
-          <div className="flex items-center gap-3">
-            {/* Real-time Hardware Performance Telemetry Pill */}
-            <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-black/40 border border-cyan-500/30 font-mono text-[10px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#10b981]" />
-              <span className="text-cyan-400 font-bold">{fps} FPS</span>
-              <span className="text-slate-500">•</span>
-              <span className="text-slate-300">WEBGL 2.0 GPU ACCELERATED</span>
-            </div>
+        {/* Desktop Links */}
+        <nav className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`} data-testid="primary-navigation">
+          <a href="#system" onClick={() => setIsMobileMenuOpen(false)}>System</a>
+          <a href="#theaters" onClick={() => setIsMobileMenuOpen(false)}>Theaters</a>
+          <a href="#signal" onClick={() => setIsMobileMenuOpen(false)}>Signal log</a>
+          <a href="#dedication" onClick={() => setIsMobileMenuOpen(false)}>Dedication</a>
+          <a href="#team" onClick={() => setIsMobileMenuOpen(false)}>Astra Dynamics</a>
+          <a href="#faq" onClick={() => setIsMobileMenuOpen(false)}>FAQ</a>
 
-            {/* EXPERIENCE TOGGLE SWITCH (Back to Standard Mode) */}
+          {isMobileMenuOpen && (
             <button
-              onClick={onToggleLandingMode}
-              type="button"
-              title="Click to toggle back to Standard Lightweight Mode"
-              className="flex items-center gap-2 px-3 py-1 rounded bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-mono text-[11px] font-bold tracking-wider transition-all shadow-[0_0_14px_rgba(0,240,255,0.2)] cursor-pointer"
-              style={{ height: '30px' }}
+              className="nav-close"
+              aria-label="Close menu"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
-              <Activity size={13} className="text-cyan-400 animate-pulse" />
-              <span className="hidden sm:inline">3D WORKSTATION: ON</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-400 text-slate-950 font-extrabold">
-                ACTIVE
-              </span>
+              <X size={18} />
             </button>
+          )}
+        </nav>
 
-            <UserNav
-              onOpenAuthModal={onOpenAuthModal || (() => {})}
-              onNavigateLogin={onNavigateLogin}
-              compact
-            />
+        {/* Right Nav Actions */}
+        <div className="nav-actions">
+          {/* Mode Switch Toggle Button */}
+          <button
+            onClick={onToggleLandingMode}
+            type="button"
+            className="mode-toggle-btn"
+            title="Switch back to Standard Mode"
+            aria-label="Switch back to Standard Mode"
+          >
+            <Cpu size={12} className="animate-pulse" />
+            <span>STANDARD MODE</span>
+          </button>
 
-            <button
-              onClick={onLaunchDashboard}
-              className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-extrabold tracking-wider uppercase text-[11px] px-3.5 py-1.5 rounded transition-all shadow-[0_0_20px_rgba(0,240,255,0.5)] flex items-center gap-1.5 cursor-pointer active:scale-95"
-              style={{ height: '30px' }}
-            >
-              <Radar size={13} className="animate-spin text-slate-950" style={{ animationDuration: '5s' }} />
-              <span>LAUNCH COCKPIT</span>
-              <ArrowRight size={12} />
-            </button>
-          </div>
+          <span className="live-chip" data-testid="live-status">
+            <i /> LIVE / v1.5
+          </span>
+
+          <button
+            className="menu-button"
+            aria-label="Open menu"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <Menu size={18} />
+          </button>
+
+          <button
+            className="nav-cta"
+            onClick={onLaunchDashboard}
+            data-testid="nav-dashboard-link"
+          >
+            Launch dashboard <ArrowUpRight size={15} />
+          </button>
         </div>
       </header>
 
-      {/* HERO SECTION: INTERACTIVE 3D GLOBE STAGE */}
-      <section className="relative pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto min-h-[90vh] flex flex-col justify-center">
-        {/* Floating Top Telemetry Strip */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 font-mono text-[11px] border-b border-cyan-500/15 pb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-cyan-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block" />
-              GEOSPATIAL WAR-ROOM ENGINE
-            </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-slate-300">INTERACTIVE 3D ORBITAL MATRIX</span>
-          </div>
+      {/* 3. HERO SECTION WITH INTERACTIVE 3D HOLOGRAM GLOBE */}
+      <section className="hero" id="top" data-testid="hero-section">
+        <div className="hero-grid" />
 
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>ROTATION: MOUSE DRAG / INERTIAL AUTO-SPIN</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-amber-400 font-bold">SOI INTEGRITY: 100% UNBROKEN</span>
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="eyebrow-line" /> Sovereign situational awareness / 01
+          </p>
+
+          <h1 data-testid="hero-headline">
+            <span>See the</span>
+            <span className="outline-line">world before</span>
+            <span>it shifts.</span>
+          </h1>
+
+          <p className="hero-description">
+            MANVIS is a sovereign geospatial intelligence layer for the signals between headlines —
+            live frontlines, strategic infrastructure, and the pressure points moving beneath the map.
+          </p>
+
+          <div className="hero-actions">
+            <button
+              className="primary-button"
+              onClick={onLaunchDashboard}
+              data-testid="hero-launch-button"
+            >
+              Enter command center <ArrowUpRight size={18} />
+            </button>
+            <a href="#theaters" className="text-button" data-testid="hero-explore-button">
+              Explore the system <ChevronDown size={16} />
+            </a>
           </div>
         </div>
 
-        {/* Main 2-Column High-Performance Workspace Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          {/* Left Column (5 Cols): Editorial & Hotspot Telemetry Dossier */}
-          <div className="lg:col-span-5 space-y-6 z-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs font-bold tracking-wider uppercase shadow-inner">
-              <Zap size={13} />
-              <span>HIGH-PERFORMANCE WORKSTATION ENGINE</span>
+        {/* 3D Interactive Hologram Globe Viewport */}
+        <div className="globe-wrap" data-testid="interactive-globe">
+          <div className="globe-label label-top">
+            LAT {activeTheater.coords.split(' / ')[0]} / LONG {activeTheater.coords.split(' / ')[1]}
+          </div>
+
+          <div
+            ref={mountRef}
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden',
+              pointerEvents: 'auto',
+              cursor: 'grab'
+            }}
+          />
+
+          <div className="globe-crosshair">
+            <span />
+            <span />
+          </div>
+
+          <div className="globe-label label-bottom">
+            <Radio size={12} className="animate-pulse" />
+            <span>SIGNAL ARRAY / 16 LAYERS ACTIVE</span>
+          </div>
+        </div>
+
+        <div className="hero-footer">
+          <span>ADYN / NEW DELHI / 2026—27</span>
+          <span>
+            SCROLL TO DECODE <span className="scroll-arrow">↓</span>
+          </span>
+        </div>
+      </section>
+
+      {/* 4. MARQUEE TICKER BAR */}
+      <section className="marquee" aria-label="Manvis capabilities" data-testid="capability-marquee">
+        <div className="marquee-track">
+          SOVEREIGN DATA <b>✳</b> LIVE GEOPOLITICS <b>✳</b> BORDER INTEGRITY <b>✳</b> OPEN-SOURCE INTELLIGENCE <b>✳</b> 100% SURVEY OF INDIA ADHERENCE <b>✳</b> SATELLITE TELEMETRY <b>✳</b> KINETIC FRONTLINES <b>✳</b> SOVEREIGN DATA <b>✳</b> LIVE GEOPOLITICS <b>✳</b>
+        </div>
+      </section>
+
+      {/* 5. SECTION 01: THE SIGNAL LAYER (CAPABILITIES BENTO GRID) */}
+      <section className="system-section page-section" id="system" data-testid="system-section">
+        <div className="section-heading">
+          <p className="section-index">01 / THE SIGNAL LAYER</p>
+          <h2>
+            Clarity is a<br />
+            <em>strategic advantage.</em>
+          </h2>
+          <p className="heading-note">
+            Six dimensions of global telemetry, collapsed into one precise operational picture.
+          </p>
+        </div>
+
+        <div className="bento-grid">
+          {/* Card 1: Kinetic */}
+          <div className="bento-card card-1">
+            <span className="card-number">01</span>
+            <p className="card-type">KINETIC</p>
+            <h3>Active frontlines</h3>
+            <p>Live conflict zones, fortified borders, and reported strike coordinates.</p>
+            <span className="card-scan">● TRACKING NOW</span>
+          </div>
+
+          {/* Card 2: Strategic */}
+          <div className="bento-card card-2">
+            <span className="card-number">02</span>
+            <p className="card-type">STRATEGIC</p>
+            <h3>Deterrence posture</h3>
+            <p>Airbases, naval ports, nuclear facilities, and sovereign ADIZ perimeters.</p>
+            <span className="card-scan">○ MONITORING</span>
+          </div>
+
+          {/* Card 3: Electronic */}
+          <div className="bento-card card-3">
+            <span className="card-number">03</span>
+            <p className="card-type">ELECTRONIC</p>
+            <h3>The invisible battle</h3>
+            <p>GNSS interference, spoofing corridors, and airspace advisories.</p>
+            <span className="card-scan">○ MONITORING</span>
+          </div>
+
+          {/* Card 4: Infrastructure */}
+          <div className="bento-card card-4">
+            <span className="card-number">04</span>
+            <p className="card-type">INFRASTRUCTURE</p>
+            <h3>The pressure points</h3>
+            <p>Maritime chokepoints, subsea cables, and connectivity disruptions.</p>
+            <span className="card-scan">○ MONITORING</span>
+          </div>
+
+          {/* Bento Image Card (Launches Dashboard) */}
+          <div
+            className="bento-card bento-image"
+            onClick={onLaunchDashboard}
+            style={{ cursor: 'pointer' }}
+          >
+            <img alt="Manvis live tactical dashboard" src="/screenshot-3.png" />
+            <div className="image-overlay">
+              <span>LIVE VIEW / MANVIS DASHBOARD</span>
+              <ArrowUpRight size={18} />
             </div>
+          </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Sovereign Spatial Defense <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-amber-300">
-                3D Tactical Command
-              </span>
-            </h1>
-
-            <p className="text-sm sm:text-base text-slate-300 font-sans leading-relaxed">
-              Designed specifically for multi-monitor workstations and modern GPU rendering. Explore real-time strategic 
-              frontlines, sovereign airspace perimeters, and active geopolitical flashpoints in full hardware-accelerated 3D space.
+          {/* Card 5: Country Dossiers & Instability Scoring (CII) */}
+          <div className="bento-card card-5">
+            <span className="card-number">05</span>
+            <p className="card-type">INTELLIGENCE</p>
+            <h3>Country Dossiers & CII Scoring</h3>
+            <p>
+              Comprehensive security profiles featuring the Country Instability Index (CII), active armed forces posture, nuclear status, defense spending, and bilateral treaty alliances across 195 nations.
             </p>
-
-            {/* Active Hotspot Telemetry Dossier Card */}
-            <div className="p-5 rounded-[4px] bg-[#070E1E]/95 border border-cyan-500/30 shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative overflow-hidden backdrop-blur-md">
-              <div className="flex items-center justify-between mb-3 border-b border-cyan-500/20 pb-2">
-                <div className="flex items-center gap-2 font-mono text-xs font-bold text-white">
-                  <Flame size={14} className="text-rose-400" />
-                  <span>TARGET DOSSIER: {selectedHotspot.name}</span>
-                </div>
-                <span
-                  className="px-2 py-0.5 rounded font-mono text-[9px] font-bold border uppercase"
-                  style={{
-                    backgroundColor: `${selectedHotspot.statusColor}22`,
-                    color: selectedHotspot.statusColor,
-                    borderColor: `${selectedHotspot.statusColor}55`
-                  }}
-                >
-                  {selectedHotspot.status}
-                </span>
-              </div>
-
-              <div className="font-mono text-[11px] text-cyan-300 mb-2 flex items-center justify-between">
-                <span>THEATER: {selectedHotspot.theater}</span>
-                <span className="text-slate-400">{selectedHotspot.lat}°N, {selectedHotspot.lng}°E</span>
-              </div>
-
-              <p className="text-xs text-slate-300 leading-relaxed font-sans mb-4">
-                {selectedHotspot.intel}
-              </p>
-
-              {/* Hotspot Selector Pills */}
-              <div className="space-y-1.5">
-                <span className="text-[9.5px] font-mono text-slate-400 uppercase tracking-wider block font-bold">
-                  FOCUS STRATEGIC SECTOR:
-                </span>
-                <div className="grid grid-cols-2 gap-1.5 font-mono text-[10px]">
-                  {STRATEGIC_HOTSPOTS.map(spot => (
-                    <button
-                      key={spot.id}
-                      onClick={() => setSelectedHotspot(spot)}
-                      className={`px-2.5 py-1.5 rounded text-left truncate transition-all cursor-pointer border ${
-                        selectedHotspot.id === spot.id
-                          ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.3)] font-bold'
-                          : 'bg-black/30 border-white/10 text-slate-400 hover:border-cyan-500/30 hover:text-slate-200'
-                      }`}
-                    >
-                      • {spot.name.split('/')[0]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Launch Call To Actions */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-              <button
-                onClick={onLaunchDashboard}
-                className="w-full sm:w-auto px-6 py-3.5 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-extrabold text-xs tracking-wider uppercase transition-all shadow-[0_0_28px_rgba(0,240,255,0.45)] hover:shadow-[0_0_35px_rgba(0,240,255,0.65)] flex items-center justify-center gap-2 cursor-pointer group"
-              >
-                <Compass size={15} className="group-hover:rotate-45 transition-transform" />
-                <span>ENTER TACTICAL COCKPIT</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-
-              <button
-                onClick={onToggleLandingMode}
-                className="w-full sm:w-auto px-5 py-3.5 rounded bg-black/40 hover:bg-black/60 text-slate-300 hover:text-white border border-white/15 font-mono text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <RefreshCw size={13} className="text-slate-400" />
-                <span>Switch to Standard Mode</span>
-              </button>
-            </div>
+            <span className="card-scan">○ MONITORING</span>
           </div>
 
-          {/* Right Column (7 Cols): The Live Interactive 3D Globe Canvas */}
-          <div className="lg:col-span-7 relative h-[520px] sm:h-[620px] flex items-center justify-center">
-            {/* The WebGL Canvas Container */}
-            <div
-              ref={mountRef}
-              className="w-full h-full cursor-grab active:cursor-grabbing relative select-none rounded-[8px] overflow-hidden"
-            />
-
-            {/* Drag to Rotate HUD Instruction Overlay */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none text-slate-400 font-mono text-[10px] bg-slate-950/80 px-4 py-2 rounded border border-cyan-500/20 backdrop-blur-md">
-              <div className="flex items-center gap-2">
-                <Compass size={12} className="text-cyan-400 animate-spin" style={{ animationDuration: '10s' }} />
-                <span>DRAG WITH MOUSE TO ROTATE 3D GLOBE IN ANY DIRECTION</span>
-              </div>
-              <span className="text-cyan-400 font-bold">HARDWARE 3D ACCELERATED</span>
-            </div>
+          {/* Card 6: Real-Time Hazard & Seismic Feeds */}
+          <div className="bento-card card-6">
+            <span className="card-number">06</span>
+            <p className="card-type">ENVIRONMENT</p>
+            <h3>Real-Time Hazard & Seismic Feeds</h3>
+            <p>
+              Direct telemetry ingestion of USGS live earthquakes, NASA EONET volcanic and wildfire satellite sensors, and NOAA severe atmospheric watches.
+            </p>
+            <span className="card-scan">○ MONITORING</span>
           </div>
         </div>
 
-        {/* Live Terminal Telemetry Marquee & Spectrogram Bottom Bar */}
-        <div className="mt-8 p-4 rounded-[4px] bg-[#040814]/90 border border-cyan-500/20 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-cyan-500/15 pb-2 mb-2">
-            <div className="flex items-center gap-2 text-cyan-400 font-bold text-[11px]">
-              <Terminal size={14} />
-              <span>LIVE GEOINT TELEMETRY STREAM & INGESTION LOGS</span>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-slate-400">
-              <span className="text-emerald-400 font-bold">CONNECTED // ENCRYPTED</span>
-              <span>47 SOURCES ARMED</span>
+        {/* Survey of India Sovereign Standards Banner */}
+        <div className="soi-banner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Flag size={22} style={{ color: 'var(--cyan)', flexShrink: 0 }} />
+            <div>
+              <h4 style={{ margin: '0 0 6px', font: "600 15px 'Space Grotesk', sans-serif", color: '#f1f5f9' }}>
+                Survey of India (SOI) Statutory Cartographic Adherence
+              </h4>
+              <p style={{ margin: 0, font: "400 11.5px/1.6 'IBM Plex Mono', monospace", color: 'var(--muted)' }}>
+                Unlike international commercial mapping engines that render Jammu & Kashmir or Arunachal Pradesh as dashed lines depending on user IP geolocation, Manekshaw.Vision enforces unbroken sovereign national borders strictly compliant with the statutory cartographic standards of the Republic of India.
+              </p>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-[10px]">
-            {terminalLines.map((line, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-slate-300 truncate">
-                <span className="text-cyan-400">›</span>
-                <span className="truncate">{line}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--cyan)', font: "600 10.5px 'IBM Plex Mono', monospace", whiteSpace: 'nowrap' }}>
+            <CheckCircle2 size={16} />
+            <span>100% SOI VERIFIED</span>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-cyan-500/20 py-6 px-4 sm:px-6 lg:px-8 bg-[#02050D] text-xs font-mono text-slate-500">
-        <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white">MANEKSHAW.VISION</span>
-            <span>•</span>
-            <span className="text-cyan-400">High-Performance 3D Workstation Edition</span>
+      {/* 6. SECTION 02: OPERATIONAL THEATERS */}
+      <section className="theater-section page-section" id="theaters" data-testid="theaters-section">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="section-index">02 / OPERATIONAL THEATERS</p>
+            <h2>
+              Read the <em>terrain.</em>
+            </h2>
+          </div>
+          <p className="heading-note">
+            Pre-configured regional viewports. Select a theater to tune the signal.
+          </p>
+        </div>
+
+        <div className="theater-layout">
+          {/* Theater Tabs */}
+          <div className="theater-list" role="tablist" aria-label="Operational theaters">
+            {THEATERS.map((th) => {
+              const isActive = activeTheater.id === th.id;
+              return (
+                <button
+                  key={th.id}
+                  onClick={() => setActiveTheater(th)}
+                  className={`theater-tab ${isActive ? 'active' : ''}`}
+                  role="tab"
+                  aria-selected={isActive}
+                  data-testid={`theater-tab-${th.id}`}
+                >
+                  <span>{th.name}</span>
+                  <small style={{ color: isActive ? th.statusColor : undefined }}>
+                    {th.status}
+                  </small>
+                  <ArrowUpRight size={15} />
+                </button>
+              );
+            })}
           </div>
 
-          <div className="text-center sm:text-right text-[11px] text-slate-500">
-            Survey of India official boundary adherence guaranteed. Dedicated to Field Marshal Sir Sam Manekshaw.
+          {/* Active Theater Radar Card */}
+          <div className={`theater-card ${activeTheater.status === 'HIGH ALERT' ? 'red' : activeTheater.status === 'WATCH' ? 'amber' : 'cyan'}`}>
+            <div className="radar">
+              <div className="radar-sweep" />
+              <div className="radar-dot dot-a" />
+              <div className="radar-dot dot-b" />
+              <div className="radar-dot dot-c" />
+            </div>
+
+            <div className="theater-card-copy">
+              <p className="card-type" style={{ color: activeTheater.statusColor }}>
+                ACTIVE VIEWPORT / {activeTheater.status}
+              </p>
+              <h3 data-testid="active-theater-name">{activeTheater.name}</h3>
+              <p className="coords" data-testid="active-theater-coordinates">
+                {activeTheater.coords}
+              </p>
+              <p className="theater-detail">{activeTheater.detail}</p>
+
+              <div className="signal-bar">
+                <span /> <span /> <span /> <span /> <span />
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '24px' }}>
+                {activeTheater.layers.map((l, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      border: '1px solid var(--line)',
+                      background: 'rgba(0,240,255,0.03)',
+                      color: '#a2b0be',
+                      fontSize: '9.5px',
+                      fontFamily: "'IBM Plex Mono', monospace",
+                      padding: '3px 8px'
+                    }}
+                  >
+                    ⚡ {l}
+                  </span>
+                ))}
+              </div>
+
+              <small className="card-scan">DATA INTEGRITY / 100% SOI VERIFIED</small>
+            </div>
           </div>
         </div>
+      </section>
+
+      {/* 7. SECTION 03: SIGNAL LOG */}
+      <section className="signal-section page-section" id="signal" data-testid="signal-section">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="section-index">03 / SIGNAL LOG</p>
+            <h2>
+              What’s moving<br />
+              <em>beneath the noise.</em>
+            </h2>
+          </div>
+
+          <div className="intel-tools">
+            <label className="search-box">
+              <Search size={15} />
+              <input
+                placeholder="Search signal log"
+                aria-label="Search signal log"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                data-testid="signal-search-input"
+              />
+            </label>
+            <button
+              className="export-button"
+              onClick={handleExportBriefing}
+              data-testid="export-briefing-button"
+            >
+              <Download size={15} /> Export briefing
+            </button>
+          </div>
+        </div>
+
+        {/* Live Signal Telemetry Table */}
+        <div className="intel-table" data-testid="signal-log-table">
+          {filteredSignals.length > 0 ? (
+            filteredSignals.map((item) => (
+              <div key={item.id} className="intel-row">
+                <span className="row-id">{item.id}</span>
+                <span className="row-title">{item.title}</span>
+                <span className="row-detail">{item.detail}</span>
+                <span className="row-time">{item.time}</span>
+                <Crosshair size={15} className="row-crosshair" />
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">No telemetry matching query "{searchQuery}".</div>
+          )}
+        </div>
+      </section>
+
+      {/* 8. SECTION 04: NOBLE DEDICATION TO SIR SAM MANEKSHAW */}
+      <section className="dedication page-section" id="dedication" data-testid="dedication-section">
+        <div className="dedication-mark">
+          <Shield size={20} />
+          <span>THE MANVIS PRINCIPLE</span>
+        </div>
+
+        <div>
+          <blockquote>
+            “Professional knowledge and professional competence are the main attributes of leadership.”
+          </blockquote>
+          <p>— Field Marshal Sam Manekshaw, MC (1914–2008)</p>
+        </div>
+
+        {/* Dedicated Tribute Card */}
+        <div className="dedication-card">
+          <div className="dedication-portrait">
+            <img src="/logo.jpg" alt="Field Marshal Sir Sam Manekshaw" />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'rgba(6,8,12,0.85)',
+                padding: '6px 10px',
+                textAlign: 'center',
+                font: "600 9px 'IBM Plex Mono', monospace",
+                color: 'var(--amber)',
+                letterSpacing: '.1em'
+              }}
+            >
+              FIRST FIELD MARSHAL OF INDIA
+            </div>
+          </div>
+
+          <div>
+            <div className="honors-wrap">
+              <span className="honor-pill">Military Cross (MC)</span>
+              <span className="honor-pill">Padma Vibhushan</span>
+              <span className="honor-pill">1971 Liberation War Hero</span>
+            </div>
+
+            <h3 style={{ font: "500 24px 'Space Grotesk', sans-serif", color: '#f1f5f9', margin: '16px 0 12px' }}>
+              In Eternal Reverence to “Sam Bahadur”
+            </h3>
+
+            <div style={{ color: 'var(--muted)', font: "400 12px/1.8 'IBM Plex Mono', monospace", display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <p style={{ margin: 0 }}>
+                Known affectionately as <strong style={{ color: '#f1f5f9' }}>“Sam Bahadur”</strong> (Sam the Brave), Field Marshal Sam Manekshaw stands as one of the greatest military strategists in modern history. As Chief of the Army Staff during the 1971 Indo-Pakistani War, his masterclass in operational planning and combined-arms doctrine culminated in the historic unconditional surrender of Pakistani forces in just 13 days—leading to the creation of Bangladesh.
+              </p>
+              <p style={{ margin: 0 }}>
+                His career spanned four decades and five wars, marked not only by tactical brilliance but by an uncompromising moral spine. When pressurized to launch premature offensives, he stood resolute in his strategic counsel, ensuring total preparation before decisive action.
+              </p>
+              <p style={{ margin: 0, color: '#f1f5f9', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
+                <strong style={{ color: 'var(--cyan)' }}>Manekshaw.Vision (ManVis)</strong> was conceived and developed in proud dedication to his enduring ethos—celebrating uncompromised sovereign preparedness, decisive intelligence, and steadfast vigilance over our borders and global strategic horizons.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="dedication-bottom">
+          <span>Built by Team Astra Dynamics</span>
+          <span>Dedicated to decisive intelligence.</span>
+        </div>
+      </section>
+
+      {/* 9. SECTION 05: ENGINEERING ORIGINS (TEAM ASTRA DYNAMICS / ADYN) */}
+      <section className="page-section" id="team" style={{ background: '#070b10' }}>
+        <div className="section-heading">
+          <p className="section-index">04 / ENGINEERING ORIGINS</p>
+          <h2>
+            Team Astra Dynamics<br />
+            <em>(ADYN)</em>
+          </h2>
+          <p className="heading-note">
+            The high school engineering team and sovereign intelligence project behind Manekshaw.Vision.
+          </p>
+        </div>
+
+        <div className="origin-card">
+          <div>
+            <div className="adyn-logo-wrap">
+              <img src="/adyn-logo.png" alt="Team Astra Dynamics Monogram" />
+            </div>
+            <div style={{ font: "600 14px 'Space Grotesk', sans-serif", color: '#f1f5f9' }}>
+              ASTRA DYNAMICS
+            </div>
+            <div style={{ font: "500 9.5px 'IBM Plex Mono', monospace", color: 'var(--cyan)', margin: '4px 0 20px', letterSpacing: '.1em' }}>
+              STUDENT AI & GEOINT COLLECTIVE
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', font: "400 11px 'IBM Plex Mono', monospace" }}>
+              <div>
+                <span style={{ color: '#506174', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>TEAM:</span>
+                <span style={{ color: '#f1f5f9' }}>4 High School Developers</span>
+              </div>
+              <div>
+                <span style={{ color: '#506174', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>ORIGIN:</span>
+                <span style={{ color: '#f1f5f9' }}>Student AI & Systems Initiative</span>
+              </div>
+              <div>
+                <span style={{ color: '#506174', display: 'block', fontSize: '9px', textTransform: 'uppercase' }}>ARCHITECTURE:</span>
+                <span style={{ color: '#f1f5f9' }}>Multi-Layer OSINT Engine</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span style={{ font: "600 10px 'IBM Plex Mono', monospace", color: 'var(--cyan)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
+              LAB BRIEFING // MISSION
+            </span>
+            <h3 style={{ font: "500 24px 'Space Grotesk', sans-serif", color: '#f1f5f9', margin: '8px 0 18px' }}>
+              Engineered by Team Astra Dynamics
+            </h3>
+
+            <div style={{ color: 'var(--muted)', font: "400 12.5px/1.8 'IBM Plex Mono', monospace", display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0 }}>
+                Manekshaw.Vision (ManVis) was architected and built by <strong style={{ color: '#f1f5f9' }}>Team Astra Dynamics (ADYN)</strong>—a four-member high school engineering team exploring what happens when modern AI workflows, live open-source intelligence (OSINT) feeds, and WebGL cartography are combined into a single browser-native interface.
+              </p>
+              <p style={{ margin: 0 }}>
+                What began as an experimental school AI project evolved into a full-scale geospatial monitor. We built ManVis to prove that clean, sovereign situational awareness doesn't require enterprise bloat—and dedicated the platform to the enduring legacy of India's First Field Marshal, Sam Manekshaw.
+              </p>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--line)', marginTop: '24px', paddingTop: '16px', display: 'flex', gap: '16px', font: "500 10px 'IBM Plex Mono', monospace", color: '#506174' }}>
+              <span>STATUS: ACTIVE RESEARCH</span>
+              <span>•</span>
+              <span>LOCATION: NEW DELHI, INDIA</span>
+              <span>•</span>
+              <span>WEBGL // REACT // OSINT STACK</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 10. SECTION 06: FREQUENTLY ASKED QUESTIONS */}
+      <section className="page-section" id="faq">
+        <div className="section-heading">
+          <p className="section-index">05 / INTELLIGENCE FAQ</p>
+          <h2>
+            Understanding the<br />
+            <em>system.</em>
+          </h2>
+          <p className="heading-note">
+            Key operational details on cartographic compliance, OSINT feed latency, and platform architecture.
+          </p>
+        </div>
+
+        <div className="faq-list">
+          {FAQS.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div key={idx} className={`faq-item ${isOpen ? 'active' : ''}`}>
+                <button
+                  className="faq-button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      transform: isOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform .2s',
+                      color: isOpen ? 'var(--cyan)' : 'var(--muted)'
+                    }}
+                  />
+                </button>
+                {isOpen && <div className="faq-answer">{faq.a}</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Command Center Launch Banner */}
+        <div className="cta-banner-wrap">
+          <h2>Enter the Sovereign Command Center</h2>
+          <p>
+            Free, real-time, and fully operational in your browser—no sign-up wall, zero tracking.
+          </p>
+          <button
+            onClick={onLaunchDashboard}
+            className="primary-button"
+            style={{ margin: '0 auto', padding: '18px 28px', fontSize: '12px' }}
+          >
+            LAUNCH MANEKSHAW.VISION DASHBOARD <ArrowUpRight size={18} />
+          </button>
+        </div>
+      </section>
+
+      {/* 11. SITE FOOTER */}
+      <footer className="site-footer">
+        <div>
+          <div className="brand-mark" data-testid="brand-logo" style={{ marginBottom: '14px' }}>
+            <span className="mark-icon">M</span>
+            <span>
+              MANVIS<span className="brand-dot">.</span>VISION
+            </span>
+          </div>
+          <p>
+            Browser-native situational awareness<br />
+            for a world in motion.
+          </p>
+        </div>
+
+        <div>
+          <p style={{ color: '#506174', font: "400 11px/1.8 'IBM Plex Mono', monospace" }}>
+            Indian boundary demarcations strictly adhere to official Survey of India (SOI) statutory standards.
+          </p>
+        </div>
+
+        <div className="footer-meta">
+          <span>© MANVIS / ADYN 2026—27</span>
+          <a href="mailto:team@manvis.tech" data-testid="footer-contact-link">
+            Contact intelligence <ArrowUpRight size={14} />
+          </a>
+        </div>
       </footer>
-    </div>
+
+      {/* 12. Toast Feedback Alert */}
+      {toastMessage && <div className="toast">{toastMessage}</div>}
+    </main>
   );
 };
