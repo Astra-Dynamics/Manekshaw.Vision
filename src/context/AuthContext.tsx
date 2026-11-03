@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, EmailOtpType } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, UserProfile } from '../services/supabaseClient';
 
 interface AuthContextType {
@@ -12,6 +12,16 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; user: User | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  verifyOtp: (
+    email: string,
+    token: string,
+    type?: EmailOtpType
+  ) => Promise<{ error: Error | null; session: Session | null; user: User | null }>;
+  resendVerification: (
+    email: string,
+    type?: 'signup' | 'email_change'
+  ) => Promise<{ error: Error | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -26,6 +36,9 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => ({ error: new Error('Auth not configured') }),
   signUp: async () => ({ error: new Error('Auth not configured'), user: null }),
   resetPassword: async () => ({ error: new Error('Auth not configured') }),
+  verifyOtp: async () => ({ error: new Error('Auth not configured'), session: null, user: null }),
+  resendVerification: async () => ({ error: new Error('Auth not configured') }),
+  updatePassword: async () => ({ error: new Error('Auth not configured') }),
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -126,10 +139,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isSupabaseConfigured) {
       return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.'), user: null };
     }
+    const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: callbackUrl,
         data: {
           full_name: fullName,
         }
@@ -142,8 +157,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isSupabaseConfigured) {
       return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
     }
+    const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?type=recovery` : undefined;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`
+      redirectTo: callbackUrl
+    });
+    return { error };
+  };
+
+  const verifyOtp = async (email: string, token: string, type: EmailOtpType = 'signup') => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.'), session: null, user: null };
+    }
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: token.trim(),
+      type
+    });
+    if (data?.user) {
+      setUser(data.user);
+      await fetchProfile(data.user.id, data.user.email || '');
+    }
+    return { error, session: data?.session ?? null, user: data?.user ?? null };
+  };
+
+  const resendVerification = async (email: string, type: 'signup' | 'email_change' = 'signup') => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
+    }
+    const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+    const { error } = await supabase.auth.resend({
+      type,
+      email: email.trim(),
+      options: {
+        emailRedirectTo: callbackUrl
+      }
+    });
+    return { error };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
+    }
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
     });
     return { error };
   };
@@ -170,6 +227,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signIn,
         signUp,
         resetPassword,
+        verifyOtp,
+        resendVerification,
+        updatePassword,
         signOut,
         refreshProfile
       }}

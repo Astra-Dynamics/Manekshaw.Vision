@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlayerProvider } from './context/PlayerContext';
 import { AuthModal } from './components/AuthModal';
 import { AuthPage } from './components/AuthPage';
+import { AuthCallback } from './components/AuthCallback';
 import { StatusDiag } from './pages/StatusDiag';
 import { filterByTimeRange, getLiveHotspots } from './services/liveFeedAdapter';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
@@ -234,7 +235,13 @@ const AppContent: React.FC = () => {
   }, []);
 
   const isDashboard = currentPath.toLowerCase().startsWith('/dashboard');
-  const isAuthPage = ['/login', '/signin', '/signup', '/auth'].includes(currentPath.toLowerCase());
+  const isAuthCallback =
+    ['/auth/callback', '/auth/confirm', '/auth/v1/callback', '/auth/error'].includes(currentPath.toLowerCase()) ||
+    window.location.search.includes('code=') ||
+    window.location.search.includes('token_hash=') ||
+    window.location.hash.includes('access_token=') ||
+    window.location.hash.includes('error=');
+  const isAuthPage = ['/login', '/signin', '/signup', '/auth', '/auth/verify'].includes(currentPath.toLowerCase());
 
   const handleLaunchDashboard = () => {
     const saved = getSavedWorkspaceConfig(user?.id);
@@ -1541,6 +1548,16 @@ const AppContent: React.FC = () => {
       return lon >= minX && lon <= maxX && lat >= minY && lat <= maxY;
     });
   }, [selectedCountry, allFeatures]);
+
+  if (isAuthCallback) {
+    return (
+      <AuthCallback
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
+        onNavigateLogin={() => handleNavigateLogin('signin')}
+      />
+    );
+  }
 
   if (isAuthPage) {
     return (
