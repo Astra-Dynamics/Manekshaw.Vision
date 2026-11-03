@@ -1544,11 +1544,13 @@ const AppContent: React.FC = () => {
 
   if (!isDashboard) {
     return (
-      <div className="w-full min-h-screen overflow-y-auto bg-[#06090e]">
+      <div className={`w-full min-h-screen overflow-y-auto ${theme === 'light' ? 'bg-[#fbfbfa]' : 'bg-[#06090e]'}`}>
         <LandingPage
           onLaunchDashboard={handleLaunchDashboard}
           onOpenAuthModal={() => handleOpenAuth('signin')}
           onNavigateLogin={() => handleNavigateLogin('signin')}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
