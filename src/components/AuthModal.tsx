@@ -138,7 +138,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-mono">
       {/* Tactical Container */}
       <div
-        className="relative w-full max-w-md bg-[#0B101B] border border-sky-500/30 rounded-lg shadow-[0_0_35px_rgba(56,189,248,0.15)] overflow-hidden text-slate-200"
+        className="relative w-full max-w-md max-h-[92vh] overflow-y-auto bg-[#0B101B] border border-sky-500/30 rounded-lg shadow-[0_0_35px_rgba(56,189,248,0.15)] text-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Accent Strip */}
