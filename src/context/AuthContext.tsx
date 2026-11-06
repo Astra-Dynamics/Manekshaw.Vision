@@ -11,6 +11,7 @@ interface AuthContextType {
   isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; user: User | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   isConfigured: false,
   signIn: async () => ({ error: new Error('Auth not configured') }),
   signUp: async () => ({ error: new Error('Auth not configured'), user: null }),
+  signInWithGoogle: async () => ({ error: new Error('Auth not configured') }),
   resetPassword: async () => ({ error: new Error('Auth not configured') }),
   signOut: async () => {},
   refreshProfile: async () => {},
@@ -138,6 +140,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error, user: data?.user ?? null };
   };
 
+  const signInWithGoogle = async () => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
+    }
+    const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: callbackUrl
+      }
+    });
+    return { error };
+  };
+
   const resetPassword = async (email: string) => {
     if (!isSupabaseConfigured) {
       return { error: new Error('Authentication service is currently initializing. Please refresh in a moment.') };
@@ -169,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isConfigured: isSupabaseConfigured,
         signIn,
         signUp,
+        signInWithGoogle,
         resetPassword,
         signOut,
         refreshProfile
