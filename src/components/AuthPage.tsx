@@ -221,14 +221,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   </div>
 
-                  {/* Tactical Info Badge */}
+                  {/* Security & Privacy Badge */}
                   <div className="hidden md:block p-3.5 rounded-lg bg-[#080d16] border border-slate-800/80 text-[11px] font-mono text-slate-400 space-y-1">
                     <div className="text-sky-400 font-semibold flex items-center gap-1.5">
                       <Shield size={13} />
-                      <span>OPERATOR CLEARANCE</span>
+                      <span>SECURE & PRIVATE</span>
                     </div>
                     <p className="text-slate-400 leading-relaxed text-[11px]">
-                      Sovereign OSINT credentials protected under defense-grade encryption standards.
+                      Your account is protected with strong encryption. We respect your privacy and will never share your personal data.
                     </p>
                   </div>
                 </div>
