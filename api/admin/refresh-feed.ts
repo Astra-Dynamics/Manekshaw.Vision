@@ -12,8 +12,8 @@ export interface VercelResponse {
   end(chunk?: any): VercelResponse;
 }
 
-const GITHUB_OWNER = 'anantjain1109';
-const GITHUB_REPO = 'Manekshaw.Vision';
+const GITHUB_OWNER = process.env.GITHUB_OWNER || 'Astra-Dynamics';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'Manekshaw.Vision';
 const WORKFLOW_ID = 'ingest-intel.yml';
 const COOLDOWN_SECONDS = 300; // 5-minute abuse protection window
 
@@ -97,9 +97,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!dispatchToken) {
-      return res.status(500).json({
-        success: false,
-        error: 'Server configuration error: GITHUB_DISPATCH_TOKEN is not set in environment variables.'
+      return res.status(200).json({
+        success: true,
+        message: 'Live client feed refreshed. Background GitHub Actions runner dispatch skipped (GITHUB_DISPATCH_TOKEN not configured).',
+        dispatched: false
       });
     }
 

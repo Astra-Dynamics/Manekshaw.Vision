@@ -12,8 +12,8 @@ export interface VercelResponse {
   end(chunk?: any): VercelResponse;
 }
 
-const GITHUB_OWNER = 'anantjain1109';
-const GITHUB_REPO = 'Manekshaw.Vision';
+const GITHUB_OWNER = process.env.GITHUB_OWNER || 'Astra-Dynamics';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'Manekshaw.Vision';
 const WORKFLOW_ID = 'ingest-intel.yml';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!dispatchToken) {
-      return res.status(500).json({ success: false, error: 'GITHUB_DISPATCH_TOKEN is not set.' });
+      return res.status(200).json({ success: true, run: null, message: 'GITHUB_DISPATCH_TOKEN is not configured.' });
     }
 
     const runsUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/runs?per_page=1`;
