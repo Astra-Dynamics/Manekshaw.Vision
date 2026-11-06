@@ -738,7 +738,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="lg:col-span-5 flex flex-col items-center">
                 <div
                   className="relative w-56 sm:w-64 rounded-[4px] overflow-hidden border-2 border-amber-500/40 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-slate-950 group"
-                  style={{ aspectRatio: '250 / 336' }}
+                  style={{ aspectRatio: '317 / 391' }}
                 >
                   <img
                     src="/logo.jpg"
