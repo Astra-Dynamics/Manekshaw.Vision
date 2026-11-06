@@ -1037,10 +1037,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 11. FOOTER */}
       <footer className="border-t border-white/[0.08] py-8 px-4 sm:px-6 lg:px-8 bg-[#04060A] text-xs font-mono text-[#64748B]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-slate-300">MANEKSHAW.VISION</span>
             <span>•</span>
             <span>Team Astra Dynamics (ADYN)</span>
+            <span>•</span>
+            <a href="/privacy" className="text-slate-400 hover:text-sky-400 transition-colors">Privacy Policy</a>
+            <span>•</span>
+            <a href="/terms" className="text-slate-400 hover:text-sky-400 transition-colors">Terms of Service</a>
           </div>
 
           <div className="text-center sm:text-right text-[11px] text-[#475569]">

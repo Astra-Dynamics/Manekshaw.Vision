@@ -16,6 +16,8 @@ import { PlayerProvider } from './context/PlayerContext';
 import { AuthModal } from './components/AuthModal';
 import { AuthPage } from './components/AuthPage';
 import { StatusDiag } from './pages/StatusDiag';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfService } from './pages/TermsOfService';
 import { filterByTimeRange, getLiveHotspots } from './services/liveFeedAdapter';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
@@ -1528,6 +1530,24 @@ const AppContent: React.FC = () => {
         onNavigateHome={handleNavigateHome}
         onNavigateDashboard={handleLaunchDashboard}
         initialMode={currentPath.toLowerCase() === '/signup' ? 'signup' : 'signin'}
+      />
+    );
+  }
+
+  if (currentPath.toLowerCase() === '/privacy') {
+    return (
+      <PrivacyPolicy
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
+      />
+    );
+  }
+
+  if (currentPath.toLowerCase() === '/terms' || currentPath.toLowerCase() === '/terms-of-service') {
+    return (
+      <TermsOfService
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
       />
     );
   }
