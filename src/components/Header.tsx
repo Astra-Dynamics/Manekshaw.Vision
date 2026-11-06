@@ -361,7 +361,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-2 shrink-0">
         {/* Brand Emblem – real <a> so drag-to-tab-bar, middle-click, Ctrl+click, right-click all work natively */}
         <a
-          href="https://manvis.tech/"
+          href="https://www.manvis.tech/"
           aria-label="Manekshaw.Vision home"
           title="Manekshaw.Vision home"
           className={`flex items-center gap-2 cursor-pointer group focus:outline-none focus-visible:ring-2 ${
@@ -376,7 +376,7 @@ export const Header: React.FC<HeaderProps> = ({
             }
           }}
           onDragStart={(e) => {
-            const url = 'https://manvis.tech/';
+            const url = 'https://www.manvis.tech/';
             e.dataTransfer.setData('text/uri-list', url);
             e.dataTransfer.setData('text/plain', url);
             // Clean drag image: the emblem icon element

@@ -230,13 +230,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           >
             {/* Single Crisp Horizontal Brand Lockup – real <a> for drag-to-tab-bar support */}
             <a
-              href="https://manvis.tech/"
+              href="https://www.manvis.tech/"
               aria-label="Manekshaw.Vision home"
               title="Manekshaw.Vision home"
               className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm"
               style={{ textDecoration: 'none' } as React.CSSProperties}
               onDragStart={(e) => {
-                const url = 'https://manvis.tech/';
+                const url = 'https://www.manvis.tech/';
                 e.dataTransfer.setData('text/uri-list', url);
                 e.dataTransfer.setData('text/plain', url);
                 const ghost = document.createElement('div');

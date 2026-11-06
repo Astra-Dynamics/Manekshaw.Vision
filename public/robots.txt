@@ -7,4 +7,3 @@ Disallow: /api/
 
 # Sitemaps
 Sitemap: https://www.manvis.tech/sitemap.xml
-Sitemap: https://manvis.tech/sitemap.xml
