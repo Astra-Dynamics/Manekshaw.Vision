@@ -736,15 +736,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               {/* Left: Framed Portrait of Sir Sam Manekshaw */}
               <div className="lg:col-span-5 flex flex-col items-center">
-                <div className="relative w-56 sm:w-64 aspect-square rounded-[4px] overflow-hidden border-2 border-amber-500/40 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-slate-950 group">
+                <div
+                  className="relative w-56 sm:w-64 rounded-[4px] overflow-hidden border-2 border-amber-500/40 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-slate-950 group"
+                  style={{ aspectRatio: '250 / 336' }}
+                >
                   <img
                     src="/logo.jpg"
                     alt="Field Marshal Sir Sam Manekshaw"
-                    className="w-full h-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
                   
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 text-center font-mono">
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 text-center font-mono pointer-events-none">
                     <span className="px-2 py-0.5 rounded-[2px] bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold tracking-wider uppercase">
                       FIRST FIELD MARSHAL OF INDIA
                     </span>
