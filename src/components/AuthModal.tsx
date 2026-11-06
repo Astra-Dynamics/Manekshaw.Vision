@@ -20,6 +20,7 @@ import {
   getPasswordConditions
 } from './PasswordRequirements';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { GithubSignInButton } from './GithubSignInButton';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   defaultMode = 'signin'
 }) => {
-  const { signIn, signUp, signInWithGoogle, isConfigured } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithGithub, isConfigured } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -206,8 +207,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        {/* Google Sign In (Direct on manvis.tech) */}
-        <div className="px-5 pt-4">
+        {/* OAuth Sign In */}
+        <div className="px-5 pt-4 space-y-2">
           <GoogleSignInButton
             onSuccess={() => {
               setSuccessMsg('Clearance authorized. Welcome, Operator.');
@@ -217,6 +218,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }}
             onError={(msg) => setErrorMsg(msg)}
             fallbackSignIn={signInWithGoogle}
+          />
+
+          <GithubSignInButton
+            onSuccess={() => {
+              setSuccessMsg('Clearance authorized. Welcome, Operator.');
+              setTimeout(() => {
+                onClose();
+              }, 800);
+            }}
+            onError={(msg) => setErrorMsg(msg)}
+            fallbackSignIn={signInWithGithub}
           />
 
           <div className="relative my-3">

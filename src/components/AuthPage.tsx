@@ -15,6 +15,7 @@ import {
   getPasswordConditions
 } from './PasswordRequirements';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { GithubSignInButton } from './GithubSignInButton';
 
 interface AuthPageProps {
   onNavigateHome: () => void;
@@ -27,7 +28,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   onNavigateDashboard,
   initialMode = 'signin'
 }) => {
-  const { signIn, signUp, signInWithGoogle, resetPassword, isConfigured } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithGithub, resetPassword, isConfigured } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -198,8 +199,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     Enter your details to get started
                   </p>
 
-                  {/* Google Sign-in */}
-                  <div className="mb-5">
+                  {/* OAuth Sign-in */}
+                  <div className="mb-5 space-y-2">
                     <GoogleSignInButton
                       onSuccess={() => {
                         setSuccessMsg('Signed in successfully');
@@ -209,6 +210,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       }}
                       onError={(msg) => setErrorMsg(msg)}
                       fallbackSignIn={signInWithGoogle}
+                    />
+
+                    <GithubSignInButton
+                      onSuccess={() => {
+                        setSuccessMsg('Signed in successfully');
+                        setTimeout(() => {
+                          onNavigateDashboard();
+                        }, 600);
+                      }}
+                      onError={(msg) => setErrorMsg(msg)}
+                      fallbackSignIn={signInWithGithub}
                     />
 
                     <div className="relative my-4">
@@ -421,9 +433,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               )}
 
-              {/* Google Sign-in */}
+              {/* OAuth Sign-in */}
               {mode !== 'forgot' && (
-                <div className="mb-6">
+                <div className="mb-6 space-y-2">
                   <GoogleSignInButton
                     onSuccess={() => {
                       setSuccessMsg('Signed in successfully');
@@ -435,7 +447,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     fallbackSignIn={signInWithGoogle}
                   />
 
-                  <div className="relative my-5">
+                  <GithubSignInButton
+                    onSuccess={() => {
+                      setSuccessMsg('Signed in successfully');
+                      setTimeout(() => {
+                        onNavigateDashboard();
+                      }, 600);
+                    }}
+                    onError={(msg) => setErrorMsg(msg)}
+                    fallbackSignIn={signInWithGithub}
+                  />
+
+                  <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-slate-800"></div>
                     </div>

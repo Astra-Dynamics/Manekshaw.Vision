@@ -237,6 +237,17 @@ const AppContent: React.FC = () => {
   const isDashboard = currentPath.toLowerCase().startsWith('/dashboard');
   const isAuthPage = ['/login', '/signin', '/signup', '/auth'].includes(currentPath.toLowerCase());
 
+  // Handle OAuth redirect callback (Google / GitHub)
+  useEffect(() => {
+    if (currentPath.toLowerCase().startsWith('/auth/callback')) {
+      const timer = setTimeout(() => {
+        window.history.replaceState({}, '', '/Dashboard');
+        setCurrentPath('/Dashboard');
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPath]);
+
   const handleLaunchDashboard = () => {
     const saved = getSavedWorkspaceConfig(user?.id);
     window.history.pushState({}, '', '/Dashboard');
