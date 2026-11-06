@@ -1,4 +1,4 @@
-# https://manvis.tech/robots.txt
+# https://www.manvis.tech/robots.txt
 # Manekshaw.Vision - Sovereign Situational Awareness & Defense Intelligence
 
 User-agent: *
@@ -6,4 +6,5 @@ Allow: /
 Disallow: /api/
 
 # Sitemaps
+Sitemap: https://www.manvis.tech/sitemap.xml
 Sitemap: https://manvis.tech/sitemap.xml
