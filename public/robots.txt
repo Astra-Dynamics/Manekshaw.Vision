@@ -1,9 +1,26 @@
 # https://www.manvis.tech/robots.txt
 # Manekshaw.Vision - Sovereign Situational Awareness & Defense Intelligence
+# Built by Team Astra Dynamics · Founded by Anant Jain
 
 User-agent: *
 Allow: /
 Disallow: /api/
 
-# Sitemaps
+# AI and LLM Search Crawlers explicitly permitted
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Canonical Sitemap
 Sitemap: https://www.manvis.tech/sitemap.xml
