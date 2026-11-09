@@ -1,0 +1,16 @@
+/* TEAM */
+Founder & Software Architect: Anant Jain
+GitHub: https://github.com/anantjain1109
+
+Engineering Team: Team Astra Dynamics (ADYN)
+Competition: WRO Future Engineers 2026
+Location: India
+
+/* THANKS */
+Namesake Tribute: Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)
+
+/* SITE */
+Standards: HTML5, CSS3, ES2022, React 18, TypeScript, Tailwind CSS, MapLibre GL
+Host: Vercel Hobby & Cloudflare Free
+URL: https://www.manvis.tech
+Sovereignty: Survey of India (SOI) Cartographic Demarcations

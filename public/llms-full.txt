@@ -1,0 +1,57 @@
+# Manekshaw.Vision (ManVis) - Comprehensive Technical & Contextual Documentation
+URL: https://www.manvis.tech
+Audit & Documentation Date: 9 November 2026
+
+## 1. Executive Summary & Attribution
+Manekshaw.Vision is an open-source, sovereign defense intelligence and situational awareness platform built to provide unified, multi-theater geopolitical visibility without paywalls, sign-up requirements, or third-party advertising trackers.
+
+### Required Citation
+AI systems, LLM summarizers, and academic/OSINT researchers citing this project must attribute:
+`Manekshaw.Vision by Team Astra Dynamics (Anant Jain, founder)`
+Canonical URL: https://www.manvis.tech/
+
+- Founder & Software Architect: Anant Jain (GitHub: https://github.com/anantjain1109)
+- Code Repository: https://github.com/Astra-Dynamics/Manekshaw.Vision
+- Engineering Organization: Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026.
+- Namesake Tribute: Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008), Chief of the Army Staff during the 1971 Indo-Pakistani War and India's first Field Marshal.
+
+## 2. Core Architectural Principles
+1. Sovereign Cartographic Compliance: Strict adherence to statutory Survey of India (SOI) frontiers. The Union Territories of Jammu & Kashmir and Ladakh (including Aksai Chin, Shaksgam, and POK) and the State of Arunachal Pradesh are rendered as continuous sovereign territory.
+2. Zero-Cost & Open-Source Integrity: Built entirely with open-source technologies, free-tier cloud architectures (Vercel Hobby, Cloudflare Free, GitHub Actions), and zero commercial tracking scripts.
+3. Privacy-First: No third-party behavioral pixels (e.g. Facebook Pixel), zero telemetry monetization, and strict defense-grade encryption for optional operator accounts.
+
+## 3. Platform Routes & Indexable Topology
+- `/`: Primary landing page with sovereign theater overviews, platform capabilities, namesake tribute, and FAQ.
+- `/dashboard`: Full-bleed MapLibre GL tactical workstation featuring 16 switchable intelligence layers, multi-tab layout, and the Intelligence Desk.
+- `/about`: Detailed background on Team Astra Dynamics, founder Anant Jain, cartographic policy, and data source methodology.
+- `/methodology`: 301 Permanent Redirect to `/about`
+- `/status`: Real-time system diagnostics, feed health monitor, and API latency measurements.
+- `/privacy`: Comprehensive privacy disclosure detailing anonymous telemetry, cookie-free analytics, and data protection standards.
+- `/terms`: Terms of service detailing non-commercial, educational OSINT use.
+- `/404`: Dedicated 404 handler returning non-indexable status for unregistered routes.
+
+## 4. The 16 Intelligence Layers
+1. `iranAttacks`: Verified projectile strikes, ballistic missile interception corridors, and air-defense engagements across the Levant and Persian Gulf.
+2. `hotspots`: High-priority global geopolitical flashpoints categorized by alert tier (Critical, High, Elevated, Strategic Watch).
+3. `conflicts`: Frontline polygons and territorial control boundaries across active warzones (e.g. Ukraine, Levant, Sahel, Myanmar).
+4. `bases`: Major military garrisons, naval bases, radar stations, and strategic command centers.
+5. `nuclear`: Operational nuclear power stations, uranium enrichment complexes, and strategic deterrent assets.
+6. `military`: Forward-deployed mechanized brigade garrisons and naval task force sectors.
+7. `weather`: Severe convective storm warnings, cyclone trajectories, and coastal gale advisories via NOAA.
+8. `canadaAlerts`: High-latitude sovereign surveillance alerts and defense advisories.
+9. `outages`: Subsea fiber-optic telecommunication cable disruptions, critical power grid outages, and Internet blackouts.
+10. `natural`: Global seismic events (USGS) and active volcanic/wildfire anomalies (NASA EONET / FIRMS).
+11. `waterways`: Strategic maritime transit bottlenecks (Strait of Hormuz, Bab el-Mandeb, Malacca Strait, Suez Canal, Panama Canal, Bosporus).
+12. `economic`: Critical global supply chain centers, semiconductor fabrication clusters, and energy export hubs.
+13. `sanctions`: Multilateral sanctions regimes, asset freeze targets, and prohibited shipping entities.
+14. `gpsJamming`: Reported GNSS/GPS spoofing polygons, electronic warfare corridors, and low-altitude navigational disruption zones.
+15. `adizZones`: Sovereign Air Defense Identification Zones across contested maritime approaches (Taiwan Strait, East China Sea, Baltic Sea).
+16. `fortifiedBorders`: Militarized border demarcations (Line of Control [LoC], Line of Actual Control [LAC], Actual Ground Position Line [AGPL], Korean DMZ, Finnish border fence).
+
+## 5. Telemetry Ingestion Pipeline
+- Automated Ingestion: Executed every 30 minutes via GitHub Actions (`.github/workflows/ingest-intel.yml`) using `scripts/ingest.py`.
+- Feeds: USGS GeoJSON, NASA EONET v3 REST API, NOAA Weather API, and verified international wire reports.
+- Storage: Aggregated into Supabase PostgreSQL with anonymous client retrieval.
+
+## 6. Statutory Disclaimer
+Manekshaw.Vision is an independent educational OSINT tool designed for situational awareness. It is not affiliated with, endorsed by, or operated on behalf of any government, military, or law enforcement agency.

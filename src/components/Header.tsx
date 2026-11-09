@@ -17,7 +17,8 @@ import {
   Share2,
   Check,
   Bookmark,
-  LayoutGrid
+  LayoutGrid,
+  MoreHorizontal
 } from 'lucide-react';
 import { TheaterView, ThemeMode, IntelNewsItem } from '../types';
 import { UserNav } from './UserNav';
@@ -96,6 +97,7 @@ export const HoverExpandButton: React.FC<HoverExpandButtonProps> = ({
       type="button"
       onClick={onClick}
       title={title}
+      aria-label={typeof label === "string" ? label : title || "Dashboard Control"}
       className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none ${
         theme === 'light' ? 'font-sans' : 'font-mono'
       } text-[11px] shrink-0 border border-transparent ${
@@ -252,6 +254,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [isTheaterOpen, setIsTheaterOpen] = useState<boolean>(false);
   const [isClockOpen, setIsClockOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Editable coordinates state
   const [isEditingCoords, setIsEditingCoords] = useState<boolean>(false);
@@ -259,6 +263,17 @@ export const Header: React.FC<HeaderProps> = ({
   const coordsInputRef = useRef<HTMLInputElement>(null);
   const clockDropdownRef = useRef<HTMLDivElement>(null);
   const theaterDropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutsideMobile = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideMobile);
+      return () => document.removeEventListener('mousedown', handleClickOutsideMobile);
+    }
+  }, [isMobileMenuOpen]);
 
   const selectedCity = STRATEGIC_CITIES.find((c) => c.id === selectedCityId) || STRATEGIC_CITIES[0];
 
@@ -764,15 +779,16 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 4. Right-Side Utility & Workstation Dock (Individual Hover-Reveal Labels) */}
+      {/* 4. Right-Side Utility & Workstation Dock (Responsive with Mobile Overflow) */}
       <div className={`flex items-center gap-0.5 p-0.5 rounded-md border text-[11px] shrink-0 relative z-50 ${
         theme === 'light'
           ? 'border-[var(--border-subtle)] bg-[var(--surface)] shadow-xs font-sans'
           : 'border-[var(--hud-border)] bg-[var(--bg-surface-elevated)]/80 shadow-xs font-mono'
       }`}>
-        {/* 1. Search */}
+        {/* 1. Search (Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={<Search size={13} className={theme === 'light' ? 'text-[var(--text-secondary)]' : 'text-sky-400'} />}
           label={
             <>
@@ -784,9 +800,10 @@ export const Header: React.FC<HeaderProps> = ({
           title="Tactical Command Palette (Cmd+K / Ctrl+K)"
         />
 
-        {/* 2. Share */}
+        {/* 2. Share (Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={
             copiedLink ? (
               <Check size={13} className="text-emerald-500" />
@@ -799,9 +816,10 @@ export const Header: React.FC<HeaderProps> = ({
           title={copiedLink ? 'Link Copied to Clipboard!' : 'Copy Sharable Dashboard Link'}
         />
 
-        {/* 3. Save */}
+        {/* 3. Save (Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={
             <Bookmark
               size={13}
@@ -828,16 +846,16 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 hidden sm:block ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
-        {/* 4. Operator Profile / Auth Shield */}
+        {/* 4. Operator Profile / Auth Shield (Universal) */}
         <UserNav
           onOpenAuthModal={onOpenAuthModal || (() => {})}
           onNavigateLogin={onNavigateLogin}
           theme={theme}
         />
 
-        {/* 5. Theme Toggle */}
+        {/* 5. Theme Toggle (Universal) */}
         <HoverExpandButton
           theme={theme}
           icon={
@@ -853,11 +871,12 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 hidden sm:block ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
-        {/* 6. Audio Toggle */}
+        {/* 6. Audio Toggle (Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={
             audioEnabled ? (
               <Volume2 size={13} className="text-emerald-500" />
@@ -870,9 +889,10 @@ export const Header: React.FC<HeaderProps> = ({
           title={audioEnabled ? 'Audio Pings: On' : 'Audio Pings: Muted'}
         />
 
-        {/* 7. Fullscreen Toggle */}
+        {/* 7. Fullscreen Toggle (Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
           label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           onClick={toggleFullscreen}
@@ -880,11 +900,12 @@ export const Header: React.FC<HeaderProps> = ({
         />
 
         {/* Divider */}
-        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
+        <div className={`w-[1px] h-3.5 mx-0.5 opacity-60 shrink-0 hidden sm:block ${theme === 'light' ? 'bg-[var(--border-subtle)]' : 'bg-[var(--hud-border)]'}`} />
 
-        {/* 8. Four-Square Grid (Intel Workstation) */}
+        {/* 8. Four-Square Grid (Intel Workstation - Desktop) */}
         <HoverExpandButton
           theme={theme}
+          className="hidden sm:inline-flex"
           icon={
             <LayoutGrid
               size={13}
@@ -905,7 +926,7 @@ export const Header: React.FC<HeaderProps> = ({
           }
         />
 
-        {/* 9. Intel Desk Toggle */}
+        {/* 9. Intel Desk Toggle (Universal) */}
         <HoverExpandButton
           theme={theme}
           icon={
@@ -920,6 +941,147 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onToggleRightPanel}
           title={isRightPanelOpen ? 'Collapse Intelligence Desk' : 'Open Intelligence Desk'}
         />
+
+        {/* 10. Mobile Overflow Button & Accessible Touch Drawer (< 640px) */}
+        <div ref={mobileMenuRef} className="relative sm:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="More tactical controls"
+            title="More tactical controls"
+            className={`flex items-center justify-center min-w-[44px] min-h-[44px] rounded-md transition-all cursor-pointer ${
+              isMobileMenuOpen
+                ? theme === 'light'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/40'
+                  : 'bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-xs'
+                : theme === 'light'
+                ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-sunken)] border border-transparent'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] border border-transparent'
+            }`}
+          >
+            <MoreHorizontal size={15} />
+          </button>
+
+          {isMobileMenuOpen && (
+            <div
+              className="absolute right-0 top-full mt-2 w-64 rounded-lg shadow-2xl p-2 z-[3100] animate-fade-in font-mono text-xs border"
+              style={{
+                backgroundColor: theme === 'dark' ? '#0B101B' : 'var(--surface)',
+                borderColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.3)' : 'var(--border-subtle)',
+                color: theme === 'dark' ? '#E2E8F0' : 'var(--text-primary)'
+              }}
+            >
+              <div className="px-2 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-white/10 mb-1 flex items-center justify-between">
+                <span>TACTICAL CONTROLS</span>
+                <span className="text-[9px] text-sky-400">MOBILE OPS</span>
+              </div>
+
+              {/* Share */}
+              <button
+                type="button"
+                onClick={handleShareLink}
+                className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+              >
+                {copiedLink ? <Check size={16} className="text-emerald-400" /> : <Share2 size={16} className="text-sky-400" />}
+                <span className="font-semibold">{copiedLink ? 'Link Copied!' : 'Share Dashboard Link'}</span>
+              </button>
+
+              {/* Save */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleSaveWorkspace) onToggleSaveWorkspace();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+              >
+                <Bookmark size={16} className={isWorkspaceSaved ? 'text-amber-400 fill-amber-400' : 'text-sky-400'} />
+                <span className="font-semibold">{isWorkspaceSaved ? 'Workspace Saved (Unsave)' : 'Save Workspace'}</span>
+              </button>
+
+              {/* Search */}
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenCommandPalette();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+              >
+                <Search size={16} className="text-sky-400" />
+                <div className="flex items-center justify-between flex-1">
+                  <span className="font-semibold">Search Command Palette</span>
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-white/10">⌘K</span>
+                </div>
+              </button>
+
+              {/* Audio */}
+              <button
+                type="button"
+                onClick={() => setAudioEnabled(!audioEnabled)}
+                className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+              >
+                {audioEnabled ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} className="text-slate-400" />}
+                <span className="font-semibold">{audioEnabled ? 'Audio Pings: ON' : 'Audio Pings: MUTED'}</span>
+              </button>
+
+              {/* Fullscreen */}
+              <button
+                type="button"
+                onClick={() => {
+                  toggleFullscreen();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+              >
+                {isFullscreen ? <Minimize2 size={16} className="text-sky-400" /> : <Maximize2 size={16} className="text-sky-400" />}
+                <span className="font-semibold">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+              </button>
+
+              {/* Intel Workstation Canvas */}
+              {onToggleWorkspaceDrawer && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleWorkspaceDrawer();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md hover:bg-white/5 text-left transition-colors cursor-pointer"
+                >
+                  <LayoutGrid size={16} className={isWorkspaceDrawerOpen ? 'text-amber-400' : 'text-sky-400'} />
+                  <span className="font-semibold">{isWorkspaceDrawerOpen ? 'Close Workstation Canvas' : 'Open Intel Workstation'}</span>
+                </button>
+              )}
+
+              {/* Mobile Time Range Selector */}
+              <div className="mt-2 pt-2 border-t border-white/10">
+                <div className="px-2 text-[10px] uppercase font-bold text-slate-400 mb-1.5 flex items-center gap-1.5">
+                  <Clock size={11} className="text-sky-400" />
+                  <span>Telemetry Window</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1 px-1">
+                  {timeRanges.map((tr) => (
+                    <button
+                      key={tr}
+                      type="button"
+                      onClick={() => {
+                        onSelectTimeRange(tr);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`min-h-[36px] rounded text-[10px] uppercase font-bold flex items-center justify-center transition-all cursor-pointer ${
+                        timeRange.toLowerCase() === tr.toLowerCase()
+                          ? 'bg-sky-500 text-slate-950 shadow-sm'
+                          : 'bg-white/5 text-slate-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {tr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

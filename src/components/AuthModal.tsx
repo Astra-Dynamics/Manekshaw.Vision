@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   ChevronRight
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import {
   PasswordRequirements,
   getPasswordConditions
@@ -28,7 +28,7 @@ interface AuthModalProps {
   defaultMode?: 'signin' | 'signup';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({
+const AuthModalInner: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   defaultMode = 'signin'
@@ -391,3 +391,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     </div>
   );
 };
+
+export const AuthModal: React.FC<AuthModalProps> = (props) => (
+  <AuthProvider>
+    <AuthModalInner {...props} />
+  </AuthProvider>
+);
+
+export default AuthModal;

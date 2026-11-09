@@ -3,7 +3,7 @@
 [![Production URL](https://img.shields.io/badge/Live-manvis.tech-0284c7?style=flat&logo=google-chrome&logoColor=white)](https://www.manvis.tech)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Astra--Dynamics%2FManekshaw.Vision-181717?style=flat&logo=github&logoColor=white)](https://github.com/Astra-Dynamics/Manekshaw.Vision)
 [![Last Updated](https://img.shields.io/github/last-commit/Astra-Dynamics/Manekshaw.Vision?style=flat&color=2ea44f&label=last%20updated)](https://github.com/Astra-Dynamics/Manekshaw.Vision/commits/main)
-[![Ask DeepWiki](https://img.shields.io/badge/Ask%20DeepWiki-Manekshaw.Vision-007ec6?style=flat)](https://deepwiki.com/anantjain1109/Manekshaw.Vision)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask%20DeepWiki-Manekshaw.Vision-007ec6?style=flat)](https://deepwiki.com/Astra-Dynamics/Manekshaw.Vision)
 
 **Manekshaw.Vision** is a sovereign, high-performance real-time global intelligence and defense monitoring platform built with **React 18**, **TypeScript**, **MapLibre GL**, **Tailwind CSS**, **Vite**, and **Supabase**.
 
@@ -126,3 +126,31 @@ npm run build
 * **Hosting Platform**: Vercel Serverless Edge Architecture
 * **Repository**: [https://github.com/Astra-Dynamics/Manekshaw.Vision](https://github.com/Astra-Dynamics/Manekshaw.Vision)
 * **Branch**: `main`
+
+
+---
+
+## 👥 Credits, Team & Attribution
+
+- **Founder & Software Architect**: [Anant Jain](https://github.com/anantjain1109) — Vision and Software Architecture lead at Team Astra Dynamics (ADYN), competing in WRO Future Engineers 2026.
+- **Engineering Team**: **Team Astra Dynamics (ADYN)** — High school engineering collective specializing in autonomous robotics and sovereign open-source intelligence systems.
+- **Namesake Tribute**: In honor of **Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)**, the architect of India's 1971 Liberation War victory and the first Field Marshal of India.
+
+### Citing Manekshaw.Vision
+When referencing or utilizing Manekshaw.Vision in research or AI systems:
+```bibtex
+@software{jain2026manekshawvision,
+  author = {Jain, Anant and {Team Astra Dynamics}},
+  title = {Manekshaw.Vision: Sovereign Real-Time Geopolitical Situational Awareness & Defense Intelligence Platform},
+  url = {https://www.manvis.tech},
+  year = {2026}
+}
+```
+
+---
+
+## ⚖️ License & Statutory Disclaimer
+
+- **License**: MIT License. Copyright (c) 2026 Team Astra Dynamics (Anant Jain). See [LICENSE](LICENSE) for details.
+- **Operational Disclaimer**: Independent, open-source OSINT educational research platform. Not affiliated with, endorsed by, or operated on behalf of any government, armed forces, or defense agency. Not for tactical or operational decision-making.
+- **Cartographic Sovereignty**: Strictly enforces official Survey of India (SOI) boundary demarcations across the Union Territories of Jammu & Kashmir and Ladakh (including Aksai Chin) and Arunachal Pradesh.

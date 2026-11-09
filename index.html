@@ -2,39 +2,248 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
-    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="shortcut icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manekshaw.Vision | Sovereign Defense Intelligence Dashboard</title>
+    <meta name="description" content="Sovereign defense intelligence & real-time situational awareness by Team Astra Dynamics. Honoring Field Marshal Sam Manekshaw with live OSINT telemetry." />
+    <meta name="author" content="Anant Jain" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.manvis.tech/" />
-    <title>Manekshaw.Vision | Sovereign Situational Awareness & Defense Intelligence</title>
-    <meta name="description" content="Manekshaw.Vision - Sovereign real-time geopolitical situational awareness, defense intelligence, conflict tracking, and strategic monitoring dashboard." />
+    <meta name="theme-color" content="#06090e" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Manekshaw.Vision" />
     <meta property="og:url" content="https://www.manvis.tech/" />
-    <meta property="og:title" content="Manekshaw.Vision | Sovereign Situational Awareness & Defense Intelligence" />
-    <meta property="og:description" content="Sovereign real-time geopolitical situational awareness, defense intelligence, conflict tracking, and strategic monitoring dashboard." />
-    <meta property="og:image" content="https://www.manvis.tech/screenshot-3.png" />
+    <meta property="og:title" content="Manekshaw.Vision | Sovereign Defense Intelligence Dashboard" />
+    <meta property="og:description" content="Sovereign defense intelligence & real-time situational awareness by Team Astra Dynamics. Honoring Field Marshal Sam Manekshaw with live OSINT telemetry." />
+    <meta property="og:image" content="https://www.manvis.tech/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Manekshaw.Vision Sovereign Defense Intelligence Interface" />
 
-    <!-- Twitter -->
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://www.manvis.tech/" />
-    <meta name="twitter:title" content="Manekshaw.Vision | Sovereign Situational Awareness" />
-    <meta name="twitter:description" content="Sovereign real-time geopolitical situational awareness, defense intelligence, conflict tracking, and strategic monitoring dashboard." />
-    <meta name="twitter:image" content="https://www.manvis.tech/screenshot-3.png" />
+    <meta name="twitter:title" content="Manekshaw.Vision | Sovereign Defense Intelligence Dashboard" />
+    <meta name="twitter:description" content="Sovereign defense intelligence & real-time situational awareness by Team Astra Dynamics. Honoring Field Marshal Sam Manekshaw with live OSINT telemetry." />
+    <meta name="twitter:image" content="https://www.manvis.tech/og-image.png" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <!-- Icons & Manifest -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Preload LCP Image -->
+    <link rel="preload" as="image" href="/logo.webp" type="image/webp" fetchpriority="high" />
+
+    <!-- Schema.org JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.manvis.tech/#website",
+          "url": "https://www.manvis.tech/",
+          "name": "Manekshaw.Vision",
+          "alternateName": "ManVis",
+          "description": "Sovereign defense intelligence & real-time situational awareness by Team Astra Dynamics. Honoring Field Marshal Sam Manekshaw with live OSINT telemetry.",
+          "inLanguage": "en-US",
+          "publisher": {
+            "@id": "https://www.manvis.tech/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.manvis.tech/#organization",
+          "name": "Manekshaw.Vision",
+          "url": "https://www.manvis.tech/",
+          "logo": "https://www.manvis.tech/logo.webp",
+          "description": "Sovereign defense intelligence and geopolitical monitoring initiative.",
+          "founder": {
+            "@id": "https://www.manvis.tech/#founder"
+          },
+          "creator": {
+            "@id": "https://www.manvis.tech/#team"
+          },
+          "sameAs": [
+            "https://github.com/anantjain1109"
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.manvis.tech/#team",
+          "name": "Team Astra Dynamics",
+          "url": "https://www.manvis.tech/about",
+          "description": "High school engineering team specializing in autonomous robotics, software architecture, and sovereign open-source situational awareness tools."
+        },
+        {
+          "@type": "Person",
+          "@id": "https://www.manvis.tech/#founder",
+          "name": "Anant Jain",
+          "jobTitle": "Founder",
+          "worksFor": {
+            "@id": "https://www.manvis.tech/#team"
+          },
+          "sameAs": [
+            "https://github.com/anantjain1109"
+          ]
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://www.manvis.tech/#webapp",
+          "name": "Manekshaw.Vision Dashboard",
+          "url": "https://www.manvis.tech/dashboard",
+          "applicationCategory": "SecurityApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "author": {
+            "@id": "https://www.manvis.tech/#team"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://www.manvis.tech/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Manekshaw.Vision (ManVis)?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Manekshaw.Vision is an open-source, sovereign situational awareness and defense intelligence platform designed to aggregate, analyze, and visualize geopolitical events, military postures, active conflict zones, and strategic natural events in real time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Who created Manekshaw.Vision?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Manekshaw.Vision was founded by Anant Jain and developed by Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026. The platform is dedicated to Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What live telemetry and intelligence data sources are used?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The platform integrates authoritative open-source intelligence (OSINT) telemetry including USGS real-time seismic sensors, NASA EONET hazard tracking, ACLED conflict reporting, FIRMS thermal sensors, military transponder tracking, and verified international news dispatches."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How often is the situational intelligence feed updated?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The automated intelligence ingestion pipeline runs continuously every 30 minutes via GitHub Actions, and client streams refresh live seismic, environmental, and news data directly from upstream APIs."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Manekshaw.Vision affiliated with any government or defense agency?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. Manekshaw.Vision is an independent, non-commercial open-source research initiative. It is not affiliated with, endorsed by, or operated on behalf of any government, armed forces, or defense agency."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="dark-theme">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Semantic Static HTML Prerender for Search Engines & LLM Readers -->
+      <header style="background:#06090e;color:#cbd5e1;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+        <div><strong>MANEKSHAW.VISION</strong> <span style="color:#10b981;font-size:11px;font-weight:bold;">● LIVE</span></div>
+        <nav>
+          <a href="/dashboard" style="color:#38bdf8;margin-right:16px;text-decoration:none;">Dashboard</a>
+          <a href="/about" style="color:#cbd5e1;margin-right:16px;text-decoration:none;">About</a>
+          <a href="/status" style="color:#cbd5e1;text-decoration:none;">Status</a>
+        </nav>
+      </header>
+
+      <main style="background:#06090e;color:#f8fafc;padding:48px 24px;max-width:1100px;margin:0 auto;line-height:1.6;font-family:system-ui,-apple-system,sans-serif;">
+        <p style="color:#38bdf8;font-family:monospace;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-size:12px;">Sovereign Situational Awareness & Defense Intelligence</p>
+        <h1 style="font-size:36px;font-weight:800;margin-top:8px;margin-bottom:16px;line-height:1.2;">Manekshaw.Vision — Sovereign Defense Intelligence Dashboard</h1>
+        <p style="font-size:18px;color:#94a3b8;max-width:850px;margin-bottom:28px;">
+          Conceived and developed by <strong>Team Astra Dynamics</strong>, led by founder <strong>Anant Jain</strong>, Manekshaw.Vision is dedicated to the enduring ethos of <strong>Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)</strong>. The platform delivers continuous real-time geopolitical situational awareness, conflict tracking, and sovereign defense intelligence across global theaters.
+        </p>
+
+        <div style="margin-bottom:40px;">
+          <a href="/dashboard" style="display:inline-block;padding:12px 28px;background:#0ea5e9;color:#020617;font-weight:700;text-decoration:none;border-radius:4px;font-family:monospace;letter-spacing:0.05em;">LAUNCH LIVE DASHBOARD</a>
+          <a href="/about" style="display:inline-block;padding:12px 24px;color:#38bdf8;text-decoration:none;font-family:monospace;margin-left:12px;">METHODOLOGY & SOURCES →</a>
+        </div>
+
+        <section style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.08);">
+          <h2 style="font-size:24px;font-weight:700;color:#fff;">Built by Team Astra Dynamics</h2>
+          <p style="color:#94a3b8;">
+            Team Astra Dynamics (ADYN) is an engineering team competing in WRO Future Engineers 2026. Founder Anant Jain serves as Vision and Software Architecture lead. The platform unites modern high-performance web architecture with open-source intelligence telemetry.
+          </p>
+        </section>
+
+        <section style="margin-top:40px;">
+          <h2 style="font-size:24px;font-weight:700;color:#fff;">Dedicated to Field Marshal Sam Manekshaw, MC</h2>
+          <p style="color:#94a3b8;">
+            As Chief of the Army Staff during the 1971 Liberation War, Field Marshal Sam Manekshaw led the armed forces to a decisive victory culminating in the creation of Bangladesh. Manekshaw.Vision strictly upholds official Survey of India (SOI) cartographic demarcations across Jammu & Kashmir, Ladakh, and Arunachal Pradesh.
+          </p>
+        </section>
+
+        <section style="margin-top:40px;">
+          <h2 style="font-size:24px;font-weight:700;color:#fff;">16 Live Tactical Intelligence Layers</h2>
+          <ul style="color:#94a3b8;line-height:1.8;">
+            <li><strong>Kinetic Frontlines & Conflicts:</strong> Active warzone polygons, fortified frontlines (LoC, LAC, AGPL, DMZ).</li>
+            <li><strong>Strategic Garrisons & Nuclear Deterrence:</strong> Military airbases, naval ports, nuclear installations, and ADIZ zones.</li>
+            <li><strong>Electronic Warfare & GNSS Jamming:</strong> GPS/GLONASS spoofing corridors and airspace advisories.</li>
+            <li><strong>Maritime Chokepoints & Infrastructure:</strong> Hormuz, Bab el-Mandeb, Malacca, Suez, and subsea cables.</li>
+            <li><strong>Natural & Seismic Hazards:</strong> Live USGS earthquake telemetry and NASA EONET thermal events.</li>
+          </ul>
+        </section>
+
+        <section style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.08);">
+          <h2 style="font-size:24px;font-weight:700;color:#fff;">Frequently Asked Questions</h2>
+          <div style="margin-top:16px;">
+            <h3 style="font-size:16px;color:#38bdf8;margin-bottom:4px;">What is Manekshaw.Vision (ManVis)?</h3>
+            <p style="color:#94a3b8;margin-top:0;margin-bottom:16px;">Manekshaw.Vision is an open-source, sovereign situational awareness and defense intelligence platform designed to aggregate, analyze, and visualize geopolitical events, military postures, active conflict zones, and strategic natural events in real time.</p>
+
+            <h3 style="font-size:16px;color:#38bdf8;margin-bottom:4px;">Who created Manekshaw.Vision?</h3>
+            <p style="color:#94a3b8;margin-top:0;margin-bottom:16px;">Manekshaw.Vision was founded by Anant Jain and developed by Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026.</p>
+
+            <h3 style="font-size:16px;color:#38bdf8;margin-bottom:4px;">What live telemetry and intelligence data sources are used?</h3>
+            <p style="color:#94a3b8;margin-top:0;margin-bottom:16px;">The platform integrates authoritative open-source intelligence (OSINT) telemetry including USGS real-time seismic sensors, NASA EONET hazard tracking, ACLED conflict reporting, FIRMS thermal sensors, and verified international news dispatches.</p>
+
+            <h3 style="font-size:16px;color:#38bdf8;margin-bottom:4px;">How often is the situational intelligence feed updated?</h3>
+            <p style="color:#94a3b8;margin-top:0;margin-bottom:16px;">The automated intelligence ingestion pipeline runs continuously every 30 minutes via GitHub Actions, and client streams refresh live seismic, environmental, and news data directly from upstream APIs.</p>
+
+            <h3 style="font-size:16px;color:#38bdf8;margin-bottom:4px;">Is Manekshaw.Vision affiliated with any government or defense agency?</h3>
+            <p style="color:#94a3b8;margin-top:0;margin-bottom:16px;">No. Manekshaw.Vision is an independent, non-commercial open-source research initiative. It is not affiliated with, endorsed by, or operated on behalf of any government, armed forces, or defense agency.</p>
+          </div>
+        </section>
+
+        <section style="margin-top:40px;padding:20px;background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);border-radius:4px;">
+          <p style="font-size:12px;color:#fca5a5;margin:0;font-family:monospace;">
+            DISCLAIMER: Independent, open-source OSINT research project built for educational situational awareness. Not affiliated with any government, armed forces, or defense agency. Not for operational or tactical decision-making.
+          </p>
+        </section>
+      </main>
+
+      <footer style="border-top:1px solid rgba(255,255,255,0.08);padding:24px;text-align:center;font-size:12px;color:#64748b;font-family:monospace;background:#04060a;">
+        <p style="margin:0 0 8px 0;">Built by Team Astra Dynamics · Founded by Anant Jain</p>
+        <p style="margin:0;">
+          <a href="/about" style="color:#94a3b8;margin:0 8px;">About</a> •
+          <a href="/privacy" style="color:#94a3b8;margin:0 8px;">Privacy</a> •
+          <a href="/terms" style="color:#94a3b8;margin:0 8px;">Terms</a> •
+          <a href="/status" style="color:#94a3b8;margin:0 8px;">Status</a> •
+          <a href="https://github.com/anantjain1109" style="color:#94a3b8;margin:0 8px;">GitHub</a>
+        </p>
+      </footer>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

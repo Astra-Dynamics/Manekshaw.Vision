@@ -1,0 +1,9 @@
+# Security Policy for Manekshaw.Vision
+# Built by Team Astra Dynamics · Founded by Anant Jain
+
+Contact: https://github.com/Astra-Dynamics/Manekshaw.Vision/security/advisories
+Expires: 2027-10-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.manvis.tech/.well-known/security.txt
+Policy: https://www.manvis.tech/terms
+Acknowledgments: https://www.manvis.tech/about
