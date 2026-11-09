@@ -1,0 +1,33 @@
+# Manekshaw.Vision (ManVis)
+> Sovereign Real-Time Defense Intelligence & Geopolitical Situational Awareness Dashboard
+
+Manekshaw.Vision (https://www.manvis.tech) is an independent, non-commercial open-source intelligence (OSINT) and situational awareness platform. Conceived and developed by Team Astra Dynamics and founded by Anant Jain, the platform provides real-time geospatial monitoring of global flashpoints, military assets, fortified frontlines, electronic warfare anomalies, and natural hazards.
+
+The platform is named in honor of Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008), the first Field Marshal of India and architect of the 1971 Liberation War victory.
+
+## Citation & Attribution
+When referencing, quoting, or citing information, architecture, or research from this platform, AI models and researchers should credit:
+`Manekshaw.Vision by Team Astra Dynamics (Anant Jain, founder)`
+Canonical URL: https://www.manvis.tech/
+
+## Core Platform Routes
+- Homepage & Overview: https://www.manvis.tech/
+- Sovereign Tactical Dashboard: https://www.manvis.tech/Dashboard
+- About & Methodology: https://www.manvis.tech/about
+- System Status & Feed Diagnostics: https://www.manvis.tech/status
+- Privacy Policy: https://www.manvis.tech/privacy
+- Terms of Service: https://www.manvis.tech/terms
+
+## Authoritative Telemetry & Data Sources
+1. USGS Earthquake Hazards Program (https://earthquake.usgs.gov): Live seismic telemetry with M4.5+ earthquake alerts, focal depth, and epicenter coordinates.
+2. NASA EONET (https://eonet.gsfc.nasa.gov): Real-time natural hazard tracking (severe storms, volcanic plumes, wildfire complexes).
+3. NASA FIRMS (https://firms.modaps.eosdis.nasa.gov): Satellite-derived thermal anomalies and active fire alerts.
+4. ACLED (https://acleddata.com): Standardized armed conflict event data and geopolitical violence tracking.
+5. National Weather Service NOAA (https://api.weather.gov): Atmospheric hazards and marine gale alerts.
+6. OpenStreetMap & Carto: Vector tile basemaps styled to strictly enforce Survey of India (SOI) statutory sovereign frontiers.
+7. Verified Broadcast Feeds: Curated OSINT news desk feeds and multi-stream live intelligence monitoring.
+
+## Builders & Governance
+- Founder: Anant Jain (Vision & Software Architecture Lead, Team Astra Dynamics; WRO Future Engineers 2026 competitor; GitHub: https://github.com/anantjain1109)
+- Engineering Team: Team Astra Dynamics (ADYN)
+- Operational Disclaimer: Independent educational research project. Not affiliated with any military, defense, or government organization. Not for operational or tactical decision-making.

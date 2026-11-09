@@ -32,6 +32,7 @@ import {
   Check
 } from 'lucide-react';
 import { UserNav } from './UserNav';
+import { FAQ_DATA } from '../config/schema';
 
 interface LandingPageProps {
   onLaunchDashboard: () => void;
@@ -741,8 +742,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   style={{ aspectRatio: '317 / 391' }}
                 >
                   <img
-                    src="/logo.jpg"
+                    src="/logo.webp"
                     alt="Field Marshal Sir Sam Manekshaw"
+                    width={317}
+                    height={391}
+                    fetchPriority="high"
                     className="w-full h-full object-contain filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
@@ -814,7 +818,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight text-center"
               style={{ marginBottom: '16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
             >
-              Team Astra Dynamics (ADYN)
+              Built by Team Astra Dynamics
             </h2>
             <p
               className="text-sm sm:text-base font-sans leading-relaxed text-center mx-auto"
@@ -863,8 +867,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   }}
                 >
                   <img
-                    src="/adyn-logo.png"
+                    src="/adyn-logo.webp"
                     alt="Team Astra Dynamics (ADYN) Monogram"
+                    width={145}
+                    height={145}
+                    loading="lazy"
                     style={{
                       width: '145px',
                       height: 'auto',
@@ -888,16 +895,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {/* Clean Vertical Spec Stack (Left-Aligned) */}
                 <div className="w-full space-y-3.5 text-left font-mono text-[11px]">
                   <div className="flex flex-col">
-                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">TEAM:</span>
-                    <span className="text-slate-200 font-medium">4 High School Developers</span>
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">FOUNDER & LEAD:</span>
+                    <span className="text-slate-200 font-medium">Anant Jain</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">ORIGIN:</span>
-                    <span className="text-slate-200 font-medium">Student AI & Systems Initiative</span>
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">TEAM:</span>
+                    <span className="text-slate-200 font-medium">Team Astra Dynamics (ADYN)</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">COMPETITION:</span>
+                    <span className="text-slate-200 font-medium">WRO Future Engineers 2026</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">ARCHITECTURE:</span>
-                    <span className="text-slate-200 font-medium">Multi-Layer OSINT Engine</span>
+                    <span className="text-slate-200 font-medium">Sovereign WebGL OSINT Engine</span>
                   </div>
                 </div>
               </div>
@@ -972,7 +983,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         <div className="space-y-3">
-          {faqs.map((faq, idx) => {
+          {FAQ_DATA.map((faq, idx) => {
             const isOpen = openFaqIndex === idx;
             return (
               <div
@@ -981,9 +992,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               >
                 <button
                   onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                  className="w-full p-4 sm:p-5 flex items-center justify-between text-left text-sm font-semibold text-white hover:text-sky-400 transition-colors"
+                  className="w-full p-4 sm:p-5 flex items-center justify-between text-left text-sm font-semibold text-white hover:text-sky-400 transition-colors cursor-pointer"
                 >
-                  <span>{faq.q}</span>
+                  <span>{faq.question}</span>
                   <ChevronDown
                     size={16}
                     className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-sky-400' : ''}`}
@@ -991,7 +1002,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 {isOpen && (
                   <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-[#94A3B8] leading-relaxed border-t border-white/[0.04] pt-3 font-sans">
-                    {faq.a}
+                    {faq.answer}
                   </div>
                 )}
               </div>
@@ -1038,20 +1049,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 11. FOOTER */}
-      <footer className="border-t border-white/[0.08] py-8 px-4 sm:px-6 lg:px-8 bg-[#04060A] text-xs font-mono text-[#64748B]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-bold text-slate-300">MANEKSHAW.VISION</span>
-            <span>•</span>
-            <span>Team Astra Dynamics (ADYN)</span>
-            <span>•</span>
-            <a href="/privacy" className="text-slate-400 hover:text-sky-400 transition-colors">Privacy Policy</a>
-            <span>•</span>
-            <a href="/terms" className="text-slate-400 hover:text-sky-400 transition-colors">Terms of Service</a>
+      <footer className="border-t border-white/[0.08] py-10 px-4 sm:px-6 lg:px-8 bg-[#04060A] text-xs font-mono text-[#64748B]">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <span className="font-bold text-slate-200">MANEKSHAW.VISION</span>
+              <span>•</span>
+              <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a>
+              <span>·</span>
+              <a href="/about#founder" className="text-sky-300 hover:underline">Founded by Anant Jain</a>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a href="/about" className="text-slate-400 hover:text-sky-400 transition-colors">About</a>
+              <span>•</span>
+              <a href="/methodology" className="text-slate-400 hover:text-sky-400 transition-colors">Methodology</a>
+              <span>•</span>
+              <a href="/privacy" className="text-slate-400 hover:text-sky-400 transition-colors">Privacy</a>
+              <span>•</span>
+              <a href="/terms" className="text-slate-400 hover:text-sky-400 transition-colors">Terms</a>
+              <span>•</span>
+              <a href="/status" className="text-slate-400 hover:text-sky-400 transition-colors">Status</a>
+              <span>•</span>
+              <a href="https://github.com/anantjain1109" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-sky-400 transition-colors">GitHub</a>
+            </div>
           </div>
 
-          <div className="text-center sm:text-right text-[11px] text-[#475569]">
-            Indian boundary demarcations strictly adhere to official Survey of India (SOI) statutory standards.
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-4 border-t border-white/[0.04] text-[11px] text-[#475569]">
+            <p className="text-center sm:text-left">
+              Independent, open-source OSINT project. Not affiliated with any government or military body. Not for operational use.
+            </p>
+            <p className="text-center sm:text-right shrink-0">
+              Indian boundary demarcations strictly adhere to official Survey of India (SOI) statutory standards.
+            </p>
           </div>
         </div>
       </footer>

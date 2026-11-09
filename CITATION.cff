@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use or reference Manekshaw.Vision, please cite it as below."
+authors:
+  - family-names: "Jain"
+    given-names: "Anant"
+    alias: "anantjain1109"
+  - name: "Team Astra Dynamics"
+title: "Manekshaw.Vision: Sovereign Real-Time Geopolitical Situational Awareness & Defense Intelligence Platform"
+version: 1.0.0
+date-released: 2026-11-09
+url: "https://www.manvis.tech"
+repository-code: "https://github.com/Astra-Dynamics/Manekshaw.Vision"
+keywords:
+  - "defense-intelligence"
+  - "situational-awareness"
+  - "osint"
+  - "geopolitical-monitoring"
+  - "open-source"
+  - "survey-of-india"
+license: "MIT"
