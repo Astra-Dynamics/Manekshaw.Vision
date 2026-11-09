@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-const inputPath = 'C:\\Users\\Anant Jain\\.gemini\\antigravity\\scratch\\worldmonitor-clone\\src\\data\\india-soi.json';
-const outputPath = 'C:\\Users\\Anant Jain\\.gemini\\antigravity\\scratch\\worldmonitor-clone\\src\\data\\indiaOfficialBoundary.ts';
+const inputPath = path.resolve('src/data/india-soi.json');
+const outputPath = path.resolve('src/data/indiaOfficialBoundary.ts');
 
 // Ramer-Douglas-Peucker simplification algorithm
 function getSqDist(p1, p2) {

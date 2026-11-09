@@ -1,7 +1,8 @@
 import fs from 'fs';
+import path from 'path';
 import { INDIA_OFFICIAL_BOUNDARY } from '../src/data/indiaOfficialBoundary.ts';
 
-const countriesPath = 'C:\\Users\\Anant Jain\\.gemini\\antigravity\\scratch\\worldmonitor-clone\\public\\data\\countries.geojson';
+const countriesPath = path.resolve('public/data/countries.geojson');
 const countries = JSON.parse(fs.readFileSync(countriesPath, 'utf-8'));
 
 const indiaIndex = countries.features.findIndex(f => f.properties['ISO3166-1-Alpha-2'] === 'IN');

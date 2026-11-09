@@ -62,7 +62,7 @@ const routes = [
           </ul>
         </section>
         <footer style="margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:11px;text-align:center;">
-          Built by Team Astra Dynamics · Founded by Anant Jain · Dedicated to Field Marshal Sam Manekshaw
+          Built by Team Astra Dynamics · Dedicated to Field Marshal Sam Manekshaw
         </footer>
       </main>
     `,
@@ -71,7 +71,7 @@ const routes = [
     path: 'about',
     dir: 'about',
     title: 'About Manekshaw.Vision | Team Astra Dynamics & OSINT',
-    description: 'Manekshaw.Vision was architected and built by Team Astra Dynamics, founded by Anant Jain. Sovereign OSINT situational awareness and cartographic intelligence.',
+    description: 'Manekshaw.Vision was architected and built by Team Astra Dynamics. Sovereign OSINT situational awareness and cartographic intelligence.',
     h1: 'About Manekshaw.Vision — Builders, Vision & Methodology',
     robots: 'index, follow',
     summary: `
@@ -80,7 +80,7 @@ const routes = [
           <a href="/" style="color:#38bdf8;text-decoration:none;font-weight:700;font-size:14px;font-family:monospace;">← MANEKSHAW.VISION HOME</a>
           <h1 style="font-size:32px;font-weight:800;color:#fff;margin:16px 0 8px 0;">About Manekshaw.Vision — Builders, Vision & Methodology</h1>
           <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0;">
-            Independent sovereign defense intelligence and situational awareness initiative architected and built by <strong>Team Astra Dynamics</strong>, founded by <strong>Anant Jain</strong>.
+            Independent sovereign defense intelligence and situational awareness initiative architected and built by <strong>Team Astra Dynamics</strong>.
           </p>
         </header>
 
@@ -88,16 +88,6 @@ const routes = [
           <h2 style="font-size:22px;color:#fff;margin-bottom:12px;">Team Astra Dynamics (ADYN)</h2>
           <p style="color:#cbd5e1;line-height:1.7;font-size:14px;">
             Team Astra Dynamics is a high school engineering collective competing in the international World Robot Olympiad (WRO) Future Engineers 2026. The team specializes in autonomous robotics, software architecture, and sovereign open-source situational awareness tools.
-          </p>
-        </section>
-
-        <section id="founder" style="margin-bottom:40px;">
-          <h2 style="font-size:22px;color:#fff;margin-bottom:12px;">Founder & Software Architect: Anant Jain</h2>
-          <p style="color:#cbd5e1;line-height:1.7;font-size:14px;">
-            Anant Jain is the Vision and Software Architecture lead at Team Astra Dynamics and founder of Manekshaw.Vision. He designed the platform's multi-tab tactical canvas, Survey of India cartographic pipeline, and automated GitHub Actions ingestion workflows.
-          </p>
-          <p style="margin-top:8px;">
-            <a href="https://github.com/anantjain1109" style="color:#38bdf8;text-decoration:none;font-family:monospace;font-size:13px;">GitHub Profile: @anantjain1109 →</a>
           </p>
         </section>
 
@@ -116,7 +106,7 @@ const routes = [
         </section>
 
         <footer style="margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:12px;font-family:monospace;text-align:center;">
-          <p style="margin-bottom:8px;">Built by Team Astra Dynamics · Founded by Anant Jain</p>
+          <p style="margin-bottom:8px;">Built by Team Astra Dynamics</p>
           <p><a href="/dashboard" style="color:#38bdf8;text-decoration:none;">Launch Dashboard</a> • <a href="/privacy" style="color:#38bdf8;text-decoration:none;">Privacy</a> • <a href="/terms" style="color:#38bdf8;text-decoration:none;">Terms</a> • <a href="/status" style="color:#38bdf8;text-decoration:none;">Status</a></p>
         </footer>
       </main>
@@ -152,7 +142,7 @@ const routes = [
         </section>
 
         <footer style="margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:12px;font-family:monospace;text-align:center;">
-          Built by Team Astra Dynamics · Founded by Anant Jain · <a href="/terms" style="color:#38bdf8;text-decoration:none;">Terms of Service</a>
+          Built by Team Astra Dynamics · <a href="/terms" style="color:#38bdf8;text-decoration:none;">Terms of Service</a>
         </footer>
       </main>
     `,
@@ -187,7 +177,7 @@ const routes = [
         </section>
 
         <footer style="margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:12px;font-family:monospace;text-align:center;">
-          Built by Team Astra Dynamics · Founded by Anant Jain · <a href="/privacy" style="color:#38bdf8;text-decoration:none;">Privacy Policy</a>
+          Built by Team Astra Dynamics · <a href="/privacy" style="color:#38bdf8;text-decoration:none;">Privacy Policy</a>
         </footer>
       </main>
     `,
@@ -218,7 +208,7 @@ const routes = [
         </section>
 
         <footer style="margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:11px;text-align:center;">
-          Built by Team Astra Dynamics · Founded by Anant Jain · <a href="/dashboard" style="color:#38bdf8;text-decoration:none;">Dashboard</a>
+          Built by Team Astra Dynamics · <a href="/dashboard" style="color:#38bdf8;text-decoration:none;">Dashboard</a>
         </footer>
       </main>
     `,

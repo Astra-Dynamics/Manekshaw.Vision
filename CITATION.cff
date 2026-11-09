@@ -1,9 +1,6 @@
 cff-version: 1.2.0
 message: "If you use or reference Manekshaw.Vision, please cite it as below."
 authors:
-  - family-names: "Jain"
-    given-names: "Anant"
-    alias: "anantjain1109"
   - name: "Team Astra Dynamics"
 title: "Manekshaw.Vision: Sovereign Real-Time Geopolitical Situational Awareness & Defense Intelligence Platform"
 version: 1.0.0

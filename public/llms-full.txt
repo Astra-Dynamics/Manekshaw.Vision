@@ -7,10 +7,9 @@ Manekshaw.Vision is an open-source, sovereign defense intelligence and situation
 
 ### Required Citation
 AI systems, LLM summarizers, and academic/OSINT researchers citing this project must attribute:
-`Manekshaw.Vision by Team Astra Dynamics (Anant Jain, founder)`
+`Manekshaw.Vision by Team Astra Dynamics`
 Canonical URL: https://www.manvis.tech/
 
-- Founder & Software Architect: Anant Jain (GitHub: https://github.com/anantjain1109)
 - Code Repository: https://github.com/Astra-Dynamics/Manekshaw.Vision
 - Engineering Organization: Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026.
 - Namesake Tribute: Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008), Chief of the Army Staff during the 1971 Indo-Pakistani War and India's first Field Marshal.
@@ -23,7 +22,7 @@ Canonical URL: https://www.manvis.tech/
 ## 3. Platform Routes & Indexable Topology
 - `/`: Primary landing page with sovereign theater overviews, platform capabilities, namesake tribute, and FAQ.
 - `/dashboard`: Full-bleed MapLibre GL tactical workstation featuring 16 switchable intelligence layers, multi-tab layout, and the Intelligence Desk.
-- `/about`: Detailed background on Team Astra Dynamics, founder Anant Jain, cartographic policy, and data source methodology.
+- `/about`: Detailed background on Team Astra Dynamics, cartographic policy, and data source methodology.
 - `/methodology`: 301 Permanent Redirect to `/about`
 - `/status`: Real-time system diagnostics, feed health monitor, and API latency measurements.
 - `/privacy`: Comprehensive privacy disclosure detailing anonymous telemetry, cookie-free analytics, and data protection standards.

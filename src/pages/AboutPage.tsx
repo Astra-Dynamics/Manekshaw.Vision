@@ -3,12 +3,11 @@ import {
   Shield,
   ArrowLeft,
   ExternalLink,
-  Award,
   Cpu,
+  Award,
   Globe2,
   Database,
   Radio,
-  FileCode,
   CheckCircle2,
   HelpCircle
 } from 'lucide-react';
@@ -109,37 +108,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             About <span className="text-sky-400">Manekshaw.Vision</span>
           </h1>
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl">
-            Manekshaw.Vision is an independent, non-commercial open-source intelligence (OSINT) and geopolitical situational awareness platform engineered by <strong>Team Astra Dynamics</strong>, founded by <strong>Anant Jain</strong>.
+            Manekshaw.Vision is an independent, non-commercial open-source intelligence (OSINT) and geopolitical situational awareness platform engineered by <strong>Team Astra Dynamics</strong>.
           </p>
         </div>
-
-        {/* Section: Founder & Builder */}
-        <section id="founder" className="p-6 sm:p-8 rounded-lg border border-sky-500/20 bg-slate-900/40 space-y-6">
-          <div className="flex items-center gap-2.5 text-sky-400 font-mono text-xs font-bold uppercase tracking-wider">
-            <Award size={16} />
-            <span>FOUNDER & VISION LEAD</span>
-          </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-white tracking-tight">
-              Anant Jain
-            </h2>
-            <p className="text-slate-300 leading-relaxed">
-              {SITE_CONFIG.founder.bio}
-            </p>
-            <div className="pt-2 flex flex-wrap items-center gap-3">
-              <a
-                href={SITE_CONFIG.founder.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white/[0.06] hover:bg-white/[0.1] text-sky-300 hover:text-sky-200 border border-white/[0.1] text-xs font-mono transition-colors"
-              >
-                <FileCode size={13} />
-                <span>GitHub: @anantjain1109</span>
-                <ExternalLink size={12} className="opacity-70" />
-              </a>
-            </div>
-          </div>
-        </section>
 
         {/* Section: Team Astra Dynamics */}
         <section id="team" className="p-6 sm:p-8 rounded-lg border border-white/[0.08] bg-slate-900/30 space-y-6">
@@ -251,8 +222,6 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             <span className="font-bold text-slate-300">MANEKSHAW.VISION</span>
             <span>•</span>
             <span className="text-sky-400">Built by Team Astra Dynamics</span>
-            <span>•</span>
-            <span>Founded by Anant Jain</span>
             <span>•</span>
             <a href="/privacy" className="text-slate-400 hover:text-sky-400 transition-colors">Privacy</a>
             <span>•</span>

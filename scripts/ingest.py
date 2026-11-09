@@ -57,7 +57,7 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 RETENTION_DAYS = 30
-USER_AGENT = 'ManekshawVision-OSINT-Ingest/1.0 (+https://manvis.tech; contact@manvis.tech)'
+USER_AGENT = 'ManekshawVision-OSINT-Ingest/1.0 (+https://www.manvis.tech)'
 
 # Global in-memory telemetry buffers for Supabase persistence
 FEED_HEALTH_TELEMETRY: List[Dict[str, Any]] = []
@@ -616,7 +616,7 @@ def fetch_external_telemetry_sensors(georesolver) -> List[Dict[str, Any]]:
     try:
         req = urllib.request.Request(
             "https://api.weather.gov/alerts/active?status=actual&severity=Extreme&limit=10",
-            headers={"User-Agent": "ManekshawVision/1.0 (contact@manvis.tech)", "Accept": "application/geo+json"}
+            headers={"User-Agent": "ManekshawVision/1.0 (+https://www.manvis.tech)", "Accept": "application/geo+json"}
         )
         with urllib.request.urlopen(req, timeout=6) as resp:
             data = json.loads(resp.read().decode('utf-8'))

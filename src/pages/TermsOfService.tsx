@@ -141,7 +141,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
             <div className="p-3.5 rounded bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
               <div><strong>Entity:</strong> Astra Dynamics</div>
               <div><strong>Project:</strong> Manekshaw.Vision (<a href="https://manvis.tech" className="text-sky-400 hover:underline">manvis.tech</a>)</div>
-              <div><strong>Inquiries:</strong> <a href="mailto:contact@manvis.tech" className="text-sky-400 hover:underline">contact@manvis.tech</a> / <a href="mailto:anantjain.adyn@proton.me" className="text-sky-400 hover:underline">anantjain.adyn@proton.me</a></div>
+              <div><strong>Inquiries:</strong> <a href="https://github.com/Astra-Dynamics/Manekshaw.Vision/issues" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">GitHub Repository Issues</a></div>
             </div>
           </section>
         </div>
@@ -150,7 +150,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({
       {/* Footer */}
       <footer className="w-full px-6 py-6 border-t border-white/[0.04] bg-[#070b14] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3">
         <div>
-          <span>MANEKSHAW.VISION</span> • <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a> • <a href="/about#founder" className="text-sky-300 hover:underline">Founded by Anant Jain</a>
+          <span>MANEKSHAW.VISION</span> • <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a>
         </div>
         <div className="flex items-center gap-4 text-slate-400">
           <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">

@@ -9,7 +9,7 @@ export async function fetchWeatherAlerts(): Promise<MapFeatureItem[]> {
     const res = await fetch(
       'https://api.weather.gov/alerts/active?status=actual&message_type=alert&limit=15',
       {
-        headers: { 'User-Agent': 'WorldMonitorDashboard/1.0 (contact@worldmonitor.app)' },
+        headers: { 'User-Agent': 'ManekshawVision/1.0 (https://www.manvis.tech)' },
         signal: controller.signal
       }
     );

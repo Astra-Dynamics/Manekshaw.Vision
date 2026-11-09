@@ -80,7 +80,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
       </main>
 
       <footer className="border-t border-white/[0.08] py-6 px-4 text-center text-xs text-[#64748B]">
-        Built by Team Astra Dynamics · Founded by Anant Jain
+        Built by Team Astra Dynamics
       </footer>
     </div>
   );

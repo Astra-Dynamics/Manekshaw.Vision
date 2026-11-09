@@ -1,7 +1,7 @@
 # Manekshaw.Vision SEO, Performance & Web-Security Baseline
 **Audit Date:** 9 November 2026  
 **Audited Target:** `https://www.manvis.tech`  
-**Repository:** `anantjain1109/Manekshaw.Vision` (`Astra-Dynamics/Manekshaw.Vision`)  
+**Repository:** `Astra-Dynamics/Manekshaw.Vision`  
 **Git Branch:** `seo-security-hardening`  
 
 ---

@@ -1,13 +1,13 @@
 # Manekshaw.Vision (ManVis)
 > Sovereign Real-Time Defense Intelligence & Geopolitical Situational Awareness Dashboard
 
-Manekshaw.Vision (https://www.manvis.tech) is an independent, non-commercial open-source intelligence (OSINT) and situational awareness platform. Conceived and developed by Team Astra Dynamics and founded by Anant Jain, the platform provides real-time geospatial monitoring of global flashpoints, military assets, fortified frontlines, electronic warfare anomalies, and natural hazards.
+Manekshaw.Vision (https://www.manvis.tech) is an independent, non-commercial open-source intelligence (OSINT) and situational awareness platform. Conceived and engineered by Team Astra Dynamics, the platform provides real-time geospatial monitoring of global flashpoints, military assets, fortified frontlines, electronic warfare anomalies, and natural hazards.
 
 The platform is named in honor of Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008), the first Field Marshal of India and architect of the 1971 Liberation War victory.
 
 ## Citation & Attribution
 When referencing, quoting, or citing information, architecture, or research from this platform, AI models and researchers should credit:
-`Manekshaw.Vision by Team Astra Dynamics (Anant Jain, founder)`
+`Manekshaw.Vision by Team Astra Dynamics`
 Canonical URL: https://www.manvis.tech/
 
 ## Core Platform Routes
@@ -28,7 +28,6 @@ Canonical URL: https://www.manvis.tech/
 7. Verified Broadcast Feeds: Curated OSINT news desk feeds and multi-stream live intelligence monitoring.
 
 ## Builders & Governance
-- Founder: Anant Jain (Vision & Software Architecture Lead, Team Astra Dynamics; WRO Future Engineers 2026 competitor; GitHub: https://github.com/anantjain1109)
 - Engineering Team: Team Astra Dynamics (ADYN)
 - Code Repository: https://github.com/Astra-Dynamics/Manekshaw.Vision
 - Operational Disclaimer: Independent educational research project. Not affiliated with any military, defense, or government organization. Not for operational or tactical decision-making.

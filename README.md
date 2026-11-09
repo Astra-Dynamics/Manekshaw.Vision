@@ -81,7 +81,7 @@ The tactical layer dock provides 16 togglable intelligence feeds with real-time 
 ## ⚖️ Legal & Statutory Compliance
 
 Manekshaw.Vision is fully compliant with open-source intelligence guidelines and Indian statutory regulations:
-- **Privacy Policy ([/privacy](https://www.manvis.tech/privacy))**: Details strict data minimization, AES-256 Supabase encryption, Google OAuth scopes, and operator data deletion rights (`contact@manvis.tech`).
+- **Privacy Policy ([/privacy](https://www.manvis.tech/privacy))**: Details strict data minimization, AES-256 Supabase encryption, Google OAuth scopes, and operator data deletion rights.
 - **Terms of Service ([/terms](https://www.manvis.tech/terms))**: Governs informational OSINT usage, intellectual property, and statutory adherence to official **Survey of India (SOI)** cartographic boundaries.
 
 ---
@@ -132,15 +132,14 @@ npm run build
 
 ## 👥 Credits, Team & Attribution
 
-- **Founder & Software Architect**: [Anant Jain](https://github.com/anantjain1109) — Vision and Software Architecture lead at Team Astra Dynamics (ADYN), competing in WRO Future Engineers 2026.
 - **Engineering Team**: **Team Astra Dynamics (ADYN)** — High school engineering collective specializing in autonomous robotics and sovereign open-source intelligence systems.
 - **Namesake Tribute**: In honor of **Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008)**, the architect of India's 1971 Liberation War victory and the first Field Marshal of India.
 
 ### Citing Manekshaw.Vision
 When referencing or utilizing Manekshaw.Vision in research or AI systems:
 ```bibtex
-@software{jain2026manekshawvision,
-  author = {Jain, Anant and {Team Astra Dynamics}},
+@software{adyn2026manekshawvision,
+  author = {{Team Astra Dynamics}},
   title = {Manekshaw.Vision: Sovereign Real-Time Geopolitical Situational Awareness & Defense Intelligence Platform},
   url = {https://www.manvis.tech},
   year = {2026}
@@ -151,6 +150,6 @@ When referencing or utilizing Manekshaw.Vision in research or AI systems:
 
 ## ⚖️ License & Statutory Disclaimer
 
-- **License**: MIT License. Copyright (c) 2026 Team Astra Dynamics (Anant Jain). See [LICENSE](LICENSE) for details.
+- **License**: MIT License. Copyright (c) 2026 Team Astra Dynamics. See [LICENSE](LICENSE) for details.
 - **Operational Disclaimer**: Independent, open-source OSINT educational research platform. Not affiliated with, endorsed by, or operated on behalf of any government, armed forces, or defense agency. Not for tactical or operational decision-making.
 - **Cartographic Sovereignty**: Strictly enforces official Survey of India (SOI) boundary demarcations across the Union Territories of Jammu & Kashmir and Ladakh (including Aksai Chin) and Arunachal Pradesh.

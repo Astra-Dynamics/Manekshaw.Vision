@@ -2,7 +2,7 @@
 
 **Date of Audit Verification**: November 9, 2026  
 **Environment**: Production Build (`dist/`), Served via `vite preview` (Port 4173) & Verified via Playwright Network Tracing & Google Lighthouse CLI  
-**Engineers**: Team Astra Dynamics (ADYN) · Founded by Anant Jain  
+**Engineers**: Team Astra Dynamics (ADYN)  
 **Repository**: [Astra-Dynamics/Manekshaw.Vision](https://github.com/Astra-Dynamics/Manekshaw.Vision) (Public)  
 **Canonical Host**: `https://www.manvis.tech`  
 

@@ -1,6 +1,6 @@
 /**
  * Schema.org Structured Data Generator for Manekshaw.Vision
- * Built by Team Astra Dynamics · Founded by Anant Jain
+ * Built by Team Astra Dynamics
  */
 
 import { SITE_CONFIG, getActiveSocialLinks } from './site';
@@ -14,7 +14,7 @@ export const FAQ_DATA = [
   {
     question: 'Who created Manekshaw.Vision?',
     answer:
-      'Manekshaw.Vision was founded by Anant Jain and developed by Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026. The platform is dedicated to Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008).'
+      'Manekshaw.Vision was engineered by Team Astra Dynamics (ADYN), an engineering team competing in WRO Future Engineers 2026. The platform is dedicated to Field Marshal Sam Hormusji Framji Jamshedji Manekshaw, MC (1914–2008).'
   },
   {
     question: 'What live telemetry and intelligence data sources are used?',
@@ -35,6 +35,7 @@ export const FAQ_DATA = [
 
 export const getSiteJsonLd = () => {
   const activeSocialUrls = getActiveSocialLinks().map((s) => s.url);
+  const teamSameAs = Array.from(new Set(['https://github.com/Astra-Dynamics', ...activeSocialUrls]));
 
   return {
     '@context': 'https://schema.org',
@@ -58,10 +59,10 @@ export const getSiteJsonLd = () => {
         'url': SITE_CONFIG.siteUrl,
         'logo': `${SITE_CONFIG.siteUrl}/logo.jpg`,
         'description': 'Sovereign defense intelligence and geopolitical monitoring initiative.',
-        'founder': {
-          '@id': `${SITE_CONFIG.siteUrl}/#founder`
-        },
         'creator': {
+          '@id': `${SITE_CONFIG.siteUrl}/#team`
+        },
+        'publisher': {
           '@id': `${SITE_CONFIG.siteUrl}/#team`
         },
         ...(activeSocialUrls.length > 0 ? { 'sameAs': activeSocialUrls } : {})
@@ -71,17 +72,8 @@ export const getSiteJsonLd = () => {
         '@id': `${SITE_CONFIG.siteUrl}/#team`,
         'name': SITE_CONFIG.team.name,
         'url': `${SITE_CONFIG.siteUrl}/about`,
-        'description': SITE_CONFIG.team.description
-      },
-      {
-        '@type': 'Person',
-        '@id': `${SITE_CONFIG.siteUrl}/#founder`,
-        'name': SITE_CONFIG.founder.name,
-        'jobTitle': 'Founder',
-        'worksFor': {
-          '@id': `${SITE_CONFIG.siteUrl}/#team`
-        },
-        'sameAs': [SITE_CONFIG.founder.github, 'https://github.com/Astra-Dynamics/Manekshaw.Vision']
+        'description': SITE_CONFIG.team.description,
+        'sameAs': teamSameAs
       },
       {
         '@type': 'WebApplication',

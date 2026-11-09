@@ -1,6 +1,6 @@
 /**
  * Manekshaw.Vision - Site Configuration & Metadata Registry
- * Built by Team Astra Dynamics · Founded by Anant Jain
+ * Built by Team Astra Dynamics
  */
 
 export interface SiteSocialLinks {
@@ -18,12 +18,6 @@ export interface SiteConfig {
   shortName: string;
   title: string;
   description: string;
-  founder: {
-    name: string;
-    role: string;
-    github: string;
-    bio: string;
-  };
   team: {
     name: string;
     code: string;
@@ -41,12 +35,6 @@ export const SITE_CONFIG: SiteConfig = {
   title: 'Manekshaw.Vision | Sovereign Defense Intelligence Dashboard',
   description:
     'Sovereign defense intelligence & real-time situational awareness by Team Astra Dynamics. Honoring Field Marshal Sam Manekshaw with live OSINT telemetry.',
-  founder: {
-    name: 'Anant Jain',
-    role: 'Founder & Vision Lead',
-    github: 'https://github.com/anantjain1109',
-    bio: 'Vision and Software Architecture lead at Team Astra Dynamics (ADYN), competing in WRO Future Engineers 2026. Founder of Manekshaw.Vision.'
-  },
   team: {
     name: 'Team Astra Dynamics',
     code: 'ADYN',
@@ -60,7 +48,7 @@ export const SITE_CONFIG: SiteConfig = {
     instagram: '',
     linkedin: '',
     youtube: '',
-    github: 'https://github.com/anantjain1109'
+    github: 'https://github.com/Astra-Dynamics/Manekshaw.Vision'
   },
   disclaimer:
     'Independent, open-source OSINT research project built for educational situational awareness. Not affiliated with any government, armed forces, or defense agency. Not for operational or tactical decision-making.'

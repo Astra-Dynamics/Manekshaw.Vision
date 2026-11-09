@@ -903,12 +903,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {/* Clean Vertical Spec Stack (Left-Aligned) */}
                 <div className="w-full space-y-3.5 text-left font-mono text-[11px]">
                   <div className="flex flex-col">
-                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">FOUNDER & LEAD:</span>
-                    <span className="text-slate-200 font-medium">Anant Jain</span>
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">COLLECTIVE:</span>
+                    <span className="text-slate-200 font-medium">Team Astra Dynamics</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">TEAM:</span>
-                    <span className="text-slate-200 font-medium">Team Astra Dynamics (ADYN)</span>
+                    <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">INITIATIVE:</span>
+                    <span className="text-slate-200 font-medium">Sovereign Defense Telemetry</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[9.5px] text-[#64748B] uppercase font-bold tracking-wider">COMPETITION:</span>
@@ -1064,8 +1064,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="font-bold text-slate-200">MANEKSHAW.VISION</span>
               <span>•</span>
               <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a>
-              <span>·</span>
-              <a href="/about#founder" className="text-sky-300 hover:underline">Founded by Anant Jain</a>
+              
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -1079,7 +1078,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>•</span>
               <a href="/status" className="text-slate-400 hover:text-sky-400 transition-colors">Status</a>
               <span>•</span>
-              <a href="https://github.com/anantjain1109" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-sky-400 transition-colors">GitHub</a>
+              <a href="https://github.com/Astra-Dynamics/Manekshaw.Vision" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-sky-400 transition-colors">GitHub</a>
             </div>
           </div>
 

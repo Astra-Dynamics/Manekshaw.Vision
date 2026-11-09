@@ -1,6 +1,6 @@
 # https://www.manvis.tech/robots.txt
 # Manekshaw.Vision - Sovereign Situational Awareness & Defense Intelligence
-# Built by Team Astra Dynamics · Founded by Anant Jain
+# Built by Team Astra Dynamics
 
 User-agent: *
 Allow: /

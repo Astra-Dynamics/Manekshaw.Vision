@@ -1,9 +1,8 @@
 /* TEAM */
-Founder & Software Architect: Anant Jain
-GitHub: https://github.com/anantjain1109
-
-Engineering Team: Team Astra Dynamics (ADYN)
+Organization: Team Astra Dynamics (ADYN)
+Role: Autonomous Engineering & Defense Systems Architecture
 Competition: WRO Future Engineers 2026
+GitHub: https://github.com/Astra-Dynamics
 Location: India
 
 /* THANKS */

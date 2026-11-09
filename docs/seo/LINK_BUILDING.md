@@ -1,6 +1,6 @@
 # Ethical Link-Building & Brand Authority Strategy
 **Project:** Manekshaw.Vision (`https://www.manvis.tech`)  
-**Builders:** Team Astra Dynamics · Founded by Anant Jain  
+**Builders:** Team Astra Dynamics  
 **Version:** 1.0 (9 November 2026)  
 
 ---
@@ -21,21 +21,14 @@ All backlinks must be earned through genuine technical merit, open-source citati
 Search engines need consistent co-occurrence of brand entities across platforms:
 - **Brand Entity 1:** `"Manekshaw.Vision"` / `"ManVis"`
 - **Brand Entity 2:** `"Team Astra Dynamics"` / `"ADYN"`
-- **Brand Entity 3:** `"Anant Jain Manekshaw.Vision"` / `"Anant Jain Astra Dynamics"`
 - **Tribute Entity:** `"Field Marshal Sam Manekshaw OSINT"`
 
 ### Immediate Profile Placements (Manual Step)
 Add the canonical link `https://www.manvis.tech` to your active profiles:
-1. **GitHub Bio (@anantjain1109):**
-   - Website link: `https://www.manvis.tech`
-   - Bio: *"Vision & Software Architecture Lead @ Team Astra Dynamics. Founder of Manekshaw.Vision (@Astra-Dynamics/Manekshaw.Vision)."*
-2. **GitHub Organization (@Astra-Dynamics):**
+1. **GitHub Organization (@Astra-Dynamics):**
    - Organization Homepage: `https://www.manvis.tech`
    - Description: *"Student engineering collective competing in WRO Future Engineers 2026. Creators of Manekshaw.Vision."*
-3. **LinkedIn Profiles:**
-   - Add `Manekshaw.Vision` under "Projects" with URL `https://www.manvis.tech`.
-   - Title: *Founder & Software Architect — Manekshaw.Vision*.
-4. **WRO Team Documentation & Robot Portfolio:**
+2. **WRO Team Documentation & Robot Portfolio:**
    - Link to `https://www.manvis.tech/about` as part of Team Astra Dynamics' software engineering credentials.
 
 ---

@@ -51,7 +51,7 @@ Every indexable route now emits an independent, route-specific static HTML docum
 ### Route: `/about`
 - **HTTP Status:** `200`
 - **Title Tag:** `About Manekshaw.Vision | Team Astra Dynamics & OSINT` (52 characters)
-- **Meta Description:** `Manekshaw.Vision was architected and built by Team Astra Dynamics, founded by Anant Jain. Sovereign OSINT situational awareness and cartographic intelligence.` (158 characters)
+- **Meta Description:** `Manekshaw.Vision was architected and built by Team Astra Dynamics. Sovereign OSINT situational awareness and cartographic intelligence.` (158 characters)
 - **Canonical URL:** `https://www.manvis.tech/about`
 - **Open Graph URL:** `https://www.manvis.tech/about`
 - **Open Graph Image:** `https://www.manvis.tech/og-image.png`

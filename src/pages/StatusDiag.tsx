@@ -398,7 +398,7 @@ export const StatusDiag: React.FC<StatusDiagProps> = ({
 
       <footer className="w-full px-6 py-6 border-t border-white/[0.04] bg-[#070b14] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3 mt-8">
         <div>
-          <span>MANEKSHAW.VISION</span> • <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a> • <a href="/about#founder" className="text-sky-300 hover:underline">Founded by Anant Jain</a>
+          <span>MANEKSHAW.VISION</span> • <a href="/about#team" className="text-sky-400 hover:underline">Built by Team Astra Dynamics</a>
         </div>
         <div className="flex items-center gap-4 text-slate-400">
           <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">
