@@ -96,6 +96,7 @@ export const HoverExpandButton: React.FC<HoverExpandButtonProps> = ({
       type="button"
       onClick={onClick}
       title={title}
+      aria-label={typeof label === "string" ? label : title || "Dashboard Control"}
       className={`group relative inline-flex items-center h-[30px] px-2 rounded-md transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap select-none ${
         theme === 'light' ? 'font-sans' : 'font-mono'
       } text-[11px] shrink-0 border border-transparent ${
