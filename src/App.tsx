@@ -18,6 +18,8 @@ import { AuthPage } from './components/AuthPage';
 import { StatusDiag } from './pages/StatusDiag';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
+import { AboutPage } from './pages/AboutPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { filterByTimeRange, getLiveHotspots } from './services/liveFeedAdapter';
 import { getCountryIntel, CountryIntelDetails } from './data/countryIntel';
 import {
@@ -1569,6 +1571,25 @@ const AppContent: React.FC = () => {
         onNavigateHome={handleNavigateHome}
         onNavigateDashboard={handleLaunchDashboard}
         theme={theme}
+      />
+    );
+  }
+
+  if (currentPath.toLowerCase() === '/about' || currentPath.toLowerCase() === '/methodology') {
+    return (
+      <AboutPage
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
+      />
+    );
+  }
+
+  const isHome = currentPath === '/' || currentPath === '';
+  if (!isDashboard && !isHome) {
+    return (
+      <NotFoundPage
+        onNavigateHome={handleNavigateHome}
+        onNavigateDashboard={handleLaunchDashboard}
       />
     );
   }
