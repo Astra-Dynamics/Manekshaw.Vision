@@ -3,7 +3,7 @@
 [![Production URL](https://img.shields.io/badge/Live-manvis.tech-0284c7?style=flat&logo=google-chrome&logoColor=white)](https://www.manvis.tech)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Astra--Dynamics%2FManekshaw.Vision-181717?style=flat&logo=github&logoColor=white)](https://github.com/Astra-Dynamics/Manekshaw.Vision)
 [![Last Updated](https://img.shields.io/github/last-commit/Astra-Dynamics/Manekshaw.Vision?style=flat&color=2ea44f&label=last%20updated)](https://github.com/Astra-Dynamics/Manekshaw.Vision/commits/main)
-[![Ask DeepWiki](https://img.shields.io/badge/Ask%20DeepWiki-Manekshaw.Vision-007ec6?style=flat)](https://deepwiki.com/anantjain1109/Manekshaw.Vision)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask%20DeepWiki-Manekshaw.Vision-007ec6?style=flat)](https://deepwiki.com/Astra-Dynamics/Manekshaw.Vision)
 
 **Manekshaw.Vision** is a sovereign, high-performance real-time global intelligence and defense monitoring platform built with **React 18**, **TypeScript**, **MapLibre GL**, **Tailwind CSS**, **Vite**, and **Supabase**.
 

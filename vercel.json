@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/assets/(.*)",
@@ -14,7 +15,7 @@
       "headers": [
         {
           "key": "Strict-Transport-Security",
-          "value": "max-age=63072000; includeSubDomains"
+          "value": "max-age=63072000; includeSubDomains; preload"
         },
         {
           "key": "X-Content-Type-Options",
@@ -43,10 +44,32 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/methodology",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/Dashboard",
+      "destination": "/dashboard",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/signin",
+      "destination": "/login",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(dashboard|Dashboard|login|signin|signup|auth|privacy|terms|terms-of-service|status|about|methodology)",
-      "destination": "/index.html"
+      "source": "/auth/callback",
+      "destination": "/dashboard"
     }
   ]
 }

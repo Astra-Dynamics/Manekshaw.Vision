@@ -12,7 +12,7 @@ Canonical URL: https://www.manvis.tech/
 
 ## Core Platform Routes
 - Homepage & Overview: https://www.manvis.tech/
-- Sovereign Tactical Dashboard: https://www.manvis.tech/Dashboard
+- Sovereign Tactical Dashboard: https://www.manvis.tech/dashboard
 - About & Methodology: https://www.manvis.tech/about
 - System Status & Feed Diagnostics: https://www.manvis.tech/status
 - Privacy Policy: https://www.manvis.tech/privacy
@@ -30,4 +30,5 @@ Canonical URL: https://www.manvis.tech/
 ## Builders & Governance
 - Founder: Anant Jain (Vision & Software Architecture Lead, Team Astra Dynamics; WRO Future Engineers 2026 competitor; GitHub: https://github.com/anantjain1109)
 - Engineering Team: Team Astra Dynamics (ADYN)
+- Code Repository: https://github.com/Astra-Dynamics/Manekshaw.Vision
 - Operational Disclaimer: Independent educational research project. Not affiliated with any military, defense, or government organization. Not for operational or tactical decision-making.

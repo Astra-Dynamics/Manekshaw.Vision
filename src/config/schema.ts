@@ -81,13 +81,13 @@ export const getSiteJsonLd = () => {
         'worksFor': {
           '@id': `${SITE_CONFIG.siteUrl}/#team`
         },
-        'sameAs': [SITE_CONFIG.founder.github]
+        'sameAs': [SITE_CONFIG.founder.github, 'https://github.com/Astra-Dynamics/Manekshaw.Vision']
       },
       {
         '@type': 'WebApplication',
         '@id': `${SITE_CONFIG.siteUrl}/#webapp`,
         'name': `${SITE_CONFIG.name} Dashboard`,
-        'url': `${SITE_CONFIG.siteUrl}/Dashboard`,
+        'url': `${SITE_CONFIG.siteUrl}/dashboard`,
         'applicationCategory': 'SecurityApplication',
         'operatingSystem': 'Web',
         'offers': {

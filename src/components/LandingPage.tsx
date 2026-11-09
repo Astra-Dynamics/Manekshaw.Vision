@@ -31,7 +31,7 @@ import {
   Clock,
   Check
 } from 'lucide-react';
-import { UserNav } from './UserNav';
+const UserNav = React.lazy(() => import('./UserNav').then(m => ({ default: m.UserNav })));
 import { FAQ_DATA } from '../config/schema';
 
 interface LandingPageProps {
@@ -291,11 +291,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Compact CTA Buttons */}
             <div className="flex items-center gap-2.5">
-              <UserNav
-                onOpenAuthModal={onOpenAuthModal || (() => {})}
-                onNavigateLogin={onNavigateLogin}
-                compact
-              />
+              <React.Suspense
+                fallback={
+                  <button
+                    onClick={onNavigateLogin}
+                    className="group relative inline-flex items-center h-[30px] px-2 rounded-md font-mono text-[11px] text-amber-400 hover:text-amber-300 cursor-pointer"
+                    title="Sign In / Sign Up to Manekshaw.Vision"
+                  >
+                    <Shield size={13} className="text-amber-400" />
+                  </button>
+                }
+              >
+                <UserNav
+                  onOpenAuthModal={onOpenAuthModal || (() => {})}
+                  onNavigateLogin={onNavigateLogin}
+                  compact
+                />
+              </React.Suspense>
               <button
                 onClick={onLaunchDashboard}
                 className="relative group bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold tracking-wider uppercase transition-all shadow-[0_0_16px_rgba(56,189,248,0.35)] flex items-center gap-1.5 cursor-pointer active:scale-95"
@@ -469,7 +481,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
-              <span className="ml-2 font-semibold text-slate-300">manvis.tech/Dashboard</span>
+              <span className="ml-2 font-semibold text-slate-300">manvis.tech/dashboard</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               <span className="text-emerald-400 flex items-center gap-1 font-bold">
@@ -749,17 +761,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     fetchPriority="high"
                     className="w-full h-full object-contain filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
-                  
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 text-center font-mono pointer-events-none">
-                    <span className="px-2 py-0.5 rounded-[2px] bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold tracking-wider uppercase">
-                      FIRST FIELD MARSHAL OF INDIA
-                    </span>
-                  </div>
                 </div>
 
                 {/* Military Honors Badges */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 font-mono text-[10px]">
+                  <span className="px-2 py-0.5 rounded-[2px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase tracking-wider">
+                    First Field Marshal of India
+                  </span>
                   <span className="px-2 py-0.5 rounded-[2px] bg-white/[0.04] text-slate-300 border border-white/10">
                     Military Cross (MC)
                   </span>

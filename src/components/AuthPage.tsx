@@ -9,7 +9,7 @@ import {
   ChevronRight,
   Shield
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import {
   PasswordRequirements,
   getPasswordConditions
@@ -23,7 +23,7 @@ interface AuthPageProps {
   initialMode?: 'signin' | 'signup' | 'forgot';
 }
 
-export const AuthPage: React.FC<AuthPageProps> = ({
+const AuthPageInner: React.FC<AuthPageProps> = ({
   onNavigateHome,
   onNavigateDashboard,
   initialMode = 'signin'
@@ -606,3 +606,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     </div>
   );
 };
+
+export const AuthPage: React.FC<AuthPageProps> = (props) => (
+  <AuthProvider>
+    <AuthPageInner {...props} />
+  </AuthProvider>
+);
+
+export default AuthPage;
